@@ -5,6 +5,7 @@ description = "Asistente familiar para búsqueda y análisis de vacantes"
 requires-python = ">=3.12"
 dependencies = [
   "Django>=5.2,<5.3",
+  "gunicorn>=23,<24",
   "celery[redis]>=5.5,<6",
   "beautifulsoup4>=4.13,<5",
   "psycopg[binary]>=3.2,<4",

@@ -3,8 +3,11 @@ from django.contrib.auth import views as auth_views
 from django.views.generic import RedirectView
 from django.urls import include, path
 from profiles.views import download_private_cv
+from config.health import healthz, readyz
 
 urlpatterns = [
+    path("healthz", healthz, name="healthz"),
+    path("readyz", readyz, name="readyz"),
     path("admin/operaciones/", include("operations.urls")),
     path("admin/", RedirectView.as_view(pattern_name="operations:admin_center", permanent=False)),
     path("admin/", admin.site.urls),

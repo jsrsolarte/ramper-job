@@ -28,7 +28,7 @@ spec:
           startupProbe:
             timeoutSeconds: 20
           readinessProbe:
-            timeoutSeconds: 10
+            timeoutSeconds: 45
 ---
 apiVersion: apps/v1
 kind: Deployment

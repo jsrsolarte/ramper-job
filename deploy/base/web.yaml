@@ -80,12 +80,18 @@ spec:
             httpGet:
               path: /readyz
               port: http
+              httpHeaders:
+                - name: Host
+                  value: ramper-job-staging.ramper.lat
             periodSeconds: 5
             failureThreshold: 30
           readinessProbe:
             httpGet:
               path: /readyz
               port: http
+              httpHeaders:
+                - name: Host
+                  value: ramper-job-staging.ramper.lat
             periodSeconds: 5
             timeoutSeconds: 3
           livenessProbe:

@@ -4,6 +4,8 @@ namespace: staging
 resources:
   - ../../base
   - ingress.yaml
+patches:
+  - path: probes.patch.yaml
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job

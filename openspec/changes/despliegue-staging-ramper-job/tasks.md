@@ -34,9 +34,9 @@
 
 ## 4. Coordinar registro de Flux staging
 
-- [ ] 4.1 Consultar al administrador del servidor el hostname disponible, capacidad/cuotas, clase y tamaño de almacenamiento, ruta de Ingress y mecanismo de secretos; verificar que los valores acordados están documentados sin exponer credenciales.
+- [x] 4.1 Consultar al administrador del servidor el hostname disponible, capacidad/cuotas, clase y tamaño de almacenamiento, ruta de Ingress y mecanismo de secretos; verificar que los valores acordados están documentados sin exponer credenciales.
 - [ ] 4.2 Coordinar con el hilo `Gestiona y despliega ramper-job` la creación en el repositorio de infraestructura de la fuente Git y Kustomization que apuntan al repositorio y overlay reales de staging; verificar referencia de rama/ruta y que no se modificaron recursos ni reconciliación de producción.
-- [ ] 4.3 Validar el overlay renderizado, referencias de imagen inmutable, namespace, recursos, Ingress y referencias a Secrets antes de publicarlo; verificar que no se aplican cambios directamente con `kubectl`.
+- [x] 4.3 Validar el overlay renderizado, referencias de imagen inmutable, namespace, recursos, Ingress y referencias a Secrets antes de publicarlo; verificar que no se aplican cambios directamente con `kubectl`.
 
 ## 5. Desplegar y validar staging
 

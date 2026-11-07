@@ -7,4 +7,4 @@ resources:
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job
-    newTag: replace-with-commit-sha
+    newTag: edfc6f4a0c1f00061bb24293b017903dd02aa0d4

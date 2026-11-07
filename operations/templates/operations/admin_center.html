@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Administración · Ramper Job{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Centro de administración</p>
+  <h1>Administración</h1>
+  <p class="muted">Gestiona accesos y consulta el estado general de la plataforma.</p>
+</section>
+<section class="admin-tools" aria-label="Herramientas administrativas">
+  <article class="admin-tool">
+    <p class="eyebrow">Plataforma</p>
+    <h2>Estadísticas globales</h2>
+    <p>Consulta estados actuales de seguimiento, disponibilidad y puntajes agregados por rúbrica.</p>
+    <a class="button button-secondary" href="{% url 'operations:platform_statistics' %}">Ver estadísticas</a>
+  </article>
+  <article class="admin-tool">
+    <p class="eyebrow">Vacantes</p>
+    <h2>Registrar vacante</h2>
+    <p>Agrega una publicación y envíala al análisis de los perfiles que cumplan sus preferencias.</p>
+    <a class="button" href="{% url 'operations:manual_vacancies' %}">Agregar desde una URL</a>
+  </article>
+  <article class="admin-tool">
+    <p class="eyebrow">Accesos</p>
+    <h2>Usuarios aspirantes</h2>
+    <p>Consulta {{ applicant_count }} cuenta{{ applicant_count|pluralize:"s" }}, crea accesos y conserva su historial al desactivarlas.</p>
+    <a class="button" href="{% url 'operations:users' %}">Gestionar usuarios</a>
+  </article>
+  <article class="admin-tool">
+    <p class="eyebrow">Operación</p>
+    <h2>Observabilidad</h2>
+    <p>Revisa las consultas a fuentes, análisis de IA, recuperaciones y errores recientes.</p>
+    <a class="button button-secondary" href="{% url 'operations:dashboard' %}">Abrir observabilidad</a>
+  </article>
+  <article class="admin-tool">
+    <p class="eyebrow">Configuración</p>
+    <h2>Parámetros operativos</h2>
+    <p>Ajusta los intervalos de actualización y los plazos de retención.</p>
+    <a class="button button-secondary" href="{% url 'operations:parameters' %}">Ver parámetros</a>
+  </article>
+</section>
+{% if not password_reset_enabled %}
+  <p class="notice notice-warning" role="status">La recuperación de contraseñas está deshabilitada hasta configurar y habilitar el correo saliente.</p>
+{% endif %}
+{% endblock %}

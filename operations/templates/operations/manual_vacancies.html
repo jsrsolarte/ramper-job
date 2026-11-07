@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Registro manual de vacantes · Administración{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Administración · Vacantes</p>
+  <h1>Registrar vacante</h1>
+  <p class="muted">Pega el enlace público de una vacante de El Empleo. La aplicación extraerá sus datos y programará en segundo plano el análisis de los perfiles elegibles.</p>
+</section>
+<p class="admin-page-links"><a class="button button-secondary" href="{% url 'operations:admin_center' %}">Volver al centro de administración</a></p>
+<section class="form-panel admin-form-panel" aria-labelledby="manual-vacancy-form-heading">
+  <h2 id="manual-vacancy-form-heading">Enlace de la publicación</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="form-field form-field-{{ field.name }}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span aria-hidden="true">*</span>{% endif %}</label>
+        {{ field }}
+        {% if field.help_text %}<p class="muted">{{ field.help_text }}</p>{% endif %}
+        {% if field.errors %}<ul class="errorlist" id="{{ field.id_for_label }}-errors">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+    {% endfor %}
+    {% if form.non_field_errors %}<ul class="errorlist">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+    <div class="form-actions"><button class="button" type="submit">Procesar vacante</button></div>
+  </form>
+</section>
+
+<section class="admin-panel admin-audit" aria-labelledby="manual-vacancy-history-heading">
+  <h2 id="manual-vacancy-history-heading">Registros recientes</h2>
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead><tr><th>Fecha</th><th>Vacante o URL</th><th>Fuente</th><th>Estado</th><th>Resultado</th></tr></thead>
+      <tbody>
+        {% for submission in submissions %}
+          <tr>
+            <td>{{ submission.created_at|date:"Y-m-d H:i" }}</td>
+            <td><a href="{{ submission.original_url }}" target="_blank" rel="noopener noreferrer">{{ submission.title|default:submission.original_url }}</a></td>
+            <td>{{ submission.source|default:"Pendiente de extracción" }}</td>
+            <td>{{ submission.get_status_display }}</td>
+            <td>{{ submission.result_message|default:"Esperando procesamiento" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="5">Todavía no se han procesado vacantes desde una URL.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

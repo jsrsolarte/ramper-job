@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ingresar · Ramper Job</title>
+    <link rel="stylesheet" href="/static/app.css?v=4">
+  </head>
+  <body class="auth-page">
+    <main class="auth-layout">
+      <section class="auth-story" aria-label="Ramper Job">
+        <a class="brand brand-light" href="/" aria-label="Ramper Job, inicio">
+          <span class="brand-mark" aria-hidden="true">r</span>
+          <span>Ramper <strong>Job</strong></span>
+        </a>
+        <div class="auth-story-copy">
+          <p class="eyebrow">Tu próximo paso</p>
+          <h1>Oportunidades que sí conectan contigo.</h1>
+          <p>Reúne en un solo lugar vacantes seleccionadas según tu experiencia y lo que estás buscando.</p>
+        </div>
+        <div class="auth-orbit" aria-hidden="true"><span>R</span><i></i><i></i><i></i></div>
+        <p class="auth-footnote">Un espacio privado para tu búsqueda laboral.</p>
+      </section>
+      <section class="auth-card" aria-labelledby="login-title">
+        <p class="eyebrow">Bienvenido</p>
+        <h2 id="login-title">Ingresa a tu cuenta</h2>
+        <p class="muted">Usa los datos de acceso que te suministró el administrador.</p>
+        {% if form.errors %}<p class="form-error" role="alert">El usuario o la contraseña no son correctos. Inténtalo de nuevo.</p>{% endif %}
+        <form method="post">
+          {% csrf_token %}
+          <label for="id_username">Usuario</label>
+          {{ form.username }}
+          <label for="id_password">Contraseña</label>
+          {{ form.password }}
+          <input type="hidden" name="next" value="{{ next }}">
+          <button type="submit">Ingresar <span aria-hidden="true">→</span></button>
+        </form>
+        <p class="auth-note">¿Necesitas acceso? Pídeselo a quien administra tu cuenta.</p>
+      </section>
+    </main>
+  </body>
+</html>

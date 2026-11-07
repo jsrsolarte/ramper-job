@@ -1,0 +1,23 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block title %}{{ title }} · Administración Ramper Job{% endblock %}
+
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" href="{% static 'admin-ramper.css' %}?v=1">
+{% endblock %}
+
+{% block branding %}
+  <div id="site-name"><a href="{% url 'operations:admin_center' %}"><span class="ramper-admin-mark">r</span><span>Ramper <strong>Job</strong></span><small>Administración</small></a></div>
+{% endblock %}
+
+{% block nav-global %}
+  <nav class="ramper-admin-nav" aria-label="Navegación administrativa">
+    <a href="{% url 'operations:admin_center' %}">Centro</a>
+    <a href="{% url 'operations:users' %}">Usuarios</a>
+    <a href="{% url 'operations:dashboard' %}">Observabilidad</a>
+    <a href="{% url 'operations:parameters' %}">Parámetros</a>
+    <a href="/">Volver a la aplicación</a>
+  </nav>
+{% endblock %}

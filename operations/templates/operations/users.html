@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Usuarios · Administración{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Administración</p>
+  <h1>Usuarios aspirantes</h1>
+  <p class="muted">Cada persona tiene su propia cuenta. Desactivar conserva su perfil y el historial asociado.</p>
+</section>
+<p><a class="button" href="{% url 'operations:create_user' %}">Crear cuenta</a> <a class="button button-secondary" href="{% url 'operations:admin_center' %}">Volver al centro</a></p>
+<div class="admin-table-wrap">
+  <table class="admin-table">
+    <thead><tr><th>Usuario</th><th>Correo</th><th>Estado</th><th>Último acceso</th><th>Acciones</th></tr></thead>
+    <tbody>
+      {% for account in accounts %}
+      <tr>
+        <td>{{ account.get_username }}</td>
+        <td>{{ account.email|default:"—" }}</td>
+        <td>{% if account.is_active %}Activa{% else %}Desactivada{% endif %}</td>
+        <td>{{ account.last_login|date:"Y-m-d H:i"|default:"—" }}</td>
+        <td class="admin-actions">
+          <form method="post" action="{% url 'operations:toggle_user' account.pk %}">{% csrf_token %}<input type="hidden" name="active" value="{% if account.is_active %}false{% else %}true{% endif %}"><button class="button button-secondary" type="submit">{% if account.is_active %}Desactivar{% else %}Reactivar{% endif %}</button></form>
+          {% if password_reset_enabled and account.email %}
+          <form method="post" action="{% url 'operations:request_password_reset' account.pk %}">{% csrf_token %}<button class="button button-secondary" type="submit">Enviar recuperación</button></form>
+          {% else %}<span class="muted">Recuperación no disponible</span>{% endif %}
+        </td>
+      </tr>
+      {% empty %}<tr><td colspan="5">Todavía no hay cuentas aspirantes.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+<section class="admin-audit">
+  <h2>Actividad administrativa reciente</h2>
+  <div class="admin-table-wrap"><table class="admin-table">
+    <thead><tr><th>Fecha</th><th>Acción</th><th>Cuenta afectada</th><th>Realizada por</th></tr></thead>
+    <tbody>{% for event in audit_events %}<tr><td>{{ event.created_at|date:"Y-m-d H:i" }}</td><td>{{ event.get_action_display }}</td><td>{{ event.target.get_username }}</td><td>{{ event.actor.get_username }}</td></tr>{% empty %}<tr><td colspan="4">No hay acciones registradas.</td></tr>{% endfor %}</tbody>
+  </table></div>
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Análisis de puntajes · Ramper Job{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Tu espacio laboral</p>
+    <h1>Análisis de puntajes</h1>
+    <p class="muted">Revisa cómo se distribuyen las compatibilidades de las vacantes vigentes.</p>
+  </div>
+  <div class="hero-actions">
+    <span class="hero-user">Hola, {{ request.user.first_name|default:request.user.username }}</span>
+    <a class="button button-secondary" href="{% url 'profiles:edit' %}">Editar mi perfil <span aria-hidden="true">↗</span></a>
+  </div>
+</section>
+
+<p><a class="button button-secondary" href="{% url 'dashboard:home' %}">Volver a Recomendaciones</a></p>
+
+{% if profile and profile.cv_file %}
+  {% include "dashboard/_score_distribution.html" %}
+{% else %}
+  <section class="empty-state panel">
+    <span class="empty-icon">✦</span>
+    <h2>Completa tu perfil</h2>
+    <p>Sube tu hoja de vida y define qué tipo de oportunidades buscas para empezar.</p>
+    <a class="button" href="{% url 'profiles:edit' %}">Configurar mi perfil</a>
+  </section>
+{% endif %}
+{% endblock %}

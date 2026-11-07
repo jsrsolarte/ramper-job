@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Vacantes por analizar · Ramper Job{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Tu espacio laboral</p>
+    <h1>Vacantes por analizar</h1>
+  </div>
+</section>
+{% include "dashboard/_tabs.html" %}
+{% if pending_analyses %}
+  <section class="results-list" aria-label="Vacantes por analizar">
+    {% for analysis in pending_analyses %}
+      <article class="vacancy-card panel">
+        <div class="card-topline">
+          <span class="company-name">{{ analysis.vacancy.company|default:analysis.vacancy.source }}</span>
+          <span class="pending-badge">Pendiente de análisis</span>
+        </div>
+        <h2>{{ analysis.vacancy.title }}</h2>
+        <p class="vacancy-published">
+          <time datetime="{{ analysis.created_at|date:'c' }}" aria-label="Agregada a Por analizar el {{ analysis.created_at|date:'d/m/Y H:i' }}">
+            Agregada a Por analizar · {{ analysis.created_at|date:'d/m/Y H:i' }}
+          </time>
+        </p>
+        {% if analysis.last_attempt_at %}
+          <p class="vacancy-published">
+            <time datetime="{{ analysis.last_attempt_at|date:'c' }}" aria-label="Último intento de análisis el {{ analysis.last_attempt_at|date:'d/m/Y H:i' }}">
+              Último intento de análisis · {{ analysis.last_attempt_at|date:'d/m/Y H:i' }}
+            </time>
+          </p>
+        {% endif %}
+        <p class="muted">Intentos fallidos: {{ analysis.failed_attempt_count }}</p>
+        <dl class="vacancy-facts" aria-label="Datos originales de la vacante">
+          {% for label, value in analysis.pending_fields %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}
+        </dl>
+        {% if analysis.vacancy.description %}
+          <p class="pending-description">{{ analysis.vacancy.description|truncatechars:500 }}</p>
+        {% endif %}
+        <footer class="card-footer">
+          <span class="source-label">Fuente · {{ analysis.vacancy.source }}</span>
+          {% if analysis.vacancy.original_url %}<a class="button" href="{{ analysis.vacancy.original_url }}" target="_blank" rel="noopener noreferrer">Ver publicación original ↗</a>{% endif %}
+        </footer>
+      </article>
+    {% endfor %}
+  </section>
+{% else %}
+  <section class="empty-state panel">
+    <span class="empty-icon">⌕</span>
+    <h2>No hay vacantes por analizar</h2>
+    <p>Cuando encontremos nuevas publicaciones para tu perfil, aparecerán aquí mientras se completa su análisis.</p>
+  </section>
+{% endif %}
+{% endblock %}

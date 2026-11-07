@@ -1,0 +1,31 @@
+<section class="score-distribution-panel panel" aria-labelledby="score-distribution-title">
+  <div class="score-distribution-heading">
+    <div>
+      <h2 id="score-distribution-title">Distribución de puntajes</h2>
+      <p class="field-help">Incluye los análisis vigentes de tu perfil, incluso los que están bajo el filtro actual.</p>
+    </div>
+    <span class="score-filter-profile">{{ score_distribution_sample_size }} resultado{{ score_distribution_sample_size|pluralize:"s" }}</span>
+  </div>
+  {% if score_distribution_sample_size %}
+    <div class="score-distribution-chart" aria-label="Distribución de puntajes por bandas">
+      {% for band in score_distribution %}
+        <div class="score-distribution-row" role="img" aria-label="{{ band.label }} puntos: {{ band.count }} vacantes">
+          <span aria-hidden="true">{{ band.label }}</span>
+          <span class="score-distribution-track" aria-hidden="true"><span style="width: {{ band.width_percent }}%;"></span></span>
+          <strong aria-hidden="true">{{ band.count }}</strong>
+        </div>
+      {% endfor %}
+    </div>
+    {% if score_recommended_min != None %}
+      <div class="score-recommendation">
+        <p>La mediana de los {{ score_distribution_sample_size }} puntajes es {{ score_recommended_min }} de 10. Con ese mínimo quedarían {{ score_recommended_count }} vacante{{ score_recommended_count|pluralize:"s" }}.</p>
+        <p class="field-help">Puedes usarlo como filtro temporal del listado; no cambia el umbral de descarte ni los estados.</p>
+        <a class="button button-secondary" href="{% url 'dashboard:home' %}?score_min={{ score_recommended_min }}">Aplicar sugerencia al filtro</a>
+      </div>
+    {% else %}
+      <p class="field-help">Necesitas al menos cinco análisis vigentes para recibir una sugerencia de puntaje.</p>
+    {% endif %}
+  {% else %}
+    <p class="field-help">Aún no hay análisis vigentes para mostrar la distribución.</p>
+  {% endif %}
+</section>

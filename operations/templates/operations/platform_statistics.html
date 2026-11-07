@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas globales · Administración{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Administración · Plataforma</p>
+  <h1>Estadísticas globales</h1>
+  <p class="muted">Conteos actuales de seguimiento y publicaciones, más la distribución de puntajes por periodo y versión de rúbrica.</p>
+</section>
+<p class="admin-page-links"><a class="button button-secondary" href="{% url 'operations:admin_center' %}">Centro de administración</a><a class="button button-secondary" href="{% url 'operations:dashboard' %}">Observabilidad</a><a class="button button-secondary" href="{% url 'operations:users' %}">Usuarios</a><a class="button button-secondary" href="{% url 'operations:parameters' %}">Parámetros</a></p>
+
+<p class="muted admin-period-note"><strong>Corte actual:</strong> {{ cutoff_at|date:"Y-m-d H:i" }} · Los estados personales cuentan relaciones perfil-vacante; la disponibilidad cuenta publicaciones únicas.</p>
+<div class="global-statistics-grid">
+  <section class="admin-panel global-statistics-panel" aria-labelledby="tracking-title">
+    <div class="global-statistics-heading"><div><h2 id="tracking-title">Seguimiento por perfil</h2><p class="muted">{{ tracking_total }} relaciones activas de seguimiento</p></div></div>
+    <div class="global-statistics-rows" role="list">
+      {% for state in tracking_states %}<div class="global-statistics-row" role="listitem"><span>{{ state.label }}</span><span class="global-statistics-track" aria-hidden="true"><span style="width: {{ state.width_percent }}%"></span></span><strong>{{ state.count }}</strong></div>{% endfor %}
+    </div>
+  </section>
+  <section class="admin-panel global-statistics-panel" aria-labelledby="availability-title">
+    <div class="global-statistics-heading"><div><h2 id="availability-title">Disponibilidad de publicaciones</h2><p class="muted">{{ publication_total }} publicaciones únicas</p></div></div>
+    <div class="global-statistics-rows" role="list">
+      {% for state in publication_states %}<div class="global-statistics-row" role="listitem"><span>{{ state.label }}</span><span class="global-statistics-track" aria-hidden="true"><span style="width: {{ state.width_percent }}%"></span></span><strong>{{ state.count }}</strong></div>{% endfor %}
+    </div>
+  </section>
+</div>
+
+<section class="admin-panel global-score-panel" aria-labelledby="global-score-title">
+  <div class="global-statistics-heading"><div><h2 id="global-score-title">Distribución de puntuaciones</h2><p class="muted">Solo el análisis vigente por perfil-vacante; cada rúbrica se presenta por separado.</p></div></div>
+  <form method="get" class="admin-period-form"><label for="period">Periodo</label><select name="period" id="period">{% for key, data in periods.items %}<option value="{{ key }}"{% if period == key %} selected{% endif %}>{{ data.0 }}</option>{% endfor %}</select><button class="button button-secondary" type="submit">Actualizar periodo</button></form>
+  <p class="muted admin-period-note"><strong>Periodo:</strong> {{ requested_start|date:"Y-m-d H:i" }} – {{ cutoff_at|date:"Y-m-d H:i" }} · <strong>Cobertura registrada desde:</strong> {{ coverage_start|date:"Y-m-d H:i"|default:"Sin cobertura registrada" }}</p>
+  {% if coverage_start and not coverage_complete %}<p class="notice notice-warning" role="status">Este periodo empieza antes de la cobertura confiable. Solo se cuentan resultados desde {{ coverage_start|date:"Y-m-d H:i" }}; el tramo anterior no se presenta como cero.</p>{% endif %}
+  {% if has_score_data %}
+    {% for distribution in score_distributions %}
+      <section class="global-rubric-distribution" aria-label="{{ distribution.rubric_label }}">
+        <div class="global-rubric-heading"><h3>{{ distribution.rubric_label }}</h3><p><strong>{{ distribution.sample_size }}</strong> resultados · mediana <strong>{{ distribution.median|floatformat:2 }}</strong></p></div>
+        <div class="score-distribution-chart" role="list">
+          {% for band in distribution.bands %}<div class="score-distribution-row" role="listitem"><span>{{ band.label }}</span><span class="score-distribution-track" aria-hidden="true"><span style="width: {{ band.width_percent }}%"></span></span><strong>{{ band.count }}</strong></div>{% endfor %}
+        </div>
+      </section>
+    {% endfor %}
+  {% else %}<p class="global-statistics-empty">Todavía no hay puntajes válidos con cobertura para este periodo.</p>{% endif %}
+</section>
+<section class="admin-panel global-score-panel" aria-labelledby="format-failures-title">
+  <div class="global-statistics-heading"><div><h2 id="format-failures-title">Fallos de formato del análisis</h2><p class="muted">Intentos de puntuación rechazados o reintentados durante el mismo periodo seleccionado.</p></div></div>
+  {% if has_format_failures %}
+    <div class="global-statistics-rows format-failure-rows" role="list">
+      {% for failure in format_failures %}<div class="global-statistics-row format-failure-row" role="listitem"><span>{{ failure.label }}</span><strong>{{ failure.count }}</strong></div>{% endfor %}
+    </div>
+  {% else %}<p class="global-statistics-empty">No hay fallos de formato registrados en este intervalo.</p>{% endif %}
+</section>
+<p class="muted global-statistics-privacy">Estas vistas muestran totales agregados y no enlazan perfiles, CV, prompts ni vacantes individuales.</p>
+{% endblock %}

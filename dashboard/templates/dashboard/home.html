@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Mis vacantes · Ramper Job{% endblock %}
+{% block content %}
+<section class="hero">
+  <div>
+    <p class="eyebrow">Tu espacio laboral</p>
+    <h1>Oportunidades para ti</h1>
+    <p class="muted">Vacantes ordenadas por su compatibilidad con tu perfil.</p>
+  </div>
+  <div class="hero-actions">
+    <span class="hero-user">Hola, {{ request.user.first_name|default:request.user.username }}</span>
+    <a class="button button-secondary" href="{% url 'profiles:edit' %}">Editar mi perfil <span aria-hidden="true">↗</span></a>
+  </div>
+</section>
+
+{% include "dashboard/_tabs.html" %}
+
+{% for source in unavailable_sources %}
+  <div class="notice notice-warning"><strong>{{ source.get_source_display|default:source.source }}</strong>: la fuente no está disponible en este momento. Conservamos las vacantes encontradas anteriormente.</div>
+{% endfor %}
+{% if pending_count %}<p class="notice">Tienes {{ pending_count }} vacante{{ pending_count|pluralize:"s" }} pendiente{{ pending_count|pluralize:"s" }} de análisis para tu perfil. Los resultados aparecerán aquí cuando se completen.</p>{% endif %}
+
+{% if not profile or not profile.cv_file %}
+  <section class="empty-state panel">
+    <span class="empty-icon">✦</span>
+    <h2>Completa tu perfil</h2>
+    <p>Sube tu hoja de vida y define qué tipo de oportunidades buscas para empezar.</p>
+    <a class="button" href="{% url 'profiles:edit' %}">Configurar mi perfil</a>
+  </section>
+{% elif profile.cv_file %}
+  {% if follow_up_status == 'pending' %}
+  <section class="vacancy-filter panel" aria-label="Filtrar vacantes por puntaje">
+    <div class="score-filter-heading">
+      <div><h2>Filtrar por estrellas</h2><p class="field-help">Elige un mínimo solo para este listado. Se mostrarán recomendaciones con ese puntaje o más.</p></div>
+    </div>
+    <nav class="score-filter-options" aria-label="Puntaje mínimo de compatibilidad">
+      {% for option in score_filter_options %}
+      <a class="score-filter-option{% if option.selected %} is-selected{% endif %}" href="?score_min={{ option.value }}"{% if option.selected %} aria-current="true"{% endif %} aria-label="{% if option.value == 0 %}Mostrar todas las recomendaciones{% else %}Mostrar recomendaciones con {{ option.label }} o más{% endif %}" title="{% if option.value == 0 %}Mostrar todas las recomendaciones{% else %}{{ option.label }} o más{% endif %}"><span class="score-stars" style="--score-fill: {{ option.percent }}%;" aria-hidden="true">★★★★★</span><small>{{ option.label }}</small></a>
+      {% endfor %}
+    </nav>
+  </section>
+  {% endif %}
+  {% if analyses %}
+  <section class="results-list" aria-label="Vacantes recomendadas">
+    {% for analysis in analyses %}
+      <article class="vacancy-card panel">
+        <div class="card-topline">
+          <span class="company-name">{{ analysis.vacancy.company|default:analysis.vacancy.source }}</span>
+          <span class="score" role="img" aria-label="Compatibilidad: {{ analysis.score|floatformat:1 }} de 10. Equivalente visual: {{ analysis.score_star_label }} de 5 estrellas"><span class="score-stars" style="--score-fill: {{ analysis.score_star_percent }}%;" aria-hidden="true">★★★★★</span></span>
+        </div>
+        <h2>{{ analysis.vacancy.title }}</h2>
+        {% if analysis.organization_status == 'pending' %}<p class="notice">Puntaje calculado. Estamos organizando los detalles de la vacante.</p>{% elif analysis.organization_status == 'completed' %}<p class="vacancy-organized-status">Detalles de la vacante organizados</p>{% elif analysis.organization_status == 'failed' %}<p class="notice notice-warning">El puntaje está disponible; no se pudieron organizar los detalles de la vacante.</p>{% endif %}
+        <p class="vacancy-timing">
+          {% if analysis.published_age %}<time class="vacancy-published" datetime="{{ analysis.vacancy.published_at|date:'c' }}" aria-label="Publicada {{ analysis.publication_absolute }}">Publicada {{ analysis.published_age }}</time>{% elif analysis.vacancy.raw_data.publication_label %}<span class="vacancy-published">Publicada {{ analysis.vacancy.raw_data.publication_label }}</span>{% endif %}
+          {% if follow_up_status == 'pending' and analysis.analyzed_age %}<time class="vacancy-published" datetime="{{ analysis.completed_at|date:'c' }}" aria-label="Analizada {{ analysis.completed_at|date:'d/m/Y H:i' }}">Analizada {{ analysis.analyzed_age }}</time>{% elif analysis.state_age %}<time class="vacancy-published" datetime="{{ analysis.state_changed_at|date:'c' }}" aria-label="{{ analysis.state_age_prefix }} {{ analysis.state_changed_at|date:'d/m/Y H:i' }}">{{ analysis.state_age_prefix }} {{ analysis.state_age }}</time>{% endif %}
+        </p>
+        <dl class="vacancy-facts" aria-label="Condiciones de la vacante">
+          {% for label, value in analysis.vacancy_facts %}<div><dt>{{ label }}</dt><dd>{{ value }}</dd></div>{% endfor %}
+        </dl>
+        {% if analysis.dashboard_organized_content.keywords %}
+          <div class="vacancy-keywords" aria-label="Palabras clave de la vacante">
+            <span class="keywords-label">Enfoque</span>
+            <div class="keyword-list">{% for keyword in analysis.dashboard_organized_content.keywords %}<span class="keyword-chip">{{ keyword }}</span>{% endfor %}</div>
+          </div>
+        {% endif %}
+        {% if analysis.score_breakdown or analysis.reasons or analysis.gaps %}
+          <details class="match-details">
+            <summary>Ver detalles del análisis</summary>
+            <div class="match-details-content">
+              {% if analysis.score_breakdown %}<section><h3>Desglose del puntaje</h3><ul class="rubric-breakdown">{% for item in analysis.rubric_details %}<li><strong>{{ item.label }} · {{ item.score|floatformat:1 }}/{{ item.max_score }}</strong><span>{{ item.status }}</span>{% if item.evidence %}<p>{{ item.evidence }}</p>{% endif %}</li>{% endfor %}</ul>{% if analysis.score_deductions %}<h4>Deducciones por requisitos obligatorios</h4><ul>{% for deduction in analysis.score_deductions %}<li>−{{ deduction.points|floatformat:1 }} · {{ deduction.requirement }}{% if deduction.evidence %}<p>{{ deduction.evidence }}</p>{% endif %}</li>{% endfor %}</ul>{% endif %}{% if analysis.critical_requirements %}<h4>Requisitos críticos evaluados</h4><ul>{% for requirement in analysis.critical_requirements %}<li>{{ requirement.requirement }} · {{ requirement.status }}{% if requirement.evidence %}<p>{{ requirement.evidence }}</p>{% endif %}</li>{% endfor %}</ul>{% endif %}</section>{% endif %}
+              {% if analysis.reasons %}<section><h3>Por qué coincide</h3><ul>{% for reason in analysis.reasons|slice:":3" %}<li>{{ reason|truncatechars:220 }}</li>{% endfor %}</ul></section>{% endif %}
+              {% if analysis.gaps %}<section class="gaps"><h3>Aspectos por revisar</h3><ul>{% for gap in analysis.gaps|slice:":3" %}<li>{{ gap|truncatechars:220 }}</li>{% endfor %}</ul></section>{% endif %}
+            </div>
+          </details>
+        {% endif %}
+        <div class="follow-up-form" aria-label="Seguimiento de la vacante">
+          <span>Estado: {{ analysis.follow_up_label }}</span>
+          {% if follow_up_status == 'discarded' %}
+          <form method="post" action="{% url 'dashboard:update_follow_up' analysis.vacancy_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="restore">
+            <button class="button button-secondary" type="submit">Restaurar vacante</button>
+          </form>
+          {% endif %}
+          {% for action_status, action_label in analysis.follow_up_actions %}
+          <form method="post" action="{% url 'dashboard:update_follow_up' analysis.vacancy_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="{{ action_status }}">
+            <button class="button button-secondary" type="submit">{{ action_label }}</button>
+          </form>
+          {% endfor %}
+          {% if analysis.can_discard %}
+          <form method="post" action="{% url 'dashboard:update_follow_up' analysis.vacancy_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="discarded">
+            <button class="text-button" type="submit">Descartar vacante</button>
+          </form>
+          {% endif %}
+        </div>
+        <footer class="card-footer">
+          <span class="source-label">Fuente · {{ analysis.vacancy.source }}</span>
+          <a class="button" href="{{ analysis.vacancy.original_url }}" target="_blank" rel="noopener noreferrer">Ver publicación original ↗</a>
+        </footer>
+      </article>
+    {% endfor %}
+  </section>
+  {% if analyses.has_other_pages %}
+    <nav class="pagination" aria-label="Paginación">
+      {% if analyses.has_previous %}<a class="pagination-direction" href="?{{ previous_page_query }}">← Anteriores</a>{% endif %}
+      <ol class="pagination-pages" aria-label="Páginas">
+        {% for item in page_navigation %}
+          {% if item.ellipsis %}<li class="pagination-ellipsis" aria-hidden="true">…</li>
+          {% elif item.current %}<li><span class="pagination-current" aria-current="page" aria-label="Página {{ item.number }}">{{ item.number }}</span></li>
+          {% else %}<li><a href="?{{ item.querystring }}" aria-label="Ir a la página {{ item.number }}">{{ item.number }}</a></li>{% endif %}
+        {% endfor %}
+      </ol>
+      <span>Página {{ analyses.number }} de {{ analyses.paginator.num_pages }}</span>
+      {% if analyses.has_next %}<a class="pagination-direction" href="?{{ next_page_query }}">Siguientes →</a>{% endif %}
+    </nav>
+  {% endif %}
+  {% else %}
+  <section class="empty-state panel">
+    <span class="empty-icon">⌕</span>
+    <h2>{{ follow_up_empty_title }}</h2>
+    {% if follow_up_status != 'pending' %}
+      <p>Las vacantes que marques con este estado aparecerán aquí.</p>
+    {% else %}
+    {% if score_filter %}
+      <p>No hay recomendaciones con {{ score_filter_star_label }} o más en este listado.</p>
+      <a class="button button-secondary" href="{% url 'dashboard:home' %}">Quitar filtro del listado</a>
+    {% else %}
+      <p>Cuando termine el análisis, las vacantes que alcancen el umbral de descarte configurado en tu perfil aparecerán aquí.</p>
+    {% endif %}
+    {% endif %}
+  </section>
+  {% endif %}
+{% endif %}
+{% endblock %}

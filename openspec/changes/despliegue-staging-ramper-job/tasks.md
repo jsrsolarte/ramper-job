@@ -19,7 +19,7 @@
 
 ## 2. Preparar la aplicación y CI
 
-- [ ] 2.1 Crear o vincular el repositorio remoto de la aplicación en GitHub y publicar el commit candidato; verificar propietario, nombre, remoto configurado, acceso de CI y que no se publique ningún secreto ni archivo `.env` real.
+- [x] 2.1 Crear o vincular el repositorio remoto de la aplicación en GitHub y publicar el commit candidato; verificar propietario, nombre, remoto configurado, acceso de CI y que no se publique ningún secreto ni archivo `.env` real.
 - [x] 2.2 Crear un `Dockerfile` de runtime seguro que instale dependencias, prepare archivos estáticos, use un usuario sin privilegios y permita iniciar web, worker y Beat por separado; verificar la construcción local y el cierre ordenado de cada proceso.
 - [x] 2.3 Añadir endpoints de salud/disponibilidad y configuración de producción para `DEBUG`, hosts, CSRF, cookies y archivos privados; verificar respuestas de salud con la configuración de staging y denegación de acceso anónimo a CV.
 - [x] 2.4 Añadir GitHub Actions para ejecutar las validaciones existentes y publicar en GHCR una imagen por SHA/digest solo cuando las validaciones pasen; verificar que un fallo no publica imagen y que no se usa `latest`.

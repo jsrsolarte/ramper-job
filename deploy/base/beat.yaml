@@ -69,6 +69,7 @@ spec:
                 - -c
                 - from config.celery import app; from django.db import connection; connection.ensure_connection(); from redis import Redis; from django.conf import settings; Redis.from_url(settings.CELERY_BROKER_URL, socket_connect_timeout=2, socket_timeout=2).ping()
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 30
           readinessProbe:
             exec:

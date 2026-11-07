@@ -82,6 +82,7 @@ spec:
                 - -c
                 - from config.celery import app; raise SystemExit(0 if app.control.ping(timeout=3) else 1)
             periodSeconds: 5
+            timeoutSeconds: 10
             failureThreshold: 30
           readinessProbe:
             exec:

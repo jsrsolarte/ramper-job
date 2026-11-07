@@ -27,9 +27,9 @@
 
 ## 3. Crear recursos y persistencia aislados de staging
 
-- [ ] 3.1 Crear `deploy/base` y `deploy/overlays/staging` para web, worker, Beat, PostgreSQL y Redis con Services internos, probes, requests/limits y namespace explícito; verificar el render de Kustomize y ausencia de recursos de producción.
+- [x] 3.1 Crear `deploy/base` y `deploy/overlays/staging` para web, worker, Beat, PostgreSQL y Redis con Services internos, probes, requests/limits y namespace explícito; verificar el render de Kustomize y ausencia de recursos de producción.
 - [ ] 3.2 Configurar volúmenes separados para PostgreSQL y CV, mantener Redis reconstruible y documentar backup externo y restauración; verificar un respaldo y restauración de prueba antes de conservar datos necesarios.
-- [ ] 3.3 Referenciar configuración no secreta desde ConfigMaps y credenciales desde Secrets externos a Git; verificar que manifiestos, logs, historial de shell y artefactos de imagen no contienen secretos ni datos reales de producción.
+- [x] 3.3 Referenciar configuración no secreta desde ConfigMaps y credenciales desde Secrets externos a Git; verificar que manifiestos, logs, historial de shell y artefactos de imagen no contienen secretos ni datos reales de producción.
 - [ ] 3.4 Añadir la ejecución controlada de migraciones antes de marcar web lista y documentar compatibilidad hacia atrás; verificar migración aplicada y ruta de reversión a la imagen anterior sin pérdida de datos.
 
 ## 4. Coordinar registro de Flux staging

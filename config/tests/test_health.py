@@ -12,6 +12,12 @@ class HealthEndpointTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {"status": "ok"})
 
+    def test_collected_static_assets_are_served(self):
+        response = self.client.get("/static/app.css")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("text/css", response["Content-Type"])
+
     @patch("config.health.Redis.from_url")
     def test_readyz_checks_database_and_redis(self, redis_from_url):
         redis_from_url.return_value.ping.return_value = True

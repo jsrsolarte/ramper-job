@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ramper-job-config
+data:
+  DJANGO_DEBUG: "false"
+  DJANGO_ALLOWED_HOSTS: "ramper-job-staging.ramper.lat"
+  DJANGO_CSRF_TRUSTED_ORIGINS: "https://ramper-job-staging.ramper.lat"
+  POSTGRES_DB: "ramper_job"
+  POSTGRES_USER: "ramper_job"
+  POSTGRES_HOST: "ramper-postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_CONN_MAX_AGE: "60"
+  REDIS_URL: "redis://ramper-redis:6379/0"
+  PRIVATE_MEDIA_ROOT: "/var/lib/ramper/private-media"
+  OMNIROUTE_BASE_URL: "https://omniroute.ramper.lat"
+  OMNIROUTE_MODEL: "auto"
+  OMNIROUTE_CHAT_COMPLETIONS_PATH: "chat/completions"
+  OMNIROUTE_TIMEOUT_SECONDS: "180"
+  JOB_REFRESH_MINUTES: "120"

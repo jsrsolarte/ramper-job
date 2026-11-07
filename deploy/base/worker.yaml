@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ramper-job-worker
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ramper-job-worker
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ramper-job-worker
+    spec:
+      automountServiceAccountToken: false
+      imagePullSecrets:
+        - name: ramper-job-registry
+      terminationGracePeriodSeconds: 960
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        - name: wait-for-database-migrations
+          image: ramper-job:local
+          imagePullPolicy: IfNotPresent
+          command: ["python", "manage.py", "wait_for_migrations", "--timeout", "900"]
+          envFrom:
+            - configMapRef:
+                name: ramper-job-config
+            - secretRef:
+                name: ramper-job-secrets
+          resources:
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              cpu: 500m
+              memory: 384Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      containers:
+        - name: worker
+          image: ramper-job:local
+          imagePullPolicy: IfNotPresent
+          command: ["celery"]
+          args:
+            - -A
+            - config
+            - worker
+            - -l
+            - INFO
+            - -Q
+            - celery,matching_v2
+            - --without-gossip
+            - --without-mingle
+            - --concurrency=1
+          envFrom:
+            - configMapRef:
+                name: ramper-job-config
+            - secretRef:
+                name: ramper-job-secrets
+          volumeMounts:
+            - name: private-media
+              mountPath: /var/lib/ramper/private-media
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          startupProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - from config.celery import app; raise SystemExit(0 if app.control.ping(timeout=3) else 1)
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - from config.celery import app; raise SystemExit(0 if app.control.ping(timeout=3) else 1)
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            exec:
+              command:
+                - python
+                - -c
+                - from config.celery import app; raise SystemExit(0 if app.control.ping(timeout=3) else 1)
+            periodSeconds: 20
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 150m
+              memory: 384Mi
+            limits:
+              cpu: 700m
+              memory: 640Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      volumes:
+        - name: private-media
+          persistentVolumeClaim:
+            claimName: ramper-job-private-media
+        - name: tmp
+          emptyDir:
+            sizeLimit: 128Mi

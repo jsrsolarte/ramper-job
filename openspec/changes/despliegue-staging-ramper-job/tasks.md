@@ -40,7 +40,7 @@
 
 ## 5. Desplegar y validar staging
 
-- [ ] 5.1 Provisionar fuera de Git los Secrets de staging y dejar listos los respaldos antes de activar Flux; verificar nombres y disponibilidad de recursos sin leer valores secretos.
+- [ ] 5.1 Provisionar fuera de Git los Secrets de staging antes de activar Flux; mientras no exista backup externo probado, mantener el entorno limitado a datos sintéticos y descartables. Verificar nombres y disponibilidad sin leer valores secretos.
 - [ ] 5.2 Publicar la imagen del commit funcional aprobado, actualizar el overlay de staging con su SHA/digest y dejar que Flux lo reconcilie; verificar commit, imagen, namespace y estado de reconciliación.
 - [ ] 5.3 Después de aplicar migraciones, ejecutar una vez el bootstrap interactivo de administración con contraseña oculta; verificar inicio de sesión, existencia de un solo administrador y ausencia de la contraseña en logs/manifiestos.
 - [ ] 5.4 Verificar disponibilidad de web, worker y Beat, logs saneados, salud del Ingress y acceso al hostname acordado; registrar el resultado observable de cada proceso.

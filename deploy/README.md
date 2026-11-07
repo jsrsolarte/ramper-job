@@ -16,8 +16,12 @@ existir fuera del repositorio el Secret `ramper-job-secrets`, con estas claves:
 Además, debe existir el Secret de tipo `kubernetes.io/dockerconfigjson` llamado
 `ramper-job-registry`, con credencial GHCR de solo lectura (`read:packages`), para que los
 pods puedan descargar el paquete. No se versiona ningún manifiesto de Secret ni un archivo
-`.env`. El bootstrap de la cuenta administradora es una operación interactiva única
-ejecutada dentro del pod web.
+`.env`. Para crearlos de forma interactiva, en el servidor con acceso a MicroK8s ejecuta
+`python3 scripts/provision_staging_secrets.py` desde el checkout de la app. El script genera
+la clave Django y la contraseña PostgreSQL, solicita OmniRoute y GHCR sin eco, escribe los
+temporales solo en `/dev/shm` con permisos privados y se niega a sobrescribir Secrets
+existentes. No muestra ni guarda los valores en el repositorio. El bootstrap de la cuenta
+administradora es una operación interactiva única ejecutada dentro del pod web.
 
 ## Persistencia y alcance de datos
 

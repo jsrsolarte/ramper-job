@@ -6,6 +6,13 @@ resources:
   - ingress.yaml
 patches:
   - path: probes.patch.yaml
+  - target:
+      kind: ConfigMap
+      name: ramper-job-config
+    patch: |-
+      - op: replace
+        path: /data/OMNIROUTE_BASE_URL
+        value: http://omniroute.prod.svc.cluster.local:20128/v1
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job

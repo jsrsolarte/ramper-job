@@ -13,6 +13,32 @@ patches:
       - op: replace
         path: /data/OMNIROUTE_BASE_URL
         value: http://omniroute.prod.svc.cluster.local:20128/v1
+  - target:
+      kind: Deployment
+      name: ramper-job-web
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ramper-job-web
+      spec:
+        template:
+          metadata:
+            annotations:
+              ops.ramper.lat/config-revision: c4631d5e
+  - target:
+      kind: Deployment
+      name: ramper-job-worker
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ramper-job-worker
+      spec:
+        template:
+          metadata:
+            annotations:
+              ops.ramper.lat/config-revision: c4631d5e
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job

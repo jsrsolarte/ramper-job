@@ -1,0 +1,130 @@
+name: Create versioned release metadata
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  release:
+    name: Validate and record tested image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out release tag and full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Validate new immutable SemVer tag
+        id: version
+        env:
+          TAG: ${{ github.ref_name }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [[ "$BEFORE" != "0000000000000000000000000000000000000000" ]]; then
+            echo "A release tag may only be created once; updates and reuse are rejected." >&2
+            exit 1
+          fi
+          if [[ "$(git cat-file -t "refs/tags/$TAG")" != "tag" ]]; then
+            echo "Release tags must be annotated Git tags." >&2
+            exit 1
+          fi
+          EXISTING_TAGS="$(git tag --list 'v*' | grep -Fvx "$TAG" || true)"
+          RESULT="$(python scripts/validate_release_version.py --tag "$TAG" --existing-tags "$EXISTING_TAGS")"
+          VERSION="$(python -c 'import json,sys; print(json.load(sys.stdin)["version"])' <<< "$RESULT")"
+          SOURCE_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
+          RELEASE_REASON="$(git for-each-ref --format='%(contents:subject)' "refs/tags/$TAG")"
+          if [[ -z "$RELEASE_REASON" ]]; then
+            echo "The annotated tag must explain the release type and rationale." >&2
+            exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "release_reason=$RELEASE_REASON" >> "$GITHUB_OUTPUT"
+
+      - name: Verify commit is the image currently selected for staging
+        env:
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin staging:refs/remotes/origin/staging
+          git merge-base --is-ancestor "$SOURCE_SHA" origin/staging
+          STAGING_IMAGE_SHA="$(git show origin/staging:deploy/overlays/staging/kustomization.yaml | sed -nE 's/^[[:space:]]*newTag:[[:space:]]*([^[:space:]#]+).*/\1/p')"
+          if [[ "$STAGING_IMAGE_SHA" != "$SOURCE_SHA" ]]; then
+            echo "Release commit is not the image currently pinned in staging." >&2
+            exit 1
+          fi
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve the existing SHA-tagged image digest
+        id: image
+        env:
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:$SOURCE_SHA"
+          docker buildx imagetools inspect "$IMAGE" | tee "$RUNNER_TEMP/image-inspect.txt"
+          DIGEST="$(sed -nE 's/^Digest:[[:space:]]*(sha256:[0-9a-f]{64})$/\1/p' "$RUNNER_TEMP/image-inspect.txt" | head -n1)"
+          if [[ -z "$DIGEST" ]]; then
+            echo "Could not resolve the immutable image digest for $IMAGE." >&2
+            exit 1
+          fi
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+      - name: Create release metadata manifest
+        env:
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+          RELEASE_REASON: ${{ steps.version.outputs.release_reason }}
+          IMAGE: ${{ steps.image.outputs.image }}
+          DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          manifest = {
+              "version": os.environ["VERSION"],
+              "git_tag": os.environ["TAG"],
+              "source_sha": os.environ["SOURCE_SHA"],
+              "image": os.environ["IMAGE"],
+              "image_digest": os.environ["DIGEST"],
+              "release_reason": os.environ["RELEASE_REASON"],
+          }
+          Path(os.environ["RUNNER_TEMP"], "release-metadata.json").write_text(
+              json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
+          )
+          Path(os.environ["RUNNER_TEMP"], "release-notes.md").write_text(
+              f"Versión {manifest['version']} validada en staging.\n\n"
+              f"Motivo del incremento: {manifest['release_reason']}\n\n"
+              f"Commit: `{manifest['source_sha']}`\n\n"
+              f"Imagen: `{manifest['image']}@{manifest['image_digest']}`\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Publish release record for the tested image
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+          VERSION: ${{ steps.version.outputs.version }}
+          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+        run: |
+          gh release create "$TAG" "$RUNNER_TEMP/release-metadata.json" \
+            --verify-tag \
+            --target "$SOURCE_SHA" \
+            --title "Ramper Job $VERSION" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"

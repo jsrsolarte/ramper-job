@@ -210,7 +210,9 @@ def invitation_accept(request):
             "validation_url": reverse("invitation_validate"),
         })
         response["Cache-Control"] = "private, no-store"
-        response["Referrer-Policy"] = "no-referrer"
+        # Keep the HTTPS form submit compatible with Django CSRF checks while limiting referrers to this origin.
+        # The invitation token lives in the URL fragment, which browsers never include in Referer.
+        response["Referrer-Policy"] = "same-origin"
         response["X-Robots-Tag"] = "noindex, nofollow"
         return response
 
@@ -224,7 +226,7 @@ def invitation_accept(request):
             "validation_url": reverse("invitation_validate"),
         }, status=400)
         response["Cache-Control"] = "private, no-store"
-        response["Referrer-Policy"] = "no-referrer"
+        response["Referrer-Policy"] = "same-origin"
         return response
 
     form = InvitationAcceptanceForm(request.POST)
@@ -237,7 +239,7 @@ def invitation_accept(request):
             "validation_url": reverse("invitation_validate"),
         })
         response["Cache-Control"] = "private, no-store"
-        response["Referrer-Policy"] = "no-referrer"
+        response["Referrer-Policy"] = "same-origin"
         return response
 
     User = get_user_model()
@@ -254,7 +256,7 @@ def invitation_accept(request):
                     "validation_url": reverse("invitation_validate"),
                 }, status=400)
                 response["Cache-Control"] = "private, no-store"
-                response["Referrer-Policy"] = "no-referrer"
+                response["Referrer-Policy"] = "same-origin"
                 return response
             applicant = form.save(commit=False)
             applicant.email = locked_invitation.email
@@ -281,7 +283,7 @@ def invitation_accept(request):
             "validation_url": reverse("invitation_validate"),
         })
         response["Cache-Control"] = "private, no-store"
-        response["Referrer-Policy"] = "no-referrer"
+        response["Referrer-Policy"] = "same-origin"
         return response
 
     messages.success(request, "Tu cuenta quedó creada. Ya puedes iniciar sesión.")

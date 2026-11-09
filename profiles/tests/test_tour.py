@@ -14,20 +14,27 @@ class GuidedTourProgressTests(TestCase):
         user_model = get_user_model()
         self.applicant = user_model.objects.create_user("applicant", password="LongPassword-2026!")
         self.other_applicant = user_model.objects.create_user("other-applicant", password="LongPassword-2026!")
+        for applicant in (self.applicant, self.other_applicant):
+            GuidedTourProgress.objects.create(
+                owner=applicant,
+                version=3,
+                mandatory_completed=True,
+            )
         self.admin = user_model.objects.create_superuser(
             "platform-admin", email="admin@example.test", password="LongPassword-2026!"
         )
 
-    def test_initial_state_is_offered_without_creating_a_progress_record(self):
+    def test_completed_aspirant_is_offered_the_optional_guide(self):
         self.client.force_login(self.applicant)
 
         response = self.client.get(reverse("profiles:tour_state"))
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["status"], GuidedTourProgress.Status.NOT_STARTED)
+        self.assertFalse(response.json()["mandatory"])
         self.assertTrue(response.json()["offer"])
         self.assertEqual(response.json()["step_count"], len(TOUR_STEPS))
-        self.assertFalse(GuidedTourProgress.objects.exists())
+        self.assertTrue(GuidedTourProgress.objects.filter(owner=self.applicant).exists())
 
     def test_start_next_previous_close_and_reopen_persist_the_current_step(self):
         self.client.force_login(self.applicant)
@@ -55,7 +62,7 @@ class GuidedTourProgressTests(TestCase):
 
         reopened = self.client.post(reverse("profiles:tour_action"), {"action": "reopen"})
         self.assertEqual(reopened.json()["step"]["id"], "open_profile")
-        self.assertEqual(GuidedTourProgress.objects.count(), 1)
+        self.assertEqual(GuidedTourProgress.objects.filter(owner=self.applicant).count(), 1)
 
     def test_last_step_completes_and_manual_reopen_starts_from_the_beginning(self):
         self.client.force_login(self.applicant)
@@ -84,21 +91,90 @@ class GuidedTourProgressTests(TestCase):
         self.assertFalse(skipped.json()["offer"])
 
     def test_progress_is_isolated_between_applicants(self):
-        GuidedTourProgress.objects.create(
-            owner=self.applicant,
-            status=GuidedTourProgress.Status.IN_PROGRESS,
-            current_step="phrases",
-        )
+        applicant_progress = GuidedTourProgress.objects.get(owner=self.applicant)
+        applicant_progress.status = GuidedTourProgress.Status.IN_PROGRESS
+        applicant_progress.current_step = "phrases"
+        applicant_progress.save(update_fields=("status", "current_step", "updated_at"))
         self.client.force_login(self.other_applicant)
 
         response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
 
         self.assertEqual(response.status_code, 409)
-        self.assertFalse(GuidedTourProgress.objects.filter(owner=self.other_applicant).exists())
+        self.assertTrue(GuidedTourProgress.objects.filter(owner=self.other_applicant).exists())
         self.assertEqual(
             GuidedTourProgress.objects.get(owner=self.applicant).current_step,
             "phrases",
         )
+
+    def test_first_access_starts_mandatory_guide_and_blocks_normal_use(self):
+        first_time = get_user_model().objects.create_user("first-time", password="LongPassword-2026!")
+        self.client.force_login(first_time)
+
+        home = self.client.get(reverse("dashboard:home"))
+        state = self.client.get(reverse("profiles:tour_state"))
+        analysis = self.client.get(reverse("dashboard:analysis"))
+        skipped = self.client.post(reverse("profiles:tour_action"), {"action": "skip"})
+        closed = self.client.post(reverse("profiles:tour_action"), {"action": "close"})
+        profile_update = self.client.post(
+            reverse("profiles:edit"),
+            {"search_phrases": "No debe guardarse", "locations": "Medellín"},
+        )
+
+        self.assertEqual(home.status_code, 200)
+        self.assertTrue(state.json()["mandatory"])
+        self.assertEqual(state.json()["status"], GuidedTourProgress.Status.IN_PROGRESS)
+        self.assertEqual(state.json()["step"]["id"], "open_profile")
+        self.assertRedirects(analysis, reverse("dashboard:home"), fetch_redirect_response=False)
+        self.assertEqual(skipped.status_code, 409)
+        self.assertEqual(closed.status_code, 409)
+        self.assertRedirects(profile_update, reverse("dashboard:home"), fetch_redirect_response=False)
+        self.assertNotIn("data-tour-action=\"skip\"", home.content.decode())
+        self.assertNotIn("data-tour-action=\"close\"", home.content.decode())
+        self.assertFalse(Profile.objects.filter(owner=first_time).exists())
+
+    def test_mandatory_progress_resumes_at_saved_step_and_completion_is_independent(self):
+        first_time = get_user_model().objects.create_user("resume-user", password="LongPassword-2026!")
+        progress = GuidedTourProgress.objects.create(
+            owner=first_time,
+            version=3,
+            status=GuidedTourProgress.Status.IN_PROGRESS,
+            current_step="phrases",
+        )
+        self.client.force_login(first_time)
+
+        profile = self.client.get(reverse("profiles:edit"))
+        state = self.client.get(reverse("profiles:tour_state"))
+        progress.refresh_from_db()
+
+        self.assertEqual(profile.status_code, 200)
+        self.assertEqual(state.json()["step"]["id"], "phrases")
+        self.assertFalse(progress.mandatory_completed)
+
+        progress.current_step = TOUR_STEPS[-1]["id"]
+        progress.save(update_fields=("current_step", "updated_at"))
+        completed = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+        progress.refresh_from_db()
+        self.assertEqual(completed.json()["status"], GuidedTourProgress.Status.COMPLETED)
+        self.assertTrue(progress.mandatory_completed)
+
+        progress.version = 2
+        progress.save(update_fields=("version", "updated_at"))
+        self.assertEqual(self.client.get(reverse("dashboard:analysis")).status_code, 200)
+
+    def test_logout_and_next_login_resume_the_mandatory_step(self):
+        first_time = get_user_model().objects.create_user("logout-resume", password="LongPassword-2026!")
+        self.client.force_login(first_time)
+        self.client.get(reverse("dashboard:home"))
+        self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+
+        self.client.post(reverse("logout"))
+        self.client.force_login(first_time)
+        profile = self.client.get(reverse("profiles:edit"))
+        state = self.client.get(reverse("profiles:tour_state"))
+
+        self.assertEqual(profile.status_code, 200)
+        self.assertTrue(state.json()["mandatory"])
+        self.assertEqual(state.json()["step"]["id"], "cv")
 
     def test_progress_steps_route_across_profile_and_dashboard_pages(self):
         self.client.force_login(self.applicant)
@@ -138,7 +214,7 @@ class GuidedTourProgressTests(TestCase):
 
         self.assertEqual(state.status_code, 404)
         self.assertEqual(action.status_code, 404)
-        self.assertFalse(GuidedTourProgress.objects.exists())
+        self.assertFalse(GuidedTourProgress.objects.filter(owner=self.admin).exists())
 
     def test_other_staff_accounts_are_also_excluded(self):
         staff = get_user_model().objects.create_user(
@@ -149,7 +225,7 @@ class GuidedTourProgressTests(TestCase):
         response = self.client.get(reverse("profiles:tour_state"))
 
         self.assertEqual(response.status_code, 404)
-        self.assertFalse(GuidedTourProgress.objects.exists())
+        self.assertFalse(GuidedTourProgress.objects.filter(owner=staff).exists())
 
     def test_profile_preferences_are_not_changed_by_tour_actions(self):
         profile = Profile.objects.create(
@@ -183,6 +259,11 @@ class GuidedTourProgressTests(TestCase):
 class GuidedTourPresentationTests(TestCase):
     def setUp(self):
         self.applicant = get_user_model().objects.create_user("tour-user", password="LongPassword-2026!")
+        GuidedTourProgress.objects.create(
+            owner=self.applicant,
+            version=3,
+            mandatory_completed=True,
+        )
         self.client.force_login(self.applicant)
 
     def test_profile_and_dashboard_expose_stable_tour_destinations(self):
@@ -266,9 +347,9 @@ class GuidedTourCSRFSecurityTests(TestCase):
 
         denied = client.post(reverse("profiles:tour_action"), {"action": "start"})
         self.assertEqual(denied.status_code, 403)
-        self.assertFalse(GuidedTourProgress.objects.exists())
+        self.assertTrue(GuidedTourProgress.objects.filter(owner=applicant, mandatory_completed=False).exists())
 
-        client.get(reverse("profiles:edit"))
+        client.get(reverse("dashboard:home"))
         token = client.cookies["csrftoken"].value
         accepted = client.post(
             reverse("profiles:tour_action"),

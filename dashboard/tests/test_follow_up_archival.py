@@ -10,6 +10,7 @@ from dashboard.tasks import archive_inactive_follow_ups
 from jobs.models import Vacancy
 from matching.models import RUBRIC_VERSION, MatchingConfig, VacancyAnalysis
 from profiles.models import Profile
+from profiles.tests.helpers import mark_tour_completed
 
 
 class FollowUpArchivalTests(TestCase):
@@ -17,6 +18,7 @@ class FollowUpArchivalTests(TestCase):
         user_model = get_user_model()
         self.user = user_model.objects.create_user("archive-owner", password="pass")
         self.other_user = user_model.objects.create_user("archive-other", password="pass")
+        mark_tour_completed(self.user, self.other_user)
         self.profile = Profile.objects.create(
             owner=self.user, revision_number=1, cv_file="profiles/archive-owner/cv/v1.pdf"
         )

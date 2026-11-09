@@ -7,12 +7,14 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from profiles.models import Profile, ProfileRevision
+from profiles.tests.helpers import mark_tour_completed
 
 
 class ProfileRevisionTests(TestCase):
     def setUp(self):
         self.first_user = get_user_model().objects.create_user("first", password="LongPass-2026!")
         self.second_user = get_user_model().objects.create_user("second", password="LongPass-2026!")
+        mark_tour_completed(self.first_user, self.second_user)
 
     def test_profile_updates_create_immutable_revisions(self):
         with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):

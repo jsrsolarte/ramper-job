@@ -31,6 +31,7 @@ from matching.tasks import (
     schedule_vacancy_analysis,
 )
 from profiles.models import Profile, ProfileRevision
+from profiles.tests.helpers import mark_tour_completed
 from matching.recovery import claim_analysis
 from matching.schemas import InvalidAnalysisError
 from operations.models import OperationalRun
@@ -42,6 +43,7 @@ class MatchingProcessingTests(TestCase):
         self.organization_dispatch = organization_dispatch.start()
         self.addCleanup(organization_dispatch.stop)
         user = get_user_model().objects.create_user("member")
+        mark_tour_completed(user)
         self.profile = Profile.objects.create(
             owner=user, search_phrases=["Analista de datos"], locations=["Bogotá"],
             cv_file="profiles/1/cv/v1.docx", revision_number=1

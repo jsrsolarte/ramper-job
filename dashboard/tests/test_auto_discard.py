@@ -9,11 +9,13 @@ from dashboard.tasks import discard_stale_recommendations
 from jobs.models import Vacancy
 from matching.models import RUBRIC_VERSION, MatchingConfig, VacancyAnalysis
 from profiles.models import Profile
+from profiles.tests.helpers import mark_tour_completed
 
 
 class DiscardStaleRecommendationsTests(TestCase):
     def setUp(self):
         self.user = get_user_model().objects.create_user("auto-discard-owner")
+        mark_tour_completed(self.user)
         self.profile = Profile.objects.create(owner=self.user, revision_number=1)
         self.revision = self.profile.revisions.create(version=1)
         self.config = MatchingConfig.objects.create(

@@ -80,6 +80,7 @@ class GuidedTourProgress(models.Model):
         default=Status.NOT_STARTED,
     )
     current_step = models.CharField(max_length=40, blank=True)
+    mandatory_completed = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

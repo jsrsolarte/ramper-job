@@ -12,12 +12,14 @@ from matching.models import AICallAttempt, MatchingConfig, ProfileVacancyDiscove
 from matching.recovery import reconcile_pending_analyses
 from matching.tasks import create_analysis, schedule_legacy_analyses
 from profiles.models import Profile, ProfileRevision
+from profiles.tests.helpers import mark_tour_completed
 
 
 @override_settings(ANALYSIS_RECOVERY_STALE_SECONDS=60, ANALYSIS_RECOVERY_LEASE_SECONDS=120, ANALYSIS_RECOVERY_BATCH_SIZE=10)
 class RetryUntilExpiryTests(TestCase):
     def setUp(self):
         user = get_user_model().objects.create_user('retry-user')
+        mark_tour_completed(user)
         self.profile = Profile.objects.create(owner=user, cv_file='cv.pdf', revision_number=1, locations=['Medellín'])
         ProfileRevision.objects.create(profile=self.profile, version=1, locations=['Medellín'], cv_file_path='cv.pdf')
         self.vacancy = Vacancy.objects.create(source='example', title='Analista', location='Medellín', original_url='https://example.com/job')

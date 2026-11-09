@@ -1,5 +1,7 @@
 from django.urls import reverse
 
+from .models import GuidedTourProgress
+
 
 TOUR_VERSION = 3
 
@@ -91,6 +93,28 @@ TOUR_STEPS = (
 
 def is_tour_eligible(user):
     return bool(user.is_authenticated and not user.is_staff and not user.is_superuser)
+
+
+def ensure_mandatory_tour(user):
+    """Return an active mandatory tour for an aspirant who has not completed it."""
+    progress, _created = GuidedTourProgress.objects.get_or_create(owner=user)
+    if progress.mandatory_completed:
+        return None
+
+    step_ids = {step["id"] for step in TOUR_STEPS}
+    changed_fields = []
+    if progress.version != TOUR_VERSION:
+        progress.version = TOUR_VERSION
+        changed_fields.append("version")
+    if progress.status != GuidedTourProgress.Status.IN_PROGRESS:
+        progress.status = GuidedTourProgress.Status.IN_PROGRESS
+        changed_fields.append("status")
+    if progress.current_step not in step_ids:
+        progress.current_step = TOUR_STEPS[0]["id"]
+        changed_fields.append("current_step")
+    if changed_fields:
+        progress.save(update_fields=(*changed_fields, "updated_at"))
+    return progress
 
 
 def step_by_id(step_id):

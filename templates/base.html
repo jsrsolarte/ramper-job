@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/static/app.css?v=16">
     <script src="/static/score-range.js?v=3" defer></script>
     {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
-      <script src="{% static 'tour.js' %}?v=3" defer></script>
+      <script src="{% static 'tour.js' %}?v=4" defer></script>
     {% endif %}
   </head>
   <body>
@@ -37,16 +37,16 @@
           <button class="text-button" type="button" data-tour-offer-action="dismiss">Ahora no</button>
         </div>
       </aside>
-      <section id="guided-tour" class="guided-tour" data-state-url="{% url 'profiles:tour_state' %}" data-action-url="{% url 'profiles:tour_action' %}" hidden role="dialog" aria-modal="false" aria-labelledby="tour-title" aria-describedby="tour-description" tabindex="-1">
+      <section id="guided-tour" class="guided-tour" data-state-url="{% url 'profiles:tour_state' %}" data-action-url="{% url 'profiles:tour_action' %}" data-mandatory="{% if request.mandatory_tour_pending %}true{% else %}false{% endif %}" hidden role="dialog" aria-modal="{% if request.mandatory_tour_pending %}true{% else %}false{% endif %}" aria-labelledby="tour-title" aria-describedby="tour-description" tabindex="-1">
         <div class="guided-tour-heading">
           <p id="tour-progress" class="guided-tour-progress" role="status" aria-live="polite" aria-atomic="true"></p>
-          <button class="guided-tour-close" type="button" data-tour-action="close" aria-label="Cerrar la guía y continuar después">×</button>
+          {% if not request.mandatory_tour_pending %}<button class="guided-tour-close" type="button" data-tour-action="close" aria-label="Cerrar la guía y continuar después">×</button>{% endif %}
         </div>
         <h2 id="tour-title"></h2>
         <p id="tour-description" class="guided-tour-description"></p>
         <div class="guided-tour-actions">
           <button class="button button-secondary" type="button" data-tour-action="previous">Anterior</button>
-          <button class="text-button" type="button" data-tour-action="skip">Omitir recorrido</button>
+          {% if not request.mandatory_tour_pending %}<button class="text-button" type="button" data-tour-action="skip">Omitir recorrido</button>{% endif %}
           <button class="button" type="button" data-tour-action="next">Siguiente</button>
         </div>
       </section>

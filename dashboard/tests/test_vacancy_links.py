@@ -5,11 +5,13 @@ from django.urls import reverse
 from jobs.models import Vacancy
 from matching.models import RUBRIC_VERSION, MatchingConfig, VacancyAnalysis, VacancyOrganization
 from profiles.models import Profile, ProfileRevision
+from profiles.tests.helpers import mark_tour_completed
 
 
 class VacancyLinkTests(TestCase):
     def test_dashboard_links_to_original_and_only_shows_organized_description(self):
         user = get_user_model().objects.create_user("member", password="pass")
+        mark_tour_completed(user)
         profile = Profile.objects.create(owner=user, cv_file="profiles/1/cv/v1.pdf", revision_number=1)
         revision = ProfileRevision.objects.create(profile=profile, version=1)
         config = MatchingConfig.objects.create(

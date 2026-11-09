@@ -45,6 +45,14 @@ comprobarse antes de reconciliar, pues el uso del namespace puede cambiar.
 - `/readyz` comprueba PostgreSQL y Redis.
 - El worker verifica su respuesta a un ping Celery; Beat verifica sus dependencias y proceso.
 
+## Versiones y liberaciones
+
+Las pruebas de staging siguen identificándose por el SHA de la imagen y no reciben una versión de producto. Las liberaciones aprobadas usan etiquetas Git anotadas `vMAJOR.MINOR.PATCH`; la primera versión de producción es `v1.0.0`. La validación rechaza formatos inválidos, ceros iniciales, versiones ya existentes y actualizaciones de una etiqueta publicada.
+
+Incrementa PATCH para correcciones compatibles, MINOR para funcionalidades compatibles y MAJOR para cambios incompatibles que requieren adaptación. El asunto de la etiqueta anotada debe explicar el tipo de incremento y su motivo.
+
+El flujo de liberación solo acepta un commit que esté en `staging` y cuya imagen SHA sea la actualmente fijada en el overlay. Resuelve el digest de esa imagen ya construida y adjunta a la versión un manifiesto con etiqueta, versión, SHA, referencia y digest. No reconstruye la imagen. La creación de la versión no despliega a producción ni crea un overlay de producción; eso requiere autorización y configuración separadas.
+
 El init container del web ejecuta `migrate --noinput` antes de iniciar Gunicorn. Los init
 containers del worker y Beat esperan hasta 15 minutos a que no haya migraciones pendientes;
 así no consumen tareas contra un esquema aún incompleto. Las migraciones futuras deben seguir

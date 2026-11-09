@@ -154,7 +154,7 @@ jobs:
           path = Path("deploy/overlays/staging/kustomization.yaml")
           content = path.read_text(encoding="utf-8")
           updated, replacements = re.subn(
-              r"(?m)^(\\s*newTag:\\s*)[^\\s#]+",
+              r"(?m)^(\s*newTag:\s*)[^\s#]+",
               lambda match: f"{match.group(1)}{os.environ['IMAGE_SHA']}",
               content,
           )

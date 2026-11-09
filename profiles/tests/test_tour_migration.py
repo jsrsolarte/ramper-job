@@ -23,6 +23,7 @@ class GuidedTourCompletionMigrationTests(TransactionTestCase):
         self.first_login_user_id = User.objects.create(
             username="first-login-user",
             password="!",
+            last_login=None,
         ).pk
         self.admin_user_id = User.objects.create(
             username="previous-admin",

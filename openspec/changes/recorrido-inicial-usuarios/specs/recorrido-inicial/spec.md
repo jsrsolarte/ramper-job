@@ -37,15 +37,23 @@ El recorrido SHALL explicar cómo cargar el CV y definir frases de búsqueda, ub
 - **THEN** el sistema conserva sin cambios el CV, las frases, las ubicaciones, la preferencia de trabajo remoto y el umbral guardados
 
 ### Requirement: Guiar la navegación entre vacantes y Mi perfil
-El recorrido SHALL enseñar cómo abrir Mi perfil desde el dashboard de vacantes y cómo volver al dashboard desde el perfil, conservando el avance del recorrido al activar esos enlaces.
+El recorrido SHALL comenzar en Recomendaciones enseñando cómo abrir Mi perfil, SHALL explicar allí toda la configuración del perfil, y luego SHALL enseñar cómo volver a Recomendaciones antes de continuar con los pasos del dashboard, conservando el avance al activar los enlaces.
 
 #### Scenario: Aspirante entra a Mi perfil desde sus vacantes
 - **WHEN** la persona llega al paso que destaca el enlace Mi perfil en el dashboard y lo activa
-- **THEN** el recorrido guarda y muestra el siguiente paso en Mi perfil
+- **THEN** el recorrido guarda y muestra el primer paso de configuración del perfil
 
 #### Scenario: Aspirante vuelve a sus vacantes desde Mi perfil
 - **WHEN** la persona llega al paso que destaca Volver a mis vacantes en el perfil y lo activa
-- **THEN** el recorrido guarda y muestra el siguiente paso en el dashboard
+- **THEN** el recorrido guarda el avance, vuelve a Recomendaciones y muestra el siguiente paso del dashboard
+
+#### Scenario: Aspirante comienza el recorrido desde Recomendaciones
+- **WHEN** una persona inicia el recorrido
+- **THEN** el primer paso destaca el enlace Mi perfil antes de explicar los controles del perfil
+
+#### Scenario: Aspirante termina de revisar su perfil
+- **WHEN** la persona llega al paso de volver a sus vacantes después de revisar todos los controles del perfil
+- **THEN** el siguiente paso aparece en Recomendaciones y el recorrido continúa con el dashboard
 
 ### Requirement: Explicar resultados y pestañas de vacantes
 El recorrido SHALL explicar cómo interpretar las compatibilidades, consultar detalles del análisis y organizar las vacantes según sus pestañas y estados.

@@ -15,9 +15,10 @@
 - [x] 3.1 Añadir identificadores estables a los controles de Mi perfil y del dashboard, y el enlace visible para volver a abrir la guía; verificar que cada paso tenga un destino único y que el enlace no se muestre a administradores.
 - [x] 3.2 Implementar la capa guiada con avance entre páginas, paso y total, omisión y cierre reanudable; verificar que la navegación entre Mi perfil y dashboard presenta el paso guardado sin alterar datos de formularios ni vacantes.
 - [x] 3.3 Añadir pruebas de contenido para CV, frases, ubicaciones, modalidad remota, umbral, estrellas, filtro temporal, análisis y nombres/propósito de las pestañas; verificar que el descarte automático y el filtro temporal se describan como funciones distintas.
-- [ ] 3.4 Añadir pasos explícitos para entrar a Mi perfil desde las vacantes y volver al dashboard; verificar que activar cada enlace conserve el progreso y lleve al paso siguiente en la página de destino.
+- [x] 3.4 Ordenar la guía para empezar en Recomendaciones, recorrer toda la configuración del perfil, volver a Recomendaciones y luego continuar con el dashboard; verificar la secuencia y los destinos con pruebas.
 
 ## 4. Accesibilidad e integración
 
 - [x] 4.1 Añadir y ejecutar pruebas de teclado, foco, anuncios accesibles y disposición móvil del recorrido; verificar que se pueda avanzar, retroceder, omitir y cerrar desde una pantalla estrecha.
-- [ ] 4.2 Ejecutar la suite de Django y revisar los flujos principales del recorrido en móvil y escritorio; verificar inicio, transición entre páginas, reanudación en una sesión nueva, omisión y re-apertura.
+- [x] 4.2 Ejecutar la suite de Django en CI; verificar que los pasos y las rutas entre perfil y dashboard pasan las pruebas automatizadas.
+- [ ] 4.3 Revisar el recorrido visual en móvil y escritorio; verificar inicio, transición al activar ambos enlaces, reanudación en una sesión nueva, omisión y reapertura.

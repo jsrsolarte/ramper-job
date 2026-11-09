@@ -34,27 +34,27 @@ class GuidedTourProgressTests(TestCase):
 
         started = self.client.post(reverse("profiles:tour_action"), {"action": "start"})
         self.assertEqual(started.status_code, 200)
-        self.assertEqual(started.json()["step"]["id"], "cv")
-        self.assertEqual(started.json()["version"], 2)
+        self.assertEqual(started.json()["step"]["id"], "open_profile")
+        self.assertEqual(started.json()["version"], 3)
 
         advanced = self.client.post(
             reverse("profiles:tour_action"),
             {"action": "next", "step": "not-a-valid-step", "next_url": "https://example.test/"},
         )
-        self.assertEqual(advanced.json()["step"]["id"], "phrases")
+        self.assertEqual(advanced.json()["step"]["id"], "cv")
         self.assertEqual(advanced.json()["step"]["url"], reverse("profiles:edit"))
         moved_back = self.client.post(reverse("profiles:tour_action"), {"action": "previous"})
-        self.assertEqual(moved_back.json()["step"]["id"], "cv")
+        self.assertEqual(moved_back.json()["step"]["id"], "open_profile")
 
         closed = self.client.post(reverse("profiles:tour_action"), {"action": "close"})
         self.assertEqual(closed.json()["status"], GuidedTourProgress.Status.IN_PROGRESS)
         progress = GuidedTourProgress.objects.get(owner=self.applicant)
-        self.assertEqual(progress.current_step, "cv")
+        self.assertEqual(progress.current_step, "open_profile")
         self.assertEqual(progress.status, GuidedTourProgress.Status.IN_PROGRESS)
-        self.assertEqual(self.client.get(reverse("profiles:tour_state")).json()["step"]["id"], "cv")
+        self.assertEqual(self.client.get(reverse("profiles:tour_state")).json()["step"]["id"], "open_profile")
 
         reopened = self.client.post(reverse("profiles:tour_action"), {"action": "reopen"})
-        self.assertEqual(reopened.json()["step"]["id"], "cv")
+        self.assertEqual(reopened.json()["step"]["id"], "open_profile")
         self.assertEqual(GuidedTourProgress.objects.count(), 1)
 
     def test_last_step_completes_and_manual_reopen_starts_from_the_beginning(self):
@@ -71,7 +71,7 @@ class GuidedTourProgressTests(TestCase):
 
         restarted = self.client.post(reverse("profiles:tour_action"), {"action": "reopen"})
         self.assertEqual(restarted.json()["status"], GuidedTourProgress.Status.IN_PROGRESS)
-        self.assertEqual(restarted.json()["step"]["id"], "cv")
+        self.assertEqual(restarted.json()["step"]["id"], "open_profile")
 
     def test_skip_is_persisted_and_does_not_open_a_tour(self):
         self.client.force_login(self.applicant)
@@ -103,24 +103,32 @@ class GuidedTourProgressTests(TestCase):
     def test_progress_steps_route_across_profile_and_dashboard_pages(self):
         self.client.force_login(self.applicant)
         response = self.client.post(reverse("profiles:tour_action"), {"action": "start"})
+        self.assertEqual(response.json()["step"]["id"], "open_profile")
+        self.assertEqual(response.json()["step"]["url"], reverse("dashboard:home"))
+
+        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+        self.assertEqual(response.json()["step"]["id"], "cv")
         self.assertEqual(response.json()["step"]["url"], reverse("profiles:edit"))
 
-        for _step in TOUR_STEPS[:5]:
+        for _step in TOUR_STEPS[1:6]:
             response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
 
-        self.assertEqual(response.json()["step"]["id"], "pending")
-        self.assertEqual(response.json()["step"]["url"], reverse("dashboard:pending"))
-        self.assertEqual(self.client.get(reverse("profiles:tour_state")).json()["step"]["url"], reverse("dashboard:pending"))
-
-        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
-        self.assertEqual(response.json()["step"]["id"], "open_profile")
-        self.assertEqual(response.json()["step"]["url"], reverse("dashboard:pending"))
-        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
         self.assertEqual(response.json()["step"]["id"], "return_to_vacancies")
         self.assertEqual(response.json()["step"]["url"], reverse("profiles:edit"))
+
+        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+        self.assertEqual(response.json()["step"]["id"], "stars")
+        self.assertEqual(response.json()["step"]["url"], reverse("dashboard:home"))
+        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+        self.assertEqual(response.json()["step"]["id"], "details")
+        self.assertEqual(response.json()["step"]["url"], reverse("dashboard:home"))
         response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
         self.assertEqual(response.json()["step"]["id"], "follow_up")
         self.assertEqual(response.json()["step"]["url"], reverse("dashboard:home"))
+        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+        self.assertEqual(response.json()["step"]["id"], "pending")
+        self.assertEqual(response.json()["step"]["url"], reverse("dashboard:pending"))
+        self.assertEqual(self.client.get(reverse("profiles:tour_state")).json()["step"]["url"], reverse("dashboard:pending"))
 
     def test_administrators_cannot_read_or_create_tour_progress(self):
         self.client.force_login(self.admin)

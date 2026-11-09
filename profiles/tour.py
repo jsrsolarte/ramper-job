@@ -1,9 +1,17 @@
 from django.urls import reverse
 
 
-TOUR_VERSION = 2
+TOUR_VERSION = 3
 
 TOUR_STEPS = (
+    {
+        "id": "open_profile",
+        "title": "Empieza por Mi perfil",
+        "text": "Antes de explorar las vacantes, configura tu búsqueda y carga tu hoja de vida. Selecciona Mi perfil para comenzar.",
+        "url_name": "dashboard:home",
+        "target": "profile-nav",
+        "fallback_target": "dashboard-content",
+    },
     {
         "id": "cv",
         "title": "Tu hoja de vida",
@@ -40,35 +48,11 @@ TOUR_STEPS = (
         "target": "threshold",
     },
     {
-        "id": "pending",
-        "title": "Vacantes por analizar",
-        "text": "En la pestaña Por analizar aparecen las vacantes encontradas para tu perfil mientras termina su análisis. Cuando esté listo, el resultado puede aparecer en Recomendaciones si cumple tu umbral.",
-        "url_name": "dashboard:pending",
-        "target": "pending-tab",
-        "fallback_target": "dashboard-content",
-    },
-    {
-        "id": "open_profile",
-        "title": "Entra a Mi perfil",
-        "text": "Desde aquí puedes volver a tus preferencias de búsqueda y a tu hoja de vida. Selecciona Mi perfil para continuar el recorrido.",
-        "url_name": "dashboard:pending",
-        "target": "profile-nav",
-        "fallback_target": "dashboard-content",
-    },
-    {
         "id": "return_to_vacancies",
-        "title": "Vuelve a tus vacantes",
-        "text": "Cuando termines de revisar o actualizar tu perfil, usa este enlace para regresar al listado de vacantes y continuar el recorrido.",
+        "title": "Vuelve a Recomendaciones",
+        "text": "Ya viste cómo configurar tu búsqueda. Usa este enlace para volver a Recomendaciones y seguir con el recorrido de las vacantes.",
         "url_name": "profiles:edit",
         "target": "back-to-dashboard",
-    },
-    {
-        "id": "follow_up",
-        "title": "Organiza tu seguimiento",
-        "text": "Las pestañas separan Recomendaciones, Aplicadas, En proceso, Entrevista, Finalizadas y Descartadas. Mover una vacante entre estados organiza tu seguimiento personal.",
-        "url_name": "dashboard:home",
-        "target": "follow-up-tabs",
-        "fallback_target": "dashboard-content",
     },
     {
         "id": "stars",
@@ -84,6 +68,22 @@ TOUR_STEPS = (
         "text": "Abre los detalles de una tarjeta para consultar por qué coincide y qué aspectos conviene revisar antes de decidir si continúas con una vacante.",
         "url_name": "dashboard:home",
         "target": "vacancy-details",
+        "fallback_target": "dashboard-content",
+    },
+    {
+        "id": "follow_up",
+        "title": "Organiza tu seguimiento",
+        "text": "Las pestañas separan Recomendaciones, Aplicadas, En proceso, Entrevista, Finalizadas y Descartadas. Mover una vacante entre estados organiza tu seguimiento personal.",
+        "url_name": "dashboard:home",
+        "target": "follow-up-tabs",
+        "fallback_target": "dashboard-content",
+    },
+    {
+        "id": "pending",
+        "title": "Vacantes por analizar",
+        "text": "En la pestaña Por analizar aparecen las vacantes encontradas para tu perfil mientras termina su análisis. Cuando esté listo, el resultado puede aparecer en Recomendaciones si cumple tu umbral.",
+        "url_name": "dashboard:pending",
+        "target": "pending-tab",
         "fallback_target": "dashboard-content",
     },
 )

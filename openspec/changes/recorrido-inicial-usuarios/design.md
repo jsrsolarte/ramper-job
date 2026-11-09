@@ -31,7 +31,7 @@ No hace falta rellenar registros mediante migración. Las cuentas aspirantes exi
 
 Mantener una secuencia de pasos identificada por claves estables y rutas de destino. En Mi perfil se explican CV, frases de búsqueda, ubicaciones y trabajo remoto, y el umbral. En el dashboard se explican compatibilidad, filtro temporal, detalles del análisis y pestañas de seguimiento. Añadir atributos `data-tour` a los controles explicados en las plantillas en vez de enlazar la lógica a clases de presentación o texto visible.
 
-El recorrido también incluye un tramo explícito de navegación: desde el dashboard resalta el enlace «Mi perfil» y, desde el perfil, resalta «Volver a mis vacantes». Al activar cualquiera de esos enlaces mientras está en su paso, el recorrido guarda el paso siguiente y continúa en la página de destino.
+El recorrido empieza en Recomendaciones resaltando «Mi perfil» antes de explicar cualquier campo. Después de presentar todos los controles del perfil, resalta «Volver a mis vacantes» para regresar a Recomendaciones. Al activar cualquiera de esos enlaces mientras está en su paso, el recorrido guarda el paso siguiente y continúa en la página de destino. Los pasos sobre recomendaciones van después del regreso al dashboard; «Por analizar» se explica al final.
 
 El botón de avance guarda el paso siguiente. Si el paso vive en otra página, la navegación abre esa ruta y presenta el paso al cargar. Si el usuario cierra la guía, el paso permanece guardado para reanudarlo; omitir y completar son estados distintos. Un enlace visible «Ver guía» inicia otra vez desde el primer paso y es exclusivo de aspirantes.
 

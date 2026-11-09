@@ -10,7 +10,7 @@ from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.http import urlsafe_base64_decode
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from operations.models import AdminAuditEvent
 from profiles.models import Profile
@@ -100,21 +100,30 @@ class UserManagementTests(TestCase):
         self.assertFalse(AdminAuditEvent.objects.exists())
 
     @override_settings(
-        ADMIN_PASSWORD_RESET_ENABLED=True,
-        DEFAULT_FROM_EMAIL="no-reply@example.test",
         EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
         PASSWORD_RESET_TIMEOUT=300,
     )
-    def test_password_reset_is_one_time_and_keeps_token_out_of_admin_response(self):
-        response = self.client.post(reverse("operations:request_password_reset", args=[self.applicant.pk]))
+    def test_admin_generates_one_time_link_without_email_or_password_disclosure(self):
+        self.applicant.email = ""
+        self.applicant.save(update_fields=("email",))
+        with self.assertNoLogs("operations.views", level="DEBUG"):
+            response = self.client.post(reverse("operations:request_password_reset", args=[self.applicant.pk]))
 
-        self.assertRedirects(response, reverse("operations:users"))
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "operations/password_reset_link.html")
+        self.assertEqual(mail.outbox, [])
+        self.assertContains(response, "Copiar enlace")
         self.assertNotIn("candidate@example.test", response.content.decode())
+        self.assertNotContains(response, "New-candidate-pass-2026!")
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertEqual(response["Referrer-Policy"], "no-referrer")
         event = AdminAuditEvent.objects.get(target=self.applicant)
-        self.assertEqual(event.action, AdminAuditEvent.Action.PASSWORD_RESET_REQUESTED)
+        self.assertEqual(event.action, AdminAuditEvent.Action.PASSWORD_RESET_LINK_GENERATED)
 
-        match = re.search(r"/accounts/password-reset/confirm/([^/\s]+)/([^/\s]+)", mail.outbox[0].body)
+        match = re.search(
+            r"/accounts/password-reset/confirm/([^/\s\"<>]+)/([^/\s\"<>]+)",
+            response.content.decode(),
+        )
         self.assertIsNotNone(match)
         uidb64, token = (unquote(part) for part in match.groups())
         uid = urlsafe_base64_decode(uidb64).decode()
@@ -133,6 +142,36 @@ class UserManagementTests(TestCase):
         self.assertTrue(self.applicant.check_password("New-candidate-pass-2026!"))
         self.assertFalse(default_token_generator.check_token(self.applicant, token))
 
+    def test_inactive_account_cannot_receive_a_reset_link(self):
+        self.applicant.is_active = False
+        self.applicant.save(update_fields=("is_active",))
+
+        response = self.client.post(reverse("operations:request_password_reset", args=[self.applicant.pk]))
+
+        self.assertRedirects(response, reverse("operations:users"))
+        self.assertEqual(
+            AdminAuditEvent.objects.get(target=self.applicant).action,
+            AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
+        )
+
+    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+    def test_link_becomes_invalid_if_account_is_deactivated_after_generation(self):
+        response = self.client.post(reverse("operations:request_password_reset", args=[self.applicant.pk]))
+        match = re.search(
+            r"/accounts/password-reset/confirm/([^/\s\"<>]+)/([^/\s\"<>]+)",
+            response.content.decode(),
+        )
+        self.assertIsNotNone(match)
+        uidb64, token = (unquote(part) for part in match.groups())
+
+        self.applicant.is_active = False
+        self.applicant.save(update_fields=("is_active",))
+
+        confirm_url = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
+        confirmation = self.client.get(confirm_url)
+        self.assertEqual(confirmation.status_code, 200)
+        self.assertContains(confirmation, "El enlace ya no es válido")
+
     @override_settings(PASSWORD_RESET_TIMEOUT=60)
     def test_password_reset_token_expires(self):
         token = default_token_generator.make_token(self.applicant)
@@ -140,3 +179,7 @@ class UserManagementTests(TestCase):
 
         with patch("django.contrib.auth.tokens.PasswordResetTokenGenerator._now", return_value=expired_time):
             self.assertFalse(default_token_generator.check_token(self.applicant, token))
+            uidb64 = urlsafe_base64_encode(str(self.applicant.pk).encode())
+            confirm_url = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
+            confirmation = self.client.get(confirm_url)
+        self.assertContains(confirmation, "El enlace ya no es válido")

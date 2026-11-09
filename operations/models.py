@@ -109,6 +109,7 @@ class AdminAuditEvent(models.Model):
         ACCOUNT_REACTIVATED = "account_reactivated", "Cuenta reactivada"
         PASSWORD_RESET_REQUESTED = "password_reset_requested", "Recuperación solicitada"
         PASSWORD_RESET_DELIVERY_FAILED = "password_reset_delivery_failed", "Fallo de entrega de recuperación"
+        PASSWORD_RESET_LINK_GENERATED = "password_reset_link_generated", "Enlace de restablecimiento generado"
         PASSWORD_RESET_UNAVAILABLE = "password_reset_unavailable", "Recuperación no disponible"
 
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="admin_audit_actions")

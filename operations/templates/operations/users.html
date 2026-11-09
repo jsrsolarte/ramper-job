@@ -19,9 +19,9 @@
         <td>{{ account.last_login|date:"Y-m-d H:i"|default:"—" }}</td>
         <td class="admin-actions">
           <form method="post" action="{% url 'operations:toggle_user' account.pk %}">{% csrf_token %}<input type="hidden" name="active" value="{% if account.is_active %}false{% else %}true{% endif %}"><button class="button button-secondary" type="submit">{% if account.is_active %}Desactivar{% else %}Reactivar{% endif %}</button></form>
-          {% if password_reset_enabled and account.email %}
-          <form method="post" action="{% url 'operations:request_password_reset' account.pk %}">{% csrf_token %}<button class="button button-secondary" type="submit">Enviar recuperación</button></form>
-          {% else %}<span class="muted">Recuperación no disponible</span>{% endif %}
+          {% if account.is_active and account.has_usable_password %}
+          <form method="post" action="{% url 'operations:request_password_reset' account.pk %}">{% csrf_token %}<button class="button button-secondary" type="submit">Generar enlace</button></form>
+          {% else %}<span class="muted">Enlace no disponible</span>{% endif %}
         </td>
       </tr>
       {% empty %}<tr><td colspan="5">Todavía no hay cuentas aspirantes.</td></tr>{% endfor %}

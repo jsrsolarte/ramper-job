@@ -4,18 +4,22 @@ from datetime import timedelta
 from django.contrib import admin
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.db.models import Avg, Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 
 from jobs.models import JobSourceStatus, ManualVacancySubmission
 from jobs.tasks import process_manual_vacancy_submission
 from matching.models import AICallAttempt, VacancyAnalysis
 
 from .decorators import platform_admin_required
-from .forms import ApplicantCreationForm, ManualVacancySubmissionForm, StrictPasswordResetForm
+from .forms import ApplicantCreationForm, ManualVacancySubmissionForm
 from .models import AdminAuditEvent, AdminCommandRun, OperationalParameterChange, OperationalRun
 from .parameters import (
     AUTO_DISCARD_DAYS_KEY,
@@ -46,7 +50,6 @@ logger = logging.getLogger(__name__)
 def admin_center(request):
     return render(request, "operations/admin_center.html", {
         "applicant_count": get_user_model().objects.filter(is_superuser=False, is_staff=False).count(),
-        "password_reset_enabled": settings.ADMIN_PASSWORD_RESET_ENABLED,
     })
 
 
@@ -96,7 +99,6 @@ def users(request):
     return render(request, "operations/users.html", {
         "accounts": accounts,
         "audit_events": AdminAuditEvent.objects.select_related("actor", "target")[:30],
-        "password_reset_enabled": settings.ADMIN_PASSWORD_RESET_ENABLED,
     })
 
 
@@ -155,64 +157,33 @@ def request_password_reset(request, user_id):
     applicant = get_object_or_404(
         User.objects.filter(is_superuser=False, is_staff=False), pk=user_id,
     )
-    AdminAuditEvent.objects.create(
-        actor=request.user,
-        target=applicant,
-        action=AdminAuditEvent.Action.PASSWORD_RESET_REQUESTED,
-    )
-    if not settings.ADMIN_PASSWORD_RESET_ENABLED:
-        AdminAuditEvent.objects.create(
-            actor=request.user,
-            target=applicant,
-            action=AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
-        )
-        messages.error(request, "La recuperación no está disponible: configura y habilita el correo saliente.")
-        return redirect("operations:users")
-    if not applicant.email:
-        AdminAuditEvent.objects.create(
-            actor=request.user,
-            target=applicant,
-            action=AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
-        )
-        messages.error(request, "La cuenta no tiene un correo registrado para recibir la recuperación.")
-        return redirect("operations:users")
-
     if not applicant.is_active or not applicant.has_usable_password():
         AdminAuditEvent.objects.create(
             actor=request.user,
             target=applicant,
             action=AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
         )
-        messages.error(request, "Solo se puede enviar recuperación a una cuenta activa con contraseña.")
+        messages.error(request, "Solo se puede generar un enlace para una cuenta activa con contraseña.")
         return redirect("operations:users")
 
-    reset_form = StrictPasswordResetForm({"email": applicant.email})
-    reset_form.target_user = applicant
-    if reset_form.is_valid():
-        try:
-            reset_form.save(
-                request=request,
-                use_https=request.is_secure(),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                subject_template_name="registration/password_reset_subject.txt",
-                email_template_name="registration/password_reset_email.txt",
-                extra_email_context={
-                    "site_name": "Ramper Job",
-                    "timeout_days": max(1, (settings.PASSWORD_RESET_TIMEOUT + 86399) // 86400),
-                },
-            )
-        except Exception:
-            AdminAuditEvent.objects.create(
-                actor=request.user,
-                target=applicant,
-                action=AdminAuditEvent.Action.PASSWORD_RESET_DELIVERY_FAILED,
-            )
-            messages.error(request, "No se pudo entregar el correo de recuperación. Revisa la configuración del servicio.")
-        else:
-            messages.success(request, "Se envió el enlace de recuperación al correo de la cuenta.")
-    else:
-        messages.error(request, "No se pudo preparar el enlace de recuperación.")
-    return redirect("operations:users")
+    uidb64 = urlsafe_base64_encode(force_bytes(applicant.pk))
+    token = default_token_generator.make_token(applicant)
+    reset_url = request.build_absolute_uri(reverse(
+        "password_reset_confirm", kwargs={"uidb64": uidb64, "token": token},
+    ))
+    AdminAuditEvent.objects.create(
+        actor=request.user,
+        target=applicant,
+        action=AdminAuditEvent.Action.PASSWORD_RESET_LINK_GENERATED,
+    )
+    response = render(request, "operations/password_reset_link.html", {
+        "applicant": applicant,
+        "reset_url": reset_url,
+        "timeout_minutes": max(1, settings.PASSWORD_RESET_TIMEOUT // 60),
+    })
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 def _enqueue_refresh(command_id):

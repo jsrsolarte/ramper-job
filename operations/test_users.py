@@ -349,15 +349,15 @@ class InvitationEnrollmentConcurrencyTests(TransactionTestCase):
                 response = client.post(url, {
                     "token": self.raw_token,
                     "username": username,
-                    "password1": "Concurrent-pass-2026!",
-                    "password2": "Concurrent-pass-2026!",
+                    "password1": "Quasar!Mango#7429",
+                    "password2": "Quasar!Mango#7429",
                 })
                 return response.status_code
             finally:
                 close_old_connections()
 
         with ThreadPoolExecutor(max_workers=2) as executor:
-            results = list(executor.map(attempt, ("concurrent-a", "concurrent-b")))
+            results = list(executor.map(attempt, ("first-invitee", "second-invitee")))
 
         self.assertEqual(sorted(results), [302, 400])
         self.assertEqual(get_user_model().objects.filter(email="concurrent@example.test").count(), 1)

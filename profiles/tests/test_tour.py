@@ -35,7 +35,7 @@ class GuidedTourProgressTests(TestCase):
         started = self.client.post(reverse("profiles:tour_action"), {"action": "start"})
         self.assertEqual(started.status_code, 200)
         self.assertEqual(started.json()["step"]["id"], "cv")
-        self.assertEqual(started.json()["version"], 1)
+        self.assertEqual(started.json()["version"], 2)
 
         advanced = self.client.post(
             reverse("profiles:tour_action"),
@@ -112,6 +112,16 @@ class GuidedTourProgressTests(TestCase):
         self.assertEqual(response.json()["step"]["url"], reverse("dashboard:pending"))
         self.assertEqual(self.client.get(reverse("profiles:tour_state")).json()["step"]["url"], reverse("dashboard:pending"))
 
+        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+        self.assertEqual(response.json()["step"]["id"], "open_profile")
+        self.assertEqual(response.json()["step"]["url"], reverse("dashboard:pending"))
+        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+        self.assertEqual(response.json()["step"]["id"], "return_to_vacancies")
+        self.assertEqual(response.json()["step"]["url"], reverse("profiles:edit"))
+        response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+        self.assertEqual(response.json()["step"]["id"], "follow_up")
+        self.assertEqual(response.json()["step"]["url"], reverse("dashboard:home"))
+
     def test_administrators_cannot_read_or_create_tour_progress(self):
         self.client.force_login(self.admin)
 
@@ -174,10 +184,12 @@ class GuidedTourPresentationTests(TestCase):
         self.assertContains(profile_page, 'data-tour="locations"')
         self.assertContains(profile_page, 'data-tour="remote"')
         self.assertContains(profile_page, 'data-tour="threshold"')
+        self.assertContains(profile_page, 'data-tour="back-to-dashboard"')
 
         pending_page = self.client.get(reverse("dashboard:pending"))
         self.assertContains(pending_page, 'data-tour="pending-tab"')
         self.assertContains(pending_page, 'data-tour="follow-up-tabs"')
+        self.assertContains(pending_page, 'data-tour="profile-nav"')
 
     def test_recommendation_filter_and_details_have_tour_destinations(self):
         Profile.objects.create(owner=self.applicant, cv_file="profiles/1/cv/v1.pdf")
@@ -199,6 +211,8 @@ class GuidedTourPresentationTests(TestCase):
         self.assertIn("Cero desactiva", copy_by_step["threshold"])
         self.assertIn("ya encontradas", copy_by_step["threshold"])
         self.assertIn("Por analizar", copy_by_step["pending"])
+        self.assertIn("Mi perfil", copy_by_step["open_profile"])
+        self.assertIn("regresar", copy_by_step["return_to_vacancies"])
         self.assertIn("Aplicadas", copy_by_step["follow_up"])
         self.assertIn("En proceso", copy_by_step["follow_up"])
         self.assertIn("Entrevista", copy_by_step["follow_up"])

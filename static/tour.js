@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const csrfToken = document.querySelector("#tour-csrf [name=csrfmiddlewaretoken]")?.value || "";
   let highlightedElement = null;
   let returnFocus = null;
+  let activeState = null;
 
   const removeHighlight = () => {
     highlightedElement?.classList.remove("tour-highlight");
@@ -98,6 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     const state = await response.json();
     if (!response.ok) throw new Error(state.error || "No se pudo guardar el recorrido.");
+    activeState = state;
     return state;
   };
 
@@ -137,6 +139,15 @@ document.addEventListener("DOMContentLoaded", () => {
   dialog.addEventListener("click", (event) => {
     const button = event.target.closest("[data-tour-action]");
     if (button && !button.disabled) perform(button.dataset.tourAction);
+  });
+
+  document.addEventListener("click", (event) => {
+    const step = activeState?.step;
+    const link = event.target.closest("a[data-tour]");
+    if (!step || !link || link.dataset.tour !== step.target) return;
+    if (!["open_profile", "return_to_vacancies"].includes(step.id)) return;
+    event.preventDefault();
+    perform("next");
   });
 
   document.querySelector("[data-tour-reopen]")?.addEventListener("click", (event) => {

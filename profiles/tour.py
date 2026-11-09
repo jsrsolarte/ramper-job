@@ -1,7 +1,7 @@
 from django.urls import reverse
 
 
-TOUR_VERSION = 1
+TOUR_VERSION = 2
 
 TOUR_STEPS = (
     {
@@ -46,6 +46,21 @@ TOUR_STEPS = (
         "url_name": "dashboard:pending",
         "target": "pending-tab",
         "fallback_target": "dashboard-content",
+    },
+    {
+        "id": "open_profile",
+        "title": "Entra a Mi perfil",
+        "text": "Desde aquí puedes volver a tus preferencias de búsqueda y a tu hoja de vida. Selecciona Mi perfil para continuar el recorrido.",
+        "url_name": "dashboard:pending",
+        "target": "profile-nav",
+        "fallback_target": "dashboard-content",
+    },
+    {
+        "id": "return_to_vacancies",
+        "title": "Vuelve a tus vacantes",
+        "text": "Cuando termines de revisar o actualizar tu perfil, usa este enlace para regresar al listado de vacantes y continuar el recorrido.",
+        "url_name": "profiles:edit",
+        "target": "back-to-dashboard",
     },
     {
         "id": "follow_up",

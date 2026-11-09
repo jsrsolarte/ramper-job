@@ -15,6 +15,7 @@
 - [x] 3.1 Añadir identificadores estables a los controles de Mi perfil y del dashboard, y el enlace visible para volver a abrir la guía; verificar que cada paso tenga un destino único y que el enlace no se muestre a administradores.
 - [x] 3.2 Implementar la capa guiada con avance entre páginas, paso y total, omisión y cierre reanudable; verificar que la navegación entre Mi perfil y dashboard presenta el paso guardado sin alterar datos de formularios ni vacantes.
 - [x] 3.3 Añadir pruebas de contenido para CV, frases, ubicaciones, modalidad remota, umbral, estrellas, filtro temporal, análisis y nombres/propósito de las pestañas; verificar que el descarte automático y el filtro temporal se describan como funciones distintas.
+- [ ] 3.4 Añadir pasos explícitos para entrar a Mi perfil desde las vacantes y volver al dashboard; verificar que activar cada enlace conserve el progreso y lleve al paso siguiente en la página de destino.
 
 ## 4. Accesibilidad e integración
 

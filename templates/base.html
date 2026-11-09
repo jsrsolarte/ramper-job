@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="/static/app.css?v=16">
     <script src="/static/score-range.js?v=3" defer></script>
     {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
-      <script src="{% static 'tour.js' %}?v=2" defer></script>
+      <script src="{% static 'tour.js' %}?v=3" defer></script>
     {% endif %}
   </head>
   <body>
@@ -19,7 +19,7 @@
       </a>
       {% if request.user.is_authenticated %}
         <nav aria-label="Navegación principal">
-          <a href="{% url 'profiles:edit' %}">Mi perfil</a>
+          <a href="{% url 'profiles:edit' %}" data-tour="profile-nav">Mi perfil</a>
           <a href="{% url 'dashboard:analysis' %}">Análisis</a>
           {% if request.user.is_superuser %}<a href="{% url 'operations:admin_center' %}">Administración</a>{% endif %}
           {% if not request.user.is_staff and not request.user.is_superuser %}<button class="text-button" type="button" data-tour-reopen>Ver guía</button>{% endif %}

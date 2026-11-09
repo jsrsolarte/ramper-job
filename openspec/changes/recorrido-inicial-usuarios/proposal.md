@@ -7,6 +7,7 @@ Las personas aspirantes necesitan orientación dentro de la aplicación para com
 ## What Changes
 
 - Añadir un recorrido guiado para cuentas aspirantes, excluyendo las cuentas administradoras.
+- Enseñar cómo abrir Mi perfil desde las vacantes y volver al dashboard desde el perfil.
 - Explicar la carga del CV, las frases de búsqueda, las ubicaciones, la preferencia de trabajo remoto y el umbral de descarte automático.
 - Guiar a la persona al dashboard y explicar las pestañas de vacantes, las estrellas de compatibilidad, los detalles del análisis y el seguimiento de postulaciones.
 - Guardar el paso y el estado del recorrido asociados a la cuenta para continuarlo en otro dispositivo; permitir omitirlo y volver a abrirlo.

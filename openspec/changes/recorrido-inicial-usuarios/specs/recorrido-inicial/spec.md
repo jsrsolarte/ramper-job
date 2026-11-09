@@ -36,6 +36,17 @@ El recorrido SHALL explicar cómo cargar el CV y definir frases de búsqueda, ub
 - **WHEN** la persona avanza, reanuda u omite un paso del recorrido
 - **THEN** el sistema conserva sin cambios el CV, las frases, las ubicaciones, la preferencia de trabajo remoto y el umbral guardados
 
+### Requirement: Guiar la navegación entre vacantes y Mi perfil
+El recorrido SHALL enseñar cómo abrir Mi perfil desde el dashboard de vacantes y cómo volver al dashboard desde el perfil, conservando el avance del recorrido al activar esos enlaces.
+
+#### Scenario: Aspirante entra a Mi perfil desde sus vacantes
+- **WHEN** la persona llega al paso que destaca el enlace Mi perfil en el dashboard y lo activa
+- **THEN** el recorrido guarda y muestra el siguiente paso en Mi perfil
+
+#### Scenario: Aspirante vuelve a sus vacantes desde Mi perfil
+- **WHEN** la persona llega al paso que destaca Volver a mis vacantes en el perfil y lo activa
+- **THEN** el recorrido guarda y muestra el siguiente paso en el dashboard
+
 ### Requirement: Explicar resultados y pestañas de vacantes
 El recorrido SHALL explicar cómo interpretar las compatibilidades, consultar detalles del análisis y organizar las vacantes según sus pestañas y estados.
 

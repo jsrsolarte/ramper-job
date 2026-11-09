@@ -21,4 +21,4 @@
 
 - [x] 4.1 Añadir y ejecutar pruebas de teclado, foco, anuncios accesibles y disposición móvil del recorrido; verificar que se pueda avanzar, retroceder, omitir y cerrar desde una pantalla estrecha.
 - [x] 4.2 Ejecutar la suite de Django en CI; verificar que los pasos y las rutas entre perfil y dashboard pasan las pruebas automatizadas.
-- [ ] 4.3 Revisar el recorrido visual en móvil y escritorio; verificar inicio, transición al activar ambos enlaces, reanudación en una sesión nueva, omisión y reapertura.
+- [x] 4.3 Revisar el recorrido visual en móvil y escritorio; verificar inicio, transición al activar ambos enlaces, reanudación en una sesión nueva, omisión y reapertura.

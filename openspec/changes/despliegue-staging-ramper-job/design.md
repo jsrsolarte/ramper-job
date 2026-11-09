@@ -37,6 +37,12 @@ GitHub Actions ejecutará las validaciones del repositorio y publicará una imag
 
 El repositorio de aplicación en GitHub contiene `deploy/base` y `deploy/overlays/staging`; el administrador del servidor añade en el repositorio de infraestructura la fuente y Kustomization de Flux que apuntan al overlay real. Elegir el hostname de staging y registrar el Ingress se coordina con ese administrador, usando el camino aprobado Cloudflare Tunnel → Traefik → Service.
 
+### Separar la rama de staging y probar ramas de trabajo
+
+La rama `staging` es la fuente estable de la Kustomization de staging; `main` queda reservada para liberaciones de producción. El workflow de GitHub corre en pushes a `main` y `staging`. Un `workflow_dispatch` iniciado desde `main` recibe `source_branch`, ejecuta las mismas validaciones sobre el SHA de esa rama y publica su imagen por SHA. Solo después del éxito, escribe el SHA probado en el overlay de la rama `staging`; Flux siempre sigue `staging`, incluso cuando la imagen probada se construyó desde una rama feature. Un push directo a `staging` también construye, publica y fija su propio SHA.
+
+El entorno es compartido, por lo que las selecciones de ramas se serializan y cada prueba reemplaza la imagen anterior de staging. La promoción se realiza con un PR desde la rama probada a `main`, después de la aprobación del usuario. La promoción de producción requerirá una configuración y autorización separadas; esta capacidad no crea un overlay ni reconcilia recursos prod.
+
 ### Separar servicios y configuración de staging
 
 El overlay define web, worker, Beat, PostgreSQL y Redis en el namespace `staging`, con Services internos para dependencias y recursos dentro de las cuotas vigentes. Django y Celery reciben variables desde ConfigMaps no secretas y referencias a Secrets creados fuera del repositorio. La base de datos y el almacenamiento privado de CV usan volúmenes separados de producción; la media no se publica en el Ingress.

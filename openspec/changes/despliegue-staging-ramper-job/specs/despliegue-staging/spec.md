@@ -28,6 +28,25 @@ El sistema de entrega SHALL construir y publicar una imagen identificada por el 
 - **WHEN** una validación obligatoria de CI falla
 - **THEN** no se publica una versión candidata para desplegar en staging
 
+### Requirement: Probar ramas de trabajo en staging y separar la liberación
+El sistema SHALL mantener la rama `staging` como fuente de Flux para el entorno staging y SHALL permitir probar explícitamente una rama del repositorio sin fusionarla primero. `main` SHALL reservarse para la liberación a producción; esta regla de ramas SHALL NOT habilitar por sí sola un despliegue de producción.
+
+#### Scenario: Se solicita probar una rama de trabajo
+- **WHEN** un operador ejecuta manualmente el workflow desde `main` y selecciona una rama del mismo repositorio
+- **THEN** CI valida el SHA seleccionado, publica una imagen identificada por ese SHA y actualiza el pin del overlay en la rama `staging` solo si las validaciones pasan
+
+#### Scenario: Flux aplica una rama seleccionada
+- **WHEN** el workflow actualiza el pin de imagen en `staging`
+- **THEN** Flux reconcilia siempre desde la rama `staging` y despliega la imagen del SHA seleccionado, sin cambiar la fuente de Flux a la rama feature
+
+#### Scenario: Se promueve código probado
+- **WHEN** el usuario aprueba el resultado en staging
+- **THEN** el cambio de la rama probada se integra a `main` mediante PR y no se promueve a producción automáticamente
+
+#### Scenario: Dos pruebas de rama coinciden
+- **WHEN** hay más de una solicitud de despliegue a staging
+- **THEN** los cambios del pin de imagen se serializan y la última prueba aplicada queda identificable por SHA
+
 ### Requirement: Reconciliar staging mediante Flux
 El entorno staging SHALL obtener la configuración de despliegue desde Git y SHALL ser aplicado por Flux en el namespace `staging`.
 

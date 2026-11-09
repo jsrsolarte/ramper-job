@@ -5,7 +5,6 @@ from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.core import mail
 from django.db import IntegrityError, transaction
 from django.test import TestCase, override_settings
 from django.urls import reverse
@@ -99,19 +98,16 @@ class UserManagementTests(TestCase):
         self.assertEqual(get_user_model().objects.count(), 2)
         self.assertFalse(AdminAuditEvent.objects.exists())
 
-    @override_settings(
-        EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-        PASSWORD_RESET_TIMEOUT=300,
-    )
+    @override_settings(PASSWORD_RESET_TIMEOUT=300)
     def test_admin_generates_one_time_link_without_email_or_password_disclosure(self):
         self.applicant.email = ""
         self.applicant.save(update_fields=("email",))
-        with self.assertNoLogs("operations.views", level="DEBUG"):
+        with patch("django.core.mail.send_mail") as send_mail, self.assertNoLogs("operations.views", level="DEBUG"):
             response = self.client.post(reverse("operations:request_password_reset", args=[self.applicant.pk]))
 
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "operations/password_reset_link.html")
-        self.assertEqual(mail.outbox, [])
+        send_mail.assert_not_called()
         self.assertContains(response, "Copiar enlace")
         self.assertNotIn("candidate@example.test", response.content.decode())
         self.assertNotContains(response, "New-candidate-pass-2026!")
@@ -154,7 +150,6 @@ class UserManagementTests(TestCase):
             AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
         )
 
-    @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
     def test_link_becomes_invalid_if_account_is_deactivated_after_generation(self):
         response = self.client.post(reverse("operations:request_password_reset", args=[self.applicant.pk]))
         match = re.search(

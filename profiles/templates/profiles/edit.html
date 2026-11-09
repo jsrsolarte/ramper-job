@@ -16,7 +16,7 @@
     {% csrf_token %}
     {{ form.non_field_errors }}
     {% for field in form %}
-      <div class="form-field form-field-{{ field.name }}">
+      <div class="form-field form-field-{{ field.name }}"{% if field.name == "cv_file" %} data-tour="cv"{% elif field.name == "search_phrases" %} data-tour="phrases"{% elif field.name == "locations" %} data-tour="locations"{% elif field.name == "remote_ok" %} data-tour="remote"{% elif field.name == "min_score" %} data-tour="threshold"{% endif %}>
         {% if field.name == "cv_file" and profile.cv_file %}<p class="current-file"><span class="file-mark" aria-hidden="true">✓</span><span><strong>Hoja de vida actual</strong><small>Versión {{ profile.revision_number }}</small></span><a href="{% url 'profiles:cv' %}">Descargar</a></p>{% endif %}
         {% if field.name == "remote_ok" %}
           <label class="checkbox-field" for="{{ field.id_for_label }}">{{ field }}<span>{{ field.label }}</span></label>

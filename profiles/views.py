@@ -3,12 +3,13 @@ from pathlib import Path
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import FileResponse, Http404
+from django.http import FileResponse, Http404, JsonResponse
 from django.shortcuts import redirect, render
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from .forms import ProfileForm
-from .models import Profile, ProfileRevision
+from .models import GuidedTourProgress, Profile, ProfileRevision
+from .tour import TOUR_STEPS, TOUR_VERSION, is_tour_eligible, step_payload
 from dashboard.score_display import score_star_label, score_star_percent, score_star_threshold_label
 
 
@@ -109,3 +110,89 @@ def download_private_cv(request, file_path):
     if not profile:
         raise Http404
     return download_cv(request)
+
+
+def _guided_tour_state(progress):
+    if progress is None or progress.version != TOUR_VERSION:
+        return {
+            "status": GuidedTourProgress.Status.NOT_STARTED,
+            "version": TOUR_VERSION,
+            "offer": True,
+            "step": None,
+            "step_index": 0,
+            "step_count": len(TOUR_STEPS),
+        }
+
+    step_ids = [step["id"] for step in TOUR_STEPS]
+    current_step = progress.current_step
+    if current_step not in step_ids:
+        current_step = step_ids[0]
+    step_index = step_ids.index(current_step)
+    return {
+        "status": progress.status,
+        "version": progress.version,
+        "offer": progress.status == GuidedTourProgress.Status.NOT_STARTED,
+        "step": step_payload(current_step) if progress.status == GuidedTourProgress.Status.IN_PROGRESS else None,
+        "step_index": step_index + 1,
+        "step_count": len(TOUR_STEPS),
+    }
+
+
+@login_required
+@require_GET
+def guided_tour_state(request):
+    if not is_tour_eligible(request.user):
+        raise Http404
+    progress = GuidedTourProgress.objects.filter(owner=request.user).first()
+    return JsonResponse(_guided_tour_state(progress))
+
+
+@login_required
+@require_POST
+def guided_tour_action(request):
+    if not is_tour_eligible(request.user):
+        raise Http404
+
+    action = request.POST.get("action", "")
+    allowed_actions = {"start", "reopen", "next", "previous", "skip", "close"}
+    if action not in allowed_actions:
+        return JsonResponse({"error": "Acción no válida."}, status=400)
+
+    progress = GuidedTourProgress.objects.filter(owner=request.user).first()
+    step_ids = [step["id"] for step in TOUR_STEPS]
+    first_step, last_step = step_ids[0], step_ids[-1]
+
+    if action in {"start", "reopen"}:
+        progress, _created = GuidedTourProgress.objects.get_or_create(owner=request.user)
+        progress.version = TOUR_VERSION
+        progress.status = GuidedTourProgress.Status.IN_PROGRESS
+        progress.current_step = first_step
+    elif action == "skip":
+        if progress is None:
+            progress = GuidedTourProgress(owner=request.user)
+        progress.version = TOUR_VERSION
+        progress.status = GuidedTourProgress.Status.SKIPPED
+        if progress.current_step not in step_ids:
+            progress.current_step = first_step
+    else:
+        if (
+            progress is None
+            or progress.version != TOUR_VERSION
+            or progress.status != GuidedTourProgress.Status.IN_PROGRESS
+        ):
+            return JsonResponse({"error": "No hay un recorrido en curso."}, status=409)
+        current_step = progress.current_step if progress.current_step in step_ids else first_step
+        step_index = step_ids.index(current_step)
+        if action == "next":
+            if step_index == len(step_ids) - 1:
+                progress.current_step = last_step
+                progress.status = GuidedTourProgress.Status.COMPLETED
+            else:
+                progress.current_step = step_ids[step_index + 1]
+        elif action == "previous":
+            progress.current_step = step_ids[max(0, step_index - 1)]
+        elif action == "close":
+            progress.current_step = current_step
+
+    progress.save()
+    return JsonResponse(_guided_tour_state(progress))

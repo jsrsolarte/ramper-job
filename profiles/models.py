@@ -59,3 +59,32 @@ class ProfileRevision(models.Model):
 
     def __str__(self):
         return f"{self.profile} · v{self.version}"
+
+
+class GuidedTourProgress(models.Model):
+    class Status(models.TextChoices):
+        NOT_STARTED = "not_started", "Sin iniciar"
+        IN_PROGRESS = "in_progress", "En curso"
+        COMPLETED = "completed", "Completado"
+        SKIPPED = "skipped", "Omitido"
+
+    owner = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="guided_tour_progress",
+    )
+    version = models.PositiveSmallIntegerField(default=1)
+    status = models.CharField(
+        max_length=16,
+        choices=Status.choices,
+        default=Status.NOT_STARTED,
+    )
+    current_step = models.CharField(max_length=40, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "progreso del recorrido inicial"
+        verbose_name_plural = "progresos del recorrido inicial"
+
+    def __str__(self):
+        return f"Recorrido de {self.owner.get_username()} · {self.get_status_display()}"

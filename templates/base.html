@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Ramper Job{% endblock %}</title>
-    <link rel="stylesheet" href="/static/app.css?v=16">
+    <link rel="stylesheet" href="/static/app.css?v=17">
     <script src="/static/score-range.js?v=3" defer></script>
     {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
       <script src="{% static 'tour.js' %}?v=4" defer></script>

@@ -1,26 +1,41 @@
+import hashlib
 import logging
+import secrets
 from datetime import timedelta
 
-from django.contrib import admin
 from django.conf import settings
+from django.contrib import admin
+from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib import messages
 from django.db import IntegrityError, transaction
 from django.db.models import Avg, Count, Q, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.http import require_POST
 
 from jobs.models import JobSourceStatus, ManualVacancySubmission
 from jobs.tasks import process_manual_vacancy_submission
 from matching.models import AICallAttempt, VacancyAnalysis
 
 from .decorators import platform_admin_required
-from .forms import ApplicantCreationForm, ManualVacancySubmissionForm
-from .models import AdminAuditEvent, AdminCommandRun, OperationalParameterChange, OperationalRun
+from .forms import (
+    ApplicantCreationForm,
+    InvitationAcceptanceForm,
+    InvitationEmailForm,
+    ManualVacancySubmissionForm,
+)
+from .models import (
+    AdminAuditEvent,
+    AdminCommandRun,
+    OperationalParameterChange,
+    OperationalRun,
+    UserInvitation,
+)
 from .parameters import (
     AUTO_DISCARD_DAYS_KEY,
     DEFAULT_AUTO_DISCARD_DAYS,
@@ -98,8 +113,192 @@ def users(request):
     accounts = User.objects.filter(is_superuser=False, is_staff=False).order_by("username")
     return render(request, "operations/users.html", {
         "accounts": accounts,
+        "invitations": UserInvitation.objects.select_related("created_by")[:30],
+        "now": timezone.now(),
         "audit_events": AdminAuditEvent.objects.select_related("actor", "target")[:30],
     })
+
+
+@platform_admin_required
+def create_invitation(request):
+    if request.method != "POST":
+        return redirect("operations:users")
+    form = InvitationEmailForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Escribe un correo válido para generar la invitación.")
+        return redirect("operations:users")
+
+    email = form.cleaned_data["email"].strip()
+    raw_token = secrets.token_urlsafe(32)
+    now = timezone.now()
+    with transaction.atomic():
+        # Serialize invitation replacement even when no previous invitation exists yet.
+        get_user_model().objects.select_for_update().get(pk=request.user.pk)
+        previous_invitations = list(UserInvitation.objects.select_for_update().filter(
+            email__iexact=email, used_at__isnull=True, revoked_at__isnull=True,
+        ))
+        UserInvitation.objects.filter(pk__in=[item.pk for item in previous_invitations]).update(revoked_at=now)
+        for previous in previous_invitations:
+            AdminAuditEvent.objects.create(
+                actor=request.user,
+                action=AdminAuditEvent.Action.INVITATION_REVOKED,
+                invitation=previous,
+                invitation_email=previous.email,
+            )
+        invitation = UserInvitation.objects.create(
+            email=email,
+            token_hash=hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+            created_by=request.user,
+            expires_at=now + timedelta(days=7),
+        )
+        AdminAuditEvent.objects.create(
+            actor=request.user,
+            action=AdminAuditEvent.Action.INVITATION_CREATED,
+            invitation=invitation,
+            invitation_email=email,
+        )
+
+    invitation_url = request.build_absolute_uri(reverse("invitation_accept")) + f"#{raw_token}"
+    response = render(request, "operations/invitation_link.html", {
+        "invitation": invitation,
+        "invitation_url": invitation_url,
+    })
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
+@platform_admin_required
+def revoke_invitation(request, invitation_id):
+    if request.method != "POST":
+        return redirect("operations:users")
+    with transaction.atomic():
+        invitation = get_object_or_404(UserInvitation.objects.select_for_update(), pk=invitation_id)
+        if invitation.is_pending():
+            invitation.revoked_at = timezone.now()
+            invitation.save(update_fields=("revoked_at",))
+            AdminAuditEvent.objects.create(
+                actor=request.user,
+                action=AdminAuditEvent.Action.INVITATION_REVOKED,
+                invitation=invitation,
+                invitation_email=invitation.email,
+            )
+            revoked = True
+        else:
+            revoked = False
+    if revoked:
+        messages.success(request, "Se revocó la invitación.")
+    else:
+        messages.info(request, "La invitación ya no está pendiente.")
+    return redirect("operations:users")
+
+
+def _invitation_for_token(raw_token):
+    if not raw_token or len(raw_token) > 128:
+        return None
+    digest = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    invitation = UserInvitation.objects.filter(token_hash=digest).first()
+    return invitation if invitation and invitation.is_pending() else None
+
+
+def invitation_accept(request):
+    if request.method == "GET":
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": InvitationAcceptanceForm(),
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "no-referrer"
+        response["X-Robots-Tag"] = "noindex, nofollow"
+        return response
+
+    raw_token = request.POST.get("token", "")
+    invitation = _invitation_for_token(raw_token)
+    if invitation is None:
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": InvitationAcceptanceForm(),
+            "invalid_invitation": True,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        }, status=400)
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "no-referrer"
+        return response
+
+    form = InvitationAcceptanceForm(request.POST)
+    if not form.is_valid():
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": form,
+            "invitation_email": invitation.email,
+            "token_for_form": raw_token,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "no-referrer"
+        return response
+
+    User = get_user_model()
+    try:
+        with transaction.atomic():
+            locked_invitation = UserInvitation.objects.select_for_update().filter(
+                pk=invitation.pk,
+            ).first()
+            if locked_invitation is None or not locked_invitation.is_pending():
+                response = render(request, "operations/invitation_accept.html", {
+                    "acceptance_form": form,
+                    "invalid_invitation": True,
+                    "acceptance_url": reverse("invitation_accept"),
+                    "validation_url": reverse("invitation_validate"),
+                }, status=400)
+                response["Cache-Control"] = "private, no-store"
+                response["Referrer-Policy"] = "no-referrer"
+                return response
+            applicant = form.save(commit=False)
+            applicant.email = locked_invitation.email
+            applicant.is_active = True
+            applicant.is_staff = False
+            applicant.is_superuser = False
+            applicant.save()
+            locked_invitation.used_at = timezone.now()
+            locked_invitation.save(update_fields=("used_at",))
+            AdminAuditEvent.objects.create(
+                actor=locked_invitation.created_by,
+                target=applicant,
+                invitation=locked_invitation,
+                invitation_email=locked_invitation.email,
+                action=AdminAuditEvent.Action.INVITATION_ACCEPTED,
+            )
+    except IntegrityError:
+        form.add_error("username", "Ese nombre de usuario ya está en uso. Elige otro.")
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": form,
+            "invitation_email": invitation.email,
+            "token_for_form": raw_token,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "no-referrer"
+        return response
+
+    messages.success(request, "Tu cuenta quedó creada. Ya puedes iniciar sesión.")
+    return redirect("login")
+
+
+@require_POST
+def validate_invitation(request):
+    raw_token = request.POST.get("token", "")
+    invitation = _invitation_for_token(raw_token)
+    if invitation is None:
+        response = JsonResponse({"valid": False}, status=400)
+    else:
+        response = JsonResponse({"valid": True, "email": invitation.email})
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 @platform_admin_required

@@ -14,6 +14,16 @@ class ApplicantCreationForm(UserCreationForm):
         fields = ("username", "email")
 
 
+class InvitationEmailForm(forms.Form):
+    email = forms.EmailField(label="Correo electrónico de la persona invitada")
+
+
+class InvitationAcceptanceForm(UserCreationForm):
+    class Meta(UserCreationForm.Meta):
+        model = get_user_model()
+        fields = ("username",)
+
+
 class ManualVacancySubmissionForm(forms.ModelForm):
     class Meta:
         model = ManualVacancySubmission

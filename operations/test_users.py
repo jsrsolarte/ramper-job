@@ -1,17 +1,19 @@
+import hashlib
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import timedelta
 from urllib.parse import unquote
 from unittest.mock import patch
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
-from django.db import IntegrityError, transaction
-from django.test import TestCase, override_settings
+from django.db import IntegrityError, close_old_connections, transaction
+from django.test import TestCase, TransactionTestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
-from operations.models import AdminAuditEvent
+from operations.models import AdminAuditEvent, UserInvitation
 from profiles.models import Profile
 
 
@@ -92,10 +94,12 @@ class UserManagementTests(TestCase):
             self.client.post(reverse("operations:toggle_user", args=[self.applicant.pk]), {"active": "false"}),
             self.client.post(reverse("operations:toggle_user", args=[999999]), {"active": "false"}),
             self.client.post(reverse("operations:request_password_reset", args=[self.applicant.pk])),
+            self.client.post(reverse("operations:create_invitation"), {"email": "intruder@example.test"}),
         ]
 
         self.assertEqual([response.status_code for response in protected_requests], [403] * len(protected_requests))
         self.assertEqual(get_user_model().objects.count(), 2)
+        self.assertFalse(UserInvitation.objects.exists())
         self.assertFalse(AdminAuditEvent.objects.exists())
 
     @override_settings(PASSWORD_RESET_TIMEOUT=300)
@@ -178,3 +182,184 @@ class UserManagementTests(TestCase):
             confirm_url = reverse("password_reset_confirm", kwargs={"uidb64": uidb64, "token": token})
             confirmation = self.client.get(confirm_url)
         self.assertContains(confirmation, "El enlace ya no es válido")
+
+
+class InvitationEnrollmentTests(TestCase):
+    def setUp(self):
+        self.User = get_user_model()
+        self.admin = self.User.objects.create_superuser("owner", password="strong-admin-pass")
+        self.existing = self.User.objects.create_user("existing", password="Existing-pass-2026!")
+        self.client.force_login(self.admin)
+
+    def generate_invitation(self, email="new-person@example.test"):
+        response = self.client.post(reverse("operations:create_invitation"), {"email": email})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertEqual(response["Referrer-Policy"], "no-referrer")
+        token_match = re.search(r"#([A-Za-z0-9_-]+)", response.content.decode())
+        self.assertIsNotNone(token_match)
+        return response, token_match.group(1)
+
+    def test_admin_generates_hashed_seven_day_invitation_once(self):
+        before = timezone.now()
+        response, raw_token = self.generate_invitation()
+        invitation = UserInvitation.objects.get()
+
+        self.assertEqual(invitation.email, "new-person@example.test")
+        self.assertEqual(invitation.created_by, self.admin)
+        self.assertEqual(invitation.token_hash, hashlib.sha256(raw_token.encode()).hexdigest())
+        self.assertNotEqual(invitation.token_hash, raw_token)
+        self.assertGreaterEqual(invitation.expires_at, before + timedelta(days=7) - timedelta(seconds=2))
+        self.assertLessEqual(invitation.expires_at, before + timedelta(days=7) + timedelta(seconds=2))
+        self.assertEqual(self.User.objects.count(), 2)
+        self.assertNotContains(response, invitation.token_hash)
+        audit = AdminAuditEvent.objects.get(action=AdminAuditEvent.Action.INVITATION_CREATED)
+        self.assertEqual(audit.actor, self.admin)
+        self.assertEqual(audit.invitation, invitation)
+        self.assertEqual(audit.invitation_email, invitation.email)
+        self.assertNotIn(raw_token, str(audit))
+        self.assertContains(response, "Copiar enlace")
+
+    def test_replacement_revokes_old_token_and_new_token_is_valid(self):
+        _, old_token = self.generate_invitation()
+        _, new_token = self.generate_invitation()
+        old, new = UserInvitation.objects.order_by("created_at")
+
+        self.assertIsNotNone(old.revoked_at)
+        self.assertIsNone(new.revoked_at)
+        self.assertEqual(
+            AdminAuditEvent.objects.filter(action=AdminAuditEvent.Action.INVITATION_CREATED).count(), 2,
+        )
+        self.assertEqual(
+            AdminAuditEvent.objects.filter(action=AdminAuditEvent.Action.INVITATION_REVOKED).count(), 1,
+        )
+        old_validation = self.client.post(reverse("invitation_validate"), {"token": old_token})
+        new_validation = self.client.post(reverse("invitation_validate"), {"token": new_token})
+        self.assertEqual(old_validation.status_code, 400)
+        self.assertEqual(new_validation.status_code, 200)
+        self.assertEqual(new_validation.json(), {"valid": True, "email": new.email})
+
+    def test_admin_can_revoke_invitation_and_applicant_cannot(self):
+        _, token = self.generate_invitation()
+        invitation = UserInvitation.objects.get()
+        response = self.client.post(reverse("operations:revoke_invitation", args=[invitation.pk]))
+        self.assertRedirects(response, reverse("operations:users"))
+        invitation.refresh_from_db()
+        self.assertIsNotNone(invitation.revoked_at)
+        self.assertTrue(AdminAuditEvent.objects.filter(
+            invitation=invitation,
+            action=AdminAuditEvent.Action.INVITATION_REVOKED,
+            invitation_email=invitation.email,
+        ).exists())
+        self.assertEqual(self.client.post(reverse("invitation_validate"), {"token": token}).status_code, 400)
+
+        self.client.force_login(self.existing)
+        denied = self.client.post(reverse("operations:revoke_invitation", args=[invitation.pk]))
+        self.assertEqual(denied.status_code, 403)
+
+    def test_invalid_form_preserves_invitation_then_creates_non_admin_account(self):
+        _, token = self.generate_invitation("invitee@example.test")
+        accept_url = reverse("invitation_accept")
+        invalid = self.client.post(accept_url, {
+            "token": token,
+            "username": "existing",
+            "password1": "Candidate-pass-2026!",
+            "password2": "Candidate-pass-2026!",
+        })
+        invitation = UserInvitation.objects.get()
+        self.assertEqual(invalid.status_code, 200)
+        self.assertIsNone(invitation.used_at)
+        self.assertIn("username", invalid.context["acceptance_form"].errors)
+
+        accepted = self.client.post(accept_url, {
+            "token": token,
+            "username": "new-applicant",
+            "password1": "Candidate-pass-2026!",
+            "password2": "Candidate-pass-2026!",
+        })
+        self.assertRedirects(accepted, reverse("login"))
+        applicant = self.User.objects.get(username="new-applicant")
+        self.assertEqual(applicant.email, "invitee@example.test")
+        self.assertTrue(applicant.is_active)
+        self.assertFalse(applicant.is_staff)
+        self.assertFalse(applicant.is_superuser)
+        self.assertTrue(applicant.check_password("Candidate-pass-2026!"))
+        accepted_event = AdminAuditEvent.objects.get(action=AdminAuditEvent.Action.INVITATION_ACCEPTED)
+        self.assertEqual(accepted_event.actor, self.admin)
+        self.assertEqual(accepted_event.target, applicant)
+        self.assertEqual(accepted_event.invitation_email, "invitee@example.test")
+        invitation.refresh_from_db()
+        self.assertIsNotNone(invitation.used_at)
+        self.assertEqual(self.client.post(accept_url, {
+            "token": token,
+            "username": "second-applicant",
+            "password1": "Candidate-pass-2026!",
+            "password2": "Candidate-pass-2026!",
+        }).status_code, 400)
+        self.assertFalse(self.User.objects.filter(username="second-applicant").exists())
+
+    def test_expired_or_missing_invitation_cannot_create_account(self):
+        _, token = self.generate_invitation()
+        invitation = UserInvitation.objects.get()
+        invitation.expires_at = timezone.now() - timedelta(seconds=1)
+        invitation.save(update_fields=("expires_at",))
+
+        response = self.client.post(reverse("invitation_accept"), {
+            "token": token,
+            "username": "expired-user",
+            "password1": "Candidate-pass-2026!",
+            "password2": "Candidate-pass-2026!",
+        })
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(self.client.post(reverse("invitation_accept"), {}).status_code, 400)
+        self.assertEqual(self.User.objects.count(), 2)
+
+    def test_public_get_cleans_fragment_in_browser_code_and_has_no_external_assets(self):
+        response = self.client.get(reverse("invitation_accept"))
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Cache-Control"], "private, no-store")
+        self.assertContains(response, "history.replaceState")
+        self.assertNotContains(response, "http://")
+        self.assertNotContains(response, "https://")
+
+
+class InvitationEnrollmentConcurrencyTests(TransactionTestCase):
+    reset_sequences = True
+
+    def setUp(self):
+        User = get_user_model()
+        self.admin = User.objects.create_superuser("owner", password="strong-admin-pass")
+        raw_token = "one-use-concurrency-token"
+        self.invitation = UserInvitation.objects.create(
+            email="concurrent@example.test",
+            token_hash=hashlib.sha256(raw_token.encode()).hexdigest(),
+            created_by=self.admin,
+            expires_at=timezone.now() + timedelta(days=7),
+        )
+        self.raw_token = raw_token
+
+    def test_two_simultaneous_acceptances_create_exactly_one_account(self):
+        url = reverse("invitation_accept")
+
+        def attempt(username):
+            close_old_connections()
+            try:
+                from django.test import Client
+                client = Client()
+                response = client.post(url, {
+                    "token": self.raw_token,
+                    "username": username,
+                    "password1": "Concurrent-pass-2026!",
+                    "password2": "Concurrent-pass-2026!",
+                })
+                return response.status_code
+            finally:
+                close_old_connections()
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = list(executor.map(attempt, ("concurrent-a", "concurrent-b")))
+
+        self.assertEqual(sorted(results), [302, 400])
+        self.assertEqual(get_user_model().objects.filter(email="concurrent@example.test").count(), 1)
+        self.invitation.refresh_from_db()
+        self.assertIsNotNone(self.invitation.used_at)

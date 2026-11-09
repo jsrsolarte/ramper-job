@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 9079)
+Total output lines: 745
+
 :root {
   color-scheme: light;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -437,58 +440,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .form-panel { max-width: 900px; padding: clamp(22px, 4vw, 38px); border-radius: 20px; box-shadow: var(--shadow-card); }
 .form-intro { display: flex; align-items: center; gap: 13px; margin: 0 0 27px; padding: 0 0 22px; border-bottom: 1px solid var(--line); }
 .form-intro-icon { display: grid; width: 42px; height: 42px; flex: none; place-items: center; border-radius: 14px; color: var(--green); background: var(--green-soft); font-size: 19px; }
-.form-intro h2 { margin: 0 0 3px; color: var(--ink); font-size: 16px; font-weight: 730; letter-spacing: -.25px; }
-.form-intro p { margin: 0; color: var(--muted); font-size: 12px; }
-.form-panel form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 20px; }
-.form-field { min-width: 0; margin-bottom: 22px; }
-.form-field-search_phrases, .form-field-locations, .form-field-remote_ok, .form-field-min_score, .form-field-cv_file { grid-column: 1 / -1; }
-.star-select-fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
-.star-select-fieldset legend { margin: 0 0 8px; color: var(--ink-soft); font-size: 12px; font-weight: 720; }
-.star-select-options { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
-.star-select-option { position: relative; min-width: 0; }
-.star-select-option input { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
-.star-select-option label { display: flex; min-height: 61px; flex-direction: column; align-items: center; justify-content: center; gap: 5px; margin: 0; padding: 8px 5px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink-soft); cursor: pointer; transition: border-color .15s ease, background .15s ease, box-shadow .15s ease; }
-.star-select-option label .score-stars { font-size: 14px; }
-.star-select-option label > span:last-child { font-size: 10px; line-height: 1.15; text-align: center; }
-.star-select-option input:checked + label { border-color: var(--green); background: #edf7f1; box-shadow: inset 0 0 0 1px var(--green); color: var(--green-deep); }
-.star-select-option input:focus-visible + label { outline: 3px solid rgba(54, 119, 82, .28); outline-offset: 2px; }
-.star-select-option label:hover { border-color: #9bc4ad; }
-.form-field label, .auth-card label { display: block; margin: 0 0 8px; color: var(--ink-soft); font-size: 12px; font-weight: 720; }
-.form-field input:not([type=checkbox]), .form-field textarea, .form-field select, .auth-card input:not([type=hidden]) {
-  display: block;
-  width: 100%;
-  min-height: 45px;
-  padding: 11px 13px;
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  background: #fff;
-  font-size: 13px;
-  transition: border-color .17s ease, box-shadow .17s ease;
-}
-.form-field input[type=range] {
-  min-height: 28px !important;
-  padding: 0 !important;
-  border: 0 !important;
-  accent-color: var(--green);
-  cursor: pointer;
-}
-.score-range-value { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 8px; color: var(--green-deep); font-size: 14px; font-weight: 750; }
-.form-field input:not([type=checkbox]):focus, .form-field textarea:focus, .form-field select:focus, .auth-card input:focus { border-color: var(--green); outline: 0; box-shadow: var(--focus); }
-.form-field textarea { min-height: 94px; resize: vertical; }
-.form-field textarea[hidden] { display: none; }
-.form-field input[type=file] { padding: 8px; font-size: 12px; }
-.form-field input[type=file]::file-selector-button { margin-right: 10px; padding: 7px 10px; border: 0; border-radius: 7px; color: var(--green-deep); background: var(--green-soft); cursor: pointer; font-weight: 650; }
-.field-help { margin: 7px 0 0; color: var(--muted); font-size: 11px; line-height: 1.55; }
-.field-errors, .form-error, .errorlist { margin: 7px 0 0; padding: 0; color: var(--danger); font-size: 11px; list-style: none; }
-.checkbox-field { display: inline-flex !important; align-items: center; gap: 10px; cursor: pointer; }
-.form-field input[type=checkbox] { width: 18px; height: 18px; margin: 0; accent-color: var(--green); }
-.current-file { display: flex; grid-column: 1 / -1; align-items: center; gap: 11px; margin: -2px 0 22px; padding: 13px 15px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface-soft); }
-.file-mark { display: grid; width: 30px; height: 30px; flex: none; place-items: center; border-radius: 10px; color: var(--green); background: var(--green-soft); font-size: 14px; font-weight: 800; }
-.current-file > span:nth-child(2) { display: grid; gap: 1px; }
-.current-file strong { color: var(--ink-soft); font-size: 11px; }
-.current-file small { color: var(--muted); font-size: 10px; }
-.current-file a { margin-left: auto; font-size: 11px; font-weight: 700; text-underline-offset: 3px; }
+.form-intro h2 { margin: 0 0 3px; color: var(--ink); font-size: 16px; font-weight:…1079 tokens truncated…fset: 3px; }
 .form-actions { display: flex; grid-column: 1 / -1; align-items: center; justify-content: space-between; gap: 14px; margin-top: 4px; padding-top: 19px; border-top: 1px solid var(--line); }
 .form-actions button { min-width: 160px; }
 .text-link { color: var(--muted); font-size: 11px; font-weight: 650; text-decoration: none; }
@@ -638,6 +590,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .admin-audit { margin-top: 36px; }
 .admin-form-panel { max-width: 680px; }
 .admin-form-panel form { grid-template-columns: 1fr; }
+.admin-form-panel #invitation-form[hidden] { display: none; }
 .admin-form-panel .errorlist { grid-column: 1 / -1; }
 .admin-page-links { display: flex; flex-wrap: wrap; gap: 9px; margin: 20px 0; }
 .admin-panel { margin: 18px 0; padding: 22px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-soft); }

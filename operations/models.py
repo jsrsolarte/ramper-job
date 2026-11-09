@@ -107,13 +107,30 @@ class AdminAuditEvent(models.Model):
         ACCOUNT_CREATED = "account_created", "Cuenta creada"
         ACCOUNT_DEACTIVATED = "account_deactivated", "Cuenta desactivada"
         ACCOUNT_REACTIVATED = "account_reactivated", "Cuenta reactivada"
+        INVITATION_CREATED = "invitation_created", "Invitación creada"
+        INVITATION_REVOKED = "invitation_revoked", "Invitación revocada"
+        INVITATION_ACCEPTED = "invitation_accepted", "Invitación aceptada"
         PASSWORD_RESET_REQUESTED = "password_reset_requested", "Recuperación solicitada"
         PASSWORD_RESET_DELIVERY_FAILED = "password_reset_delivery_failed", "Fallo de entrega de recuperación"
         PASSWORD_RESET_LINK_GENERATED = "password_reset_link_generated", "Enlace de restablecimiento generado"
         PASSWORD_RESET_UNAVAILABLE = "password_reset_unavailable", "Recuperación no disponible"
 
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="admin_audit_actions")
-    target = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="admin_audit_events")
+    target = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="admin_audit_events",
+        null=True,
+        blank=True,
+    )
+    invitation = models.ForeignKey(
+        "UserInvitation",
+        on_delete=models.SET_NULL,
+        related_name="audit_events",
+        null=True,
+        blank=True,
+    )
+    invitation_email = models.EmailField(blank=True)
     action = models.CharField(max_length=40, choices=Action.choices)
     created_at = models.DateTimeField(default=timezone.now)
 
@@ -122,3 +139,31 @@ class AdminAuditEvent(models.Model):
 
     def __str__(self):
         return f"{self.get_action_display()} · {self.created_at:%Y-%m-%d %H:%M}"
+
+
+class UserInvitation(models.Model):
+    email = models.EmailField()
+    token_hash = models.CharField(max_length=64, unique=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="created_user_invitations",
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+    expires_at = models.DateTimeField()
+    used_at = models.DateTimeField(null=True, blank=True)
+    revoked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["email", "created_at"], name="ops_invite_email_created_idx"),
+            models.Index(fields=["expires_at", "used_at"], name="ops_invite_expiry_used_idx"),
+        ]
+
+    def __str__(self):
+        return f"Invitación para {self.email}"
+
+    def is_pending(self, *, at=None):
+        at = at or timezone.now()
+        return self.used_at is None and self.revoked_at is None and self.expires_at > at

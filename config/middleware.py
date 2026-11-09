@@ -1,6 +1,6 @@
 from django.contrib.auth import logout
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import Resolver404, resolve, reverse
 
 from profiles.tour import ensure_mandatory_tour, is_tour_eligible, step_by_id
 
@@ -35,7 +35,10 @@ class MandatoryGuidedTourMiddleware:
         request.mandatory_tour_pending = True
         request.mandatory_tour_step = progress.current_step
 
-        view_name = getattr(getattr(request, "resolver_match", None), "view_name", "")
+        try:
+            view_name = resolve(request.path_info).view_name
+        except Resolver404:
+            view_name = ""
         if (
             view_name in {"healthz", "readyz", "logout", "profiles:tour_state", "profiles:tour_action"}
             or view_name.startswith(("operations:", "admin:"))

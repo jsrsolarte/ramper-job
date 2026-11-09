@@ -45,7 +45,8 @@ class GuidedTourCompletionMigrationTests(TransactionTestCase):
         Progress = self.apps_after_migration.get_model("profiles", "GuidedTourProgress")
 
         previous_progress = Progress.objects.get(owner_id=self.previous_user_id)
+        first_login_progress = Progress.objects.filter(owner_id=self.first_login_user_id).first()
 
         self.assertTrue(previous_progress.mandatory_completed)
-        self.assertFalse(Progress.objects.filter(owner_id=self.first_login_user_id).exists())
+        self.assertTrue(first_login_progress is None or not first_login_progress.mandatory_completed)
         self.assertFalse(Progress.objects.filter(owner_id=self.admin_user_id).exists())

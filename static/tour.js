@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const progressLabel = document.querySelector("#tour-progress");
   const previousButton = dialog.querySelector('[data-tour-action="previous"]');
   const nextButton = dialog.querySelector('[data-tour-action="next"]');
+  const skipButton = dialog.querySelector('[data-tour-action="skip"]');
+  const closeButton = dialog.querySelector('[data-tour-action="close"]');
   const csrfToken = document.querySelector("#tour-csrf [name=csrfmiddlewaretoken]")?.value || "";
   let highlightedElement = null;
   let returnFocus = null;
@@ -46,6 +48,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     offer.hidden = true;
+    dialog.setAttribute("aria-modal", state.mandatory ? "true" : "false");
+    if (skipButton) skipButton.hidden = state.mandatory;
+    if (closeButton) closeButton.hidden = state.mandatory;
     removeHighlight();
     const target = findTarget(step);
     if (target) {
@@ -157,6 +162,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   dialog.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      if (activeState?.mandatory) {
+        event.preventDefault();
+        return;
+      }
       event.preventDefault();
       perform("close");
     }

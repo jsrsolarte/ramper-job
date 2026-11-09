@@ -9,7 +9,7 @@ from django.views.decorators.http import require_GET, require_POST
 
 from .forms import ProfileForm
 from .models import GuidedTourProgress, Profile, ProfileRevision
-from .tour import TOUR_STEPS, TOUR_VERSION, is_tour_eligible, step_payload
+from .tour import TOUR_STEPS, TOUR_VERSION, ensure_mandatory_tour, is_tour_eligible, step_payload
 from dashboard.score_display import score_star_label, score_star_percent, score_star_threshold_label
 
 
@@ -117,7 +117,8 @@ def _guided_tour_state(progress):
         return {
             "status": GuidedTourProgress.Status.NOT_STARTED,
             "version": TOUR_VERSION,
-            "offer": True,
+            "mandatory": progress is None or not progress.mandatory_completed,
+            "offer": progress is not None and progress.mandatory_completed,
             "step": None,
             "step_index": 0,
             "step_count": len(TOUR_STEPS),
@@ -131,7 +132,8 @@ def _guided_tour_state(progress):
     return {
         "status": progress.status,
         "version": progress.version,
-        "offer": progress.status == GuidedTourProgress.Status.NOT_STARTED,
+        "mandatory": not progress.mandatory_completed,
+        "offer": progress.mandatory_completed and progress.status == GuidedTourProgress.Status.NOT_STARTED,
         "step": step_payload(current_step) if progress.status == GuidedTourProgress.Status.IN_PROGRESS else None,
         "step_index": step_index + 1,
         "step_count": len(TOUR_STEPS),
@@ -143,7 +145,9 @@ def _guided_tour_state(progress):
 def guided_tour_state(request):
     if not is_tour_eligible(request.user):
         raise Http404
-    progress = GuidedTourProgress.objects.filter(owner=request.user).first()
+    progress = ensure_mandatory_tour(request.user)
+    if progress is None:
+        progress = GuidedTourProgress.objects.filter(owner=request.user).first()
     return JsonResponse(_guided_tour_state(progress))
 
 
@@ -159,14 +163,20 @@ def guided_tour_action(request):
         return JsonResponse({"error": "Acción no válida."}, status=400)
 
     progress = GuidedTourProgress.objects.filter(owner=request.user).first()
+    mandatory = progress is None or not progress.mandatory_completed
+    if mandatory:
+        progress = ensure_mandatory_tour(request.user)
+        if action in {"skip", "close"}:
+            return JsonResponse({"error": "Debes completar el recorrido para continuar."}, status=409)
     step_ids = [step["id"] for step in TOUR_STEPS]
     first_step, last_step = step_ids[0], step_ids[-1]
 
     if action in {"start", "reopen"}:
         progress, _created = GuidedTourProgress.objects.get_or_create(owner=request.user)
-        progress.version = TOUR_VERSION
-        progress.status = GuidedTourProgress.Status.IN_PROGRESS
-        progress.current_step = first_step
+        if progress.mandatory_completed:
+            progress.version = TOUR_VERSION
+            progress.status = GuidedTourProgress.Status.IN_PROGRESS
+            progress.current_step = first_step
     elif action == "skip":
         if progress is None:
             progress = GuidedTourProgress(owner=request.user)
@@ -187,6 +197,7 @@ def guided_tour_action(request):
             if step_index == len(step_ids) - 1:
                 progress.current_step = last_step
                 progress.status = GuidedTourProgress.Status.COMPLETED
+                progress.mandatory_completed = True
             else:
                 progress.current_step = step_ids[step_index + 1]
         elif action == "previous":

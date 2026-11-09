@@ -91,7 +91,7 @@ class DashboardPrivacyTests(TestCase):
         self.assertContains(response, "$4.214.000 pagos mensuales")
         self.assertContains(response, "$4 a $4,5 millones")
         self.assertContains(response, "Ver detalles del análisis")
-        self.assertContains(response, '<details class="match-details">')
+        self.assertContains(response, '<details class="match-details" data-tour="vacancy-details">')
         self.assertContains(response, "Otra vacante")
         self.assertNotContains(response, "Vacante ajena")
         result_ids = [analysis.pk for analysis in response.context["analyses"]]

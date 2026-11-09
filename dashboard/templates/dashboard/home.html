@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Mis vacantes · Ramper Job{% endblock %}
 {% block content %}
-<section class="hero">
+<section class="hero" data-tour="dashboard-content">
   <div>
     <p class="eyebrow">Tu espacio laboral</p>
     <h1>Oportunidades para ti</h1>
@@ -29,7 +29,7 @@
   </section>
 {% elif profile.cv_file %}
   {% if follow_up_status == 'pending' %}
-  <section class="vacancy-filter panel" aria-label="Filtrar vacantes por puntaje">
+  <section class="vacancy-filter panel" aria-label="Filtrar vacantes por puntaje" data-tour="score-filter">
     <div class="score-filter-heading">
       <div><h2>Filtrar por estrellas</h2><p class="field-help">Elige un mínimo solo para este listado. Se mostrarán recomendaciones con ese puntaje o más.</p></div>
     </div>
@@ -41,7 +41,7 @@
   </section>
   {% endif %}
   {% if analyses %}
-  <section class="results-list" aria-label="Vacantes recomendadas">
+  <section class="results-list" aria-label="Vacantes recomendadas" data-tour="dashboard-content">
     {% for analysis in analyses %}
       <article class="vacancy-card panel">
         <div class="card-topline">
@@ -64,7 +64,7 @@
           </div>
         {% endif %}
         {% if analysis.score_breakdown or analysis.reasons or analysis.gaps %}
-          <details class="match-details">
+          <details class="match-details" data-tour="vacancy-details">
             <summary>Ver detalles del análisis</summary>
             <div class="match-details-content">
               {% if analysis.score_breakdown %}<section><h3>Desglose del puntaje</h3><ul class="rubric-breakdown">{% for item in analysis.rubric_details %}<li><strong>{{ item.label }} · {{ item.score|floatformat:1 }}/{{ item.max_score }}</strong><span>{{ item.status }}</span>{% if item.evidence %}<p>{{ item.evidence }}</p>{% endif %}</li>{% endfor %}</ul>{% if analysis.score_deductions %}<h4>Deducciones por requisitos obligatorios</h4><ul>{% for deduction in analysis.score_deductions %}<li>−{{ deduction.points|floatformat:1 }} · {{ deduction.requirement }}{% if deduction.evidence %}<p>{{ deduction.evidence }}</p>{% endif %}</li>{% endfor %}</ul>{% endif %}{% if analysis.critical_requirements %}<h4>Requisitos críticos evaluados</h4><ul>{% for requirement in analysis.critical_requirements %}<li>{{ requirement.requirement }} · {{ requirement.status }}{% if requirement.evidence %}<p>{{ requirement.evidence }}</p>{% endif %}</li>{% endfor %}</ul>{% endif %}</section>{% endif %}
@@ -119,7 +119,7 @@
     </nav>
   {% endif %}
   {% else %}
-  <section class="empty-state panel">
+  <section class="empty-state panel" data-tour="dashboard-content">
     <span class="empty-icon">⌕</span>
     <h2>{{ follow_up_empty_title }}</h2>
     {% if follow_up_status != 'pending' %}

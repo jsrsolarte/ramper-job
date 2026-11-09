@@ -1,11 +1,15 @@
+{% load static %}
 <!doctype html>
 <html lang="es">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Ramper Job{% endblock %}</title>
-    <link rel="stylesheet" href="/static/app.css?v=14">
+    <link rel="stylesheet" href="/static/app.css?v=16">
     <script src="/static/score-range.js?v=3" defer></script>
+    {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
+      <script src="{% static 'tour.js' %}?v=3" defer></script>
+    {% endif %}
   </head>
   <body>
     <header class="site-header">
@@ -15,13 +19,38 @@
       </a>
       {% if request.user.is_authenticated %}
         <nav aria-label="Navegación principal">
-          <a href="{% url 'profiles:edit' %}">Mi perfil</a>
+          <a href="{% url 'profiles:edit' %}" data-tour="profile-nav">Mi perfil</a>
           <a href="{% url 'dashboard:analysis' %}">Análisis</a>
           {% if request.user.is_superuser %}<a href="{% url 'operations:admin_center' %}">Administración</a>{% endif %}
+          {% if not request.user.is_staff and not request.user.is_superuser %}<button class="text-button" type="button" data-tour-reopen>Ver guía</button>{% endif %}
           <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="text-button" type="submit">Salir</button></form>
         </nav>
       {% endif %}
     </header>
+    {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
+      <form id="tour-csrf" hidden>{% csrf_token %}</form>
+      <aside id="tour-offer" class="tour-offer panel" hidden aria-labelledby="tour-offer-title">
+        <div><h2 id="tour-offer-title">¿Quieres conocer Ramper Job?</h2><p>Una guía breve te muestra cómo configurar tu búsqueda y organizar las vacantes.</p></div>
+        <div class="tour-offer-actions">
+          <button type="button" data-tour-offer-action="start">Iniciar recorrido</button>
+          <button class="button button-secondary" type="button" data-tour-offer-action="skip">Omitir</button>
+          <button class="text-button" type="button" data-tour-offer-action="dismiss">Ahora no</button>
+        </div>
+      </aside>
+      <section id="guided-tour" class="guided-tour" data-state-url="{% url 'profiles:tour_state' %}" data-action-url="{% url 'profiles:tour_action' %}" hidden role="dialog" aria-modal="false" aria-labelledby="tour-title" aria-describedby="tour-description" tabindex="-1">
+        <div class="guided-tour-heading">
+          <p id="tour-progress" class="guided-tour-progress" role="status" aria-live="polite" aria-atomic="true"></p>
+          <button class="guided-tour-close" type="button" data-tour-action="close" aria-label="Cerrar la guía y continuar después">×</button>
+        </div>
+        <h2 id="tour-title"></h2>
+        <p id="tour-description" class="guided-tour-description"></p>
+        <div class="guided-tour-actions">
+          <button class="button button-secondary" type="button" data-tour-action="previous">Anterior</button>
+          <button class="text-button" type="button" data-tour-action="skip">Omitir recorrido</button>
+          <button class="button" type="button" data-tour-action="next">Siguiente</button>
+        </div>
+      </section>
+    {% endif %}
     <main class="site-main">
       {% for message in messages %}<p class="notice{% if message.tags %} notice-{{ message.tags }}{% endif %}" role="status">{{ message }}</p>{% endfor %}
       {% block content %}{% endblock %}

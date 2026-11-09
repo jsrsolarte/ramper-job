@@ -10,11 +10,12 @@
 - Crear o vincular el repositorio remoto de la aplicación en GitHub y publicar allí el commit candidato que alimentará CI.
 - Añadir un `Dockerfile` para construir la imagen de runtime de la aplicación.
 - Automatizar validaciones y publicación de imágenes inmutables identificadas por commit.
+- Separar las ramas `staging` y `main`, permitir seleccionar ramas de trabajo para probar en staging y promover a `main` solo el código validado.
 - Declarar configuración y manifiestos separados para staging, con reconciliación por Flux.
 - Preparar persistencia, secretos, salud, recursos y rollback para el entorno de staging.
 - Provisionar la cuenta administradora inicial de stage mediante una operación manual de uso único, sin publicar su contraseña.
 - Desplegar y validar staging solo después de que terminen las propuestas funcionales indicadas en las tareas.
-- Mantener producción fuera del despliegue y sin cambios en esta propuesta.
+- Mantener producción fuera del despliegue; `main` queda reservado como rama de liberación, sin crear ni habilitar recursos de producción en esta propuesta.
 
 ## Capabilities
 

@@ -1,5 +1,5 @@
-<nav class="dashboard-tabs" aria-label="Vacantes">
-  <a class="{% if active_tab == 'pending' %}is-active{% endif %}"{% if active_tab == 'pending' %} aria-current="page"{% endif %} href="{% url 'dashboard:pending' %}">Por analizar<span>{{ pending_count|default:0 }}</span></a>
+<nav class="dashboard-tabs" aria-label="Vacantes" data-tour="follow-up-tabs">
+  <a data-tour="pending-tab" class="{% if active_tab == 'pending' %}is-active{% endif %}"{% if active_tab == 'pending' %} aria-current="page"{% endif %} href="{% url 'dashboard:pending' %}">Por analizar<span>{{ pending_count|default:0 }}</span></a>
   <a class="{% if active_tab == 'recommendations' %}is-active{% endif %}"{% if active_tab == 'recommendations' %} aria-current="page"{% endif %} href="{% url 'dashboard:home' %}?state=pending">Recomendaciones<span>{{ follow_up_counts.pending|default:0 }}</span></a>
   <a class="{% if active_tab == 'applied' %}is-active{% endif %}"{% if active_tab == 'applied' %} aria-current="page"{% endif %} href="{% url 'dashboard:home' %}?state=applied">Aplicadas<span>{{ follow_up_counts.applied|default:0 }}</span></a>
   <a class="{% if active_tab == 'in_progress' %}is-active{% endif %}"{% if active_tab == 'in_progress' %} aria-current="page"{% endif %} href="{% url 'dashboard:home' %}?state=in_progress">En proceso<span>{{ follow_up_counts.in_progress|default:0 }}</span></a>

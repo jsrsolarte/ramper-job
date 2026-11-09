@@ -38,7 +38,4 @@
     <a class="button button-secondary" href="{% url 'operations:parameters' %}">Ver parámetros</a>
   </article>
 </section>
-{% if not password_reset_enabled %}
-  <p class="notice notice-warning" role="status">La recuperación de contraseñas está deshabilitada hasta configurar y habilitar el correo saliente.</p>
-{% endif %}
 {% endblock %}

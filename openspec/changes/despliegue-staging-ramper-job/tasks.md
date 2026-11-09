@@ -24,7 +24,7 @@
 - [x] 2.3 Añadir endpoints de salud/disponibilidad y configuración de producción para `DEBUG`, hosts, CSRF, cookies y archivos privados; verificar respuestas de salud con la configuración de staging y denegación de acceso anónimo a CV.
 - [x] 2.4 Añadir GitHub Actions para ejecutar las validaciones existentes y publicar en GHCR una imagen por SHA/digest solo cuando las validaciones pasen; verificar que un fallo no publica imagen y que no se usa `latest`.
 - [x] 2.5 Añadir un comando de bootstrap de uso único que solicite la contraseña con entrada interactiva oculta, cree la cuenta administradora solo si no existe y no imprima credenciales; verificar que una segunda ejecución rechace crear otro administrador y que la contraseña no aparezca en argumentos ni logs.
-- [ ] 2.6 Ejecutar CI en `main` y `staging`, y añadir un `workflow_dispatch` que pruebe una rama del mismo repositorio; publicar la imagen por SHA solo después de CI exitoso y actualizar el pin de staging con el SHA validado.
+- [x] 2.6 Ejecutar CI en `main` y `staging`, y añadir un `workflow_dispatch` que pruebe una rama del mismo repositorio; publicar la imagen por SHA solo después de CI exitoso y actualizar el pin de staging con el SHA validado.
 
 ## 3. Crear recursos y persistencia aislados de staging
 
@@ -38,7 +38,7 @@
 - [x] 4.1 Consultar al administrador del servidor el hostname disponible, capacidad/cuotas, clase y tamaño de almacenamiento, ruta de Ingress y mecanismo de secretos; verificar que los valores acordados están documentados sin exponer credenciales.
 - [x] 4.2 Coordinar con el hilo `Gestiona y despliega ramper-job` la creación en el repositorio de infraestructura de la fuente Git y Kustomization que apuntan al repositorio y overlay reales de staging; verificar referencia de rama/ruta y que no se modificaron recursos ni reconciliación de producción.
 - [x] 4.3 Validar el overlay renderizado, referencias de imagen inmutable, namespace, recursos, Ingress y referencias a Secrets antes de publicarlo; verificar que no se aplican cambios directamente con `kubectl`.
-- [ ] 4.4 Crear la rama `staging` desde el commit de liberación actual y cambiar únicamente el `GitRepository` de Ramper Job en staging para observar esa rama; verificar que prod permanece sin overlay ni reconciliación.
+- [x] 4.4 Crear la rama `staging` desde el commit de liberación actual y cambiar únicamente el `GitRepository` de Ramper Job en staging para observar esa rama; verificar que prod permanece sin overlay ni reconciliación.
 
 ## 5. Desplegar y validar staging
 

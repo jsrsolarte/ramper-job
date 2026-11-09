@@ -3,7 +3,13 @@ name: CI and staging image
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, staging]
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: Rama de este repositorio que se quiere probar en staging
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -12,6 +18,8 @@ jobs:
   test:
     name: Validate application
     runs-on: ubuntu-latest
+    outputs:
+      source_sha: ${{ steps.source.outputs.sha }}
     services:
       postgres:
         image: postgres:17-alpine
@@ -46,6 +54,12 @@ jobs:
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.source_branch || github.sha }}
+
+      - name: Record tested commit
+        id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Install uv and Python
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
@@ -70,15 +84,21 @@ jobs:
 
   publish:
     name: Publish immutable image
-    if: github.repository == 'jsrsolarte/ramper-job' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: >-
+      github.repository == 'jsrsolarte/ramper-job' &&
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging')))
     needs: [test]
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - name: Check out source
+      - name: Check out tested commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.test.outputs.source_sha }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
@@ -90,14 +110,69 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      - name: Build and publish image for this commit
+      - name: Build and publish image for the tested commit
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           push: true
-          tags: ghcr.io/jsrsolarte/ramper-job:${{ github.sha }}
+          tags: ghcr.io/jsrsolarte/ramper-job:${{ needs.test.outputs.source_sha }}
           labels: |
             org.opencontainers.image.source=https://github.com/jsrsolarte/ramper-job
-            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.revision=${{ needs.test.outputs.source_sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy_staging:
+    name: Point staging at the tested commit
+    if: >-
+      github.repository == 'jsrsolarte/ramper-job' &&
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/staging'))
+    needs: [test, publish]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ramper-job-staging-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - name: Check out staging deployment branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: staging
+          fetch-depth: 0
+
+      - name: Pin tested image in staging overlay
+        env:
+          IMAGE_SHA: ${{ needs.test.outputs.source_sha }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          path = Path("deploy/overlays/staging/kustomization.yaml")
+          content = path.read_text(encoding="utf-8")
+          updated, replacements = re.subn(
+              r"(?m)^(\\s*newTag:\\s*)[^\\s#]+",
+              lambda match: f"{match.group(1)}{os.environ['IMAGE_SHA']}",
+              content,
+          )
+          if replacements != 1:
+              raise SystemExit(f"Expected exactly one image newTag, found {replacements}")
+          path.write_text(updated, encoding="utf-8")
+          PY
+
+      - name: Commit staging image pin
+        env:
+          IMAGE_SHA: ${{ needs.test.outputs.source_sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add deploy/overlays/staging/kustomization.yaml
+          if git diff --cached --quiet; then
+            echo "Staging already points at ${IMAGE_SHA}"
+          else
+            git commit -m "deploy(staging): ${IMAGE_SHA}"
+            git push origin HEAD:staging
+          fi

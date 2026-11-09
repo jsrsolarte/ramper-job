@@ -220,7 +220,7 @@ class GuidedTourPresentationTests(TestCase):
         self.assertIn("ya encontradas", copy_by_step["threshold"])
         self.assertIn("Por analizar", copy_by_step["pending"])
         self.assertIn("Mi perfil", copy_by_step["open_profile"])
-        self.assertIn("regresar", copy_by_step["return_to_vacancies"])
+        self.assertIn("volver a Recomendaciones", copy_by_step["return_to_vacancies"])
         self.assertIn("Aplicadas", copy_by_step["follow_up"])
         self.assertIn("En proceso", copy_by_step["follow_up"])
         self.assertIn("Entrevista", copy_by_step["follow_up"])

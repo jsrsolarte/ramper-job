@@ -201,12 +201,12 @@ def preselect_listing_titles(listings, search_terms):
         decisions_by_id = {}
         for decision in decisions:
             if isinstance(decision, dict) and isinstance(decision.get("id"), str):
-                decisions_by_id.setdefault(decision["id"], []).append(decision.get("keep"))
+                decisions_by_id.setdefault(decision["id"], []).append(decision.get("classification"))
 
         for index, listing in enumerate(batch):
             decision_values = decisions_by_id.get(str(offset + index), [])
-            # Missing, duplicate, or malformed decisions fail open for that title.
-            if len(decision_values) == 1 and decision_values[0] is False:
+            # Discard only one explicit clear-mismatch label; uncertainty fails open.
+            if len(decision_values) == 1 and decision_values[0] == "clearly_unrelated":
                 continue
             kept.append(listing)
     return TitlePreselectionResult(

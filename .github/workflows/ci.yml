@@ -79,6 +79,11 @@ jobs:
           uv run python manage.py check
           uv run python manage.py test
 
+      - name: Validate Kustomize overlays
+        run: |
+          kubectl kustomize deploy/overlays/staging >/dev/null
+          kubectl kustomize deploy/overlays/prod >/dev/null
+
       - name: Build runtime image
         run: docker build --pull --tag ramper-job:ci .
 

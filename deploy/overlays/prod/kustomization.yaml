@@ -12,10 +12,10 @@ patches:
     patch: |-
       - op: replace
         path: /data/DJANGO_ALLOWED_HOSTS
-        value: ramper-job.ramper.lat
+        value: jobs.ramper.lat
       - op: replace
         path: /data/DJANGO_CSRF_TRUSTED_ORIGINS
-        value: https://ramper-job.ramper.lat
+        value: https://jobs.ramper.lat
       - op: add
         path: /data/DJANGO_SECURE_SSL_REDIRECT
         value: "true"

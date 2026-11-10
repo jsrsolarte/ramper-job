@@ -59,10 +59,6 @@ y la contraseña PostgreSQL, solicita OmniRoute sin eco y comprueba la existenci
 tipo de `mcp-gateway-ghcr-prod`; no lee ni copia su credencial.
 
 Los workloads de Ramper Job y los Secrets de runtime están separados por namespace.
-Actualmente, el overlay de staging apunta al servicio compartido
-`omniroute.prod.svc.cluster.local:20128`, aunque consume su propia clave
-`OMNIROUTE_API_KEY`. Si staging también debe aislar esa dependencia, necesitará un
-endpoint de OmniRoute de staging y cambiar el valor en su overlay antes de conectarlo.
 
 El ConfigMap `ramper-job-config` contiene solo configuración no sensible. No se
 versionan manifiestos de Secret, archivos `.env` ni credenciales.

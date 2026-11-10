@@ -20,13 +20,20 @@ def listing(title):
 
 class TitlePreselectionTests(SimpleTestCase):
     @patch("matching.services.request_model_title_preselection")
-    def test_discards_only_one_valid_explicit_incompatible_decision(self, request):
-        titles = [listing("Auxiliar de cocina"), listing("Analista de procesos"), listing("Coordinador")]
+    def test_discards_clear_mismatch_and_keeps_compatible_or_ambiguous_titles(self, request):
+        titles = [
+            listing("Auxiliar de cocina"),
+            listing("Analista de procesos"),
+            listing("Coordinador de operaciones"),
+            listing("Jefe de área"),
+        ]
         request.return_value = Mock(
             content={"decisions": [
                 {"id": "0", "keep": False},
-                {"id": "2", "keep": False},
-                {"id": "2", "keep": False},
+                {"id": "1", "keep": True},
+                {"id": "2", "keep": True},
+                {"id": "3", "keep": False},
+                {"id": "3", "keep": False},
                 {"id": "unknown", "keep": False},
             ]},
             input_tokens=42,
@@ -34,7 +41,10 @@ class TitlePreselectionTests(SimpleTestCase):
 
         result = preselect_listing_titles(titles, ["Analista de procesos"])
 
-        self.assertEqual([item.title for item in result.listings], ["Analista de procesos", "Coordinador"])
+        self.assertEqual(
+            [item.title for item in result.listings],
+            ["Analista de procesos", "Coordinador de operaciones", "Jefe de área"],
+        )
         self.assertEqual(result.discarded_count, 1)
         self.assertEqual(result.input_tokens, 42)
         request.assert_called_once()
@@ -42,7 +52,8 @@ class TitlePreselectionTests(SimpleTestCase):
         self.assertEqual(request.call_args.kwargs["vacancies"], [
             {"id": "0", "title": "Auxiliar de cocina"},
             {"id": "1", "title": "Analista de procesos"},
-            {"id": "2", "title": "Coordinador"},
+            {"id": "2", "title": "Coordinador de operaciones"},
+            {"id": "3", "title": "Jefe de área"},
         ])
 
     @patch("matching.services.request_model_title_preselection")

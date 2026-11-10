@@ -1,4 +1,5 @@
 from urllib.parse import urlsplit, urlunsplit
+from dataclasses import dataclass
 
 from django.db import transaction
 from django.utils import timezone
@@ -8,6 +9,15 @@ from datetime import datetime, time
 from .connectors.base import JobListing
 from .identity import vacancy_dedupe_key
 from .models import Vacancy
+
+
+@dataclass(frozen=True)
+class ListingSaveSummary:
+    vacancies: list[Vacancy]
+    new_count: int
+    known_count: int
+    known_updated_count: int
+    known_unchanged_count: int
 
 
 def canonicalize_url(url: str) -> str:
@@ -91,5 +101,39 @@ def save_listing(listing: JobListing) -> tuple[Vacancy, bool]:
     return vacancy, created
 
 
-def save_listings(listings: list[JobListing]) -> list[Vacancy]:
-    return [save_listing(listing)[0] for listing in listings]
+def save_listings(listings: list[JobListing]) -> ListingSaveSummary:
+    """Persist listings and classify each distinct vacancy once for this query."""
+    outcomes = {}
+    for listing in listings:
+        vacancy, created = save_listing(listing)
+        outcome = outcomes.setdefault(vacancy.pk, {
+            "vacancy": vacancy,
+            "created": False,
+            "materially_changed": False,
+        })
+        outcome["created"] = outcome["created"] or created
+        outcome["materially_changed"] = outcome["materially_changed"] or getattr(
+            vacancy, "_materially_changed", True
+        )
+
+    new_count = 0
+    known_count = 0
+    known_updated_count = 0
+    known_unchanged_count = 0
+    for outcome in outcomes.values():
+        outcome["vacancy"]._materially_changed = outcome["materially_changed"]
+        if outcome["created"]:
+            new_count += 1
+        else:
+            known_count += 1
+            if outcome["materially_changed"]:
+                known_updated_count += 1
+            else:
+                known_unchanged_count += 1
+    return ListingSaveSummary(
+        vacancies=[outcome["vacancy"] for outcome in outcomes.values()],
+        new_count=new_count,
+        known_count=known_count,
+        known_updated_count=known_updated_count,
+        known_unchanged_count=known_unchanged_count,
+    )

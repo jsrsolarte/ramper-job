@@ -108,23 +108,6 @@ class PlatformStatisticsTests(TestCase):
         self.assertEqual(counts[VacancyFollowUp.Status.DISCARDED], 0)
         self.assertEqual(stats["tracking_total"], 0)
 
-    def test_publication_counts_are_unique_and_keep_unknown_separate(self):
-        self._vacancy("unknown")
-        self._vacancy("active", availability=Vacancy.AvailabilityStatus.ACTIVE)
-        self._vacancy("closed", availability=Vacancy.AvailabilityStatus.CLOSED)
-        # One public publication associated with two profiles is still one publication.
-        shared = self._vacancy("multi-profile")
-        self._analysis(self.profile_a, shared, self.config_v1, 4)
-        self._analysis(self.profile_b, shared, self.config_v1, 7)
-
-        stats = build_platform_statistics()
-        counts = {row["value"]: row["count"] for row in stats["publication_states"]}
-
-        self.assertEqual(stats["publication_total"], 4)
-        self.assertEqual(counts[Vacancy.AvailabilityStatus.ACTIVE], 1)
-        self.assertEqual(counts[Vacancy.AvailabilityStatus.CLOSED], 1)
-        self.assertEqual(counts[Vacancy.AvailabilityStatus.UNKNOWN], 2)
-
     def test_current_scores_are_deduplicated_and_split_by_rubric(self):
         now = timezone.now()
         first = self._vacancy("score-a")
@@ -218,7 +201,6 @@ class PlatformStatisticsTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Seguimiento por perfil")
-        self.assertContains(response, "Disponibilidad de publicaciones")
         self.assertContains(response, "Estadísticas globales")
         self.assertContains(response, "Fallos de formato del análisis")
         self.assertContains(response, "No hay fallos de formato registrados en este intervalo.")

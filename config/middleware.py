@@ -1,8 +1,45 @@
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.auth import logout
+from django.db import DatabaseError
 from django.shortcuts import redirect
 from django.urls import Resolver404, resolve, reverse
+from django.utils import timezone
 
+from operations.models import ApplicantActivity
 from profiles.tour import ensure_mandatory_tour, is_tour_eligible, step_by_id
+
+
+class RecordAuthenticatedApplicantActivityMiddleware:
+    """Track real, authenticated applicant page use without recording every request."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, "user", None)
+        static_prefix = "/" + settings.STATIC_URL.lstrip("/")
+        if (
+            user and user.is_authenticated and not user.is_staff and not user.is_superuser
+            and request.path_info not in {"/healthz", "/readyz"}
+            and not request.path_info.startswith(static_prefix)
+        ):
+            now = timezone.now()
+            try:
+                activity, created = ApplicantActivity.objects.get_or_create(
+                    user_id=user.pk,
+                    defaults={"last_authenticated_activity": now},
+                )
+                if not created:
+                    ApplicantActivity.objects.filter(
+                        pk=activity.pk,
+                        last_authenticated_activity__lt=now - timedelta(minutes=1),
+                    ).update(last_authenticated_activity=now)
+            except DatabaseError:
+                # Activity collection must not take down the user-facing application.
+                pass
+        return self.get_response(request)
 
 
 class LogoutInactiveUsersMiddleware:

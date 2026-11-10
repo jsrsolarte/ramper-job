@@ -7,6 +7,33 @@ from jobs.connectors.elempleo import ElempleoConnector, validate_elempleo_vacanc
 
 
 class ElempleoConnectorTests(SimpleTestCase):
+    @patch("jobs.connectors.elempleo.time.sleep")
+    def test_search_card_phase_does_not_fetch_details_until_selected(self, sleep):
+        listing_html = """<article><a href="/co/ofertas-trabajo/analista-123">Analista de procesos</a>
+          <p>Trabaja en Empresa Ejemplo</p><p>Medellín</p><p>Publicado hoy</p></article>
+          <article><a href="/co/ofertas-trabajo/cocinero-456">Cocinero</a>
+          <p>Trabaja en Otra Empresa</p><p>Medellín</p><p>Publicado hoy</p></article>"""
+        session = Mock()
+        session.get.side_effect = [
+            Mock(status_code=200, text=listing_html, url="https://www.elempleo.com/co/ofertas-empleo/trabajo-analista"),
+            Mock(status_code=200, text="<h1>Analista de procesos</h1><main>Mejora continua</main>",
+                 url="https://www.elempleo.com/co/ofertas-trabajo/analista-123"),
+        ]
+        connector = ElempleoConnector(session=session)
+
+        titles = connector.fetch_titles(["analista"])
+
+        self.assertEqual([item.title for item in titles], ["Analista de procesos", "Cocinero"])
+        session.get.assert_called_once()
+
+        details = connector.fetch_details([titles[0]])
+
+        self.assertEqual(len(details), 1)
+        self.assertIn("Mejora continua", details[0].description)
+        self.assertEqual(session.get.call_count, 2)
+        self.assertIn("analista-123", session.get.call_args.args[0])
+        sleep.assert_called_once()
+
     def test_url_validator_allows_only_https_elempleo_vacancy_pages(self):
         self.assertEqual(
             validate_elempleo_vacancy_url("https://www.elempleo.com/co/ofertas-trabajo/analista-123?utm=x"),

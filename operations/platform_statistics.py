@@ -1,13 +1,15 @@
 from collections import defaultdict
 from datetime import timedelta
 from decimal import Decimal
+from math import ceil
 
-from django.db.models import Count, Exists, F, Min, OuterRef, Subquery
+from django.db.models import Count, Exists, F, Min, OuterRef, Q, Subquery
 from django.utils import timezone
 
 from dashboard.models import VacancyFollowUp
-from jobs.models import Vacancy
 from matching.models import AICallAttempt, VacancyAnalysis
+
+from .models import OperationalRun
 
 
 SCORE_PERIODS = {
@@ -77,6 +79,18 @@ def _median_from_counts(score_counts, sample_size):
     return ((found[0] + found[1]) / Decimal("2")).quantize(Decimal("0.01"))
 
 
+def _duration_percentiles(durations):
+    """Return median and nearest-rank p95 for a non-empty list of ms durations."""
+    ordered = sorted(durations)
+    middle = len(ordered) // 2
+    if len(ordered) % 2:
+        median = ordered[middle]
+    else:
+        median = round((ordered[middle - 1] + ordered[middle]) / 2)
+    p95 = ordered[max(0, ceil(len(ordered) * 0.95) - 1)]
+    return median, p95
+
+
 def _score_distribution(grouped_rows):
     scores_by_rubric = defaultdict(dict)
     for row in grouped_rows:
@@ -120,6 +134,43 @@ def build_platform_statistics(*, period="30d", now=None):
     period_label, period_delta = SCORE_PERIODS[period]
     requested_start = now - period_delta
 
+    finished_source_queries = OperationalRun.objects.filter(
+        kind=OperationalRun.Kind.INGESTION,
+        operation="source_query",
+        started_at__gte=requested_start,
+        started_at__lte=now,
+        finished_at__isnull=False,
+    ).exclude(source="")
+    source_query_summaries = list(finished_source_queries.values("source").annotate(
+        total=Count("pk"),
+        non_successful=Count(
+            "pk",
+            filter=Q(status__in=(
+                OperationalRun.Status.PARTIAL,
+                OperationalRun.Status.RETRYING,
+                OperationalRun.Status.FAILED,
+            )),
+        ),
+    ).order_by("source"))
+    durations_by_source = defaultdict(list)
+    for source, duration_ms in finished_source_queries.filter(
+        duration_ms__isnull=False,
+    ).order_by("source", "duration_ms").values_list("source", "duration_ms"):
+        durations_by_source[source].append(duration_ms)
+
+    source_performance = []
+    for summary in source_query_summaries:
+        durations = durations_by_source[summary["source"]]
+        median_ms, p95_ms = _duration_percentiles(durations) if durations else (None, None)
+        source_performance.append({
+            "source": summary["source"],
+            "total": summary["total"],
+            "median_seconds": median_ms / 1000 if median_ms is not None else None,
+            "p95_seconds": p95_ms / 1000 if p95_ms is not None else None,
+            "non_successful_percent": (summary["non_successful"] * 100 / summary["total"])
+            if summary["total"] else 0,
+        })
+
     tracking_counts = {status: 0 for status, _label in VacancyFollowUp.Status.choices}
     for row in VacancyFollowUp.objects.filter(
         archived_at__isnull=True,
@@ -151,19 +202,6 @@ def build_platform_statistics(*, period="30d", now=None):
     tracking_scale = max(tracking_counts.values(), default=0) or 1
     for state in tracking_states:
         state["width_percent"] = round(state["count"] * 100 / tracking_scale)
-
-    publication_counts = {status: 0 for status, _label in Vacancy.AvailabilityStatus.choices}
-    for row in Vacancy.objects.values("availability_status").annotate(count=Count("pk")):
-        if row["availability_status"] in publication_counts:
-            publication_counts[row["availability_status"]] = row["count"]
-    publication_total = sum(publication_counts.values())
-    publication_states = [
-        {"value": status, "label": label, "count": publication_counts[status]}
-        for status, label in Vacancy.AvailabilityStatus.choices
-    ]
-    publication_scale = max(publication_counts.values(), default=0) or 1
-    for state in publication_states:
-        state["width_percent"] = round(state["count"] * 100 / publication_scale)
 
     coverage_start = AICallAttempt.objects.filter(
         stage=AICallAttempt.Stage.SCORING,
@@ -205,11 +243,11 @@ def build_platform_statistics(*, period="30d", now=None):
         "cutoff_at": timezone.localtime(now),
         "tracking_states": tracking_states,
         "tracking_total": tracking_total,
-        "publication_states": publication_states,
-        "publication_total": publication_total,
         "period": period,
         "period_label": period_label,
         "periods": SCORE_PERIODS,
+        "source_performance": source_performance,
+        "has_source_performance": bool(source_performance),
         "requested_start": timezone.localtime(requested_start),
         "coverage_start": coverage_start,
         "coverage_complete": coverage_complete,

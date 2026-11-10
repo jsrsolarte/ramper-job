@@ -15,6 +15,7 @@ from jobs.models import Vacancy
 from matching.client import OmniRouteError
 from matching.models import (
     AICallAttempt,
+    AnalysisSourceQuery,
     PROMPT_VERSION,
     RUBRIC_VERSION,
     MatchingConfig,
@@ -240,6 +241,27 @@ class MatchingProcessingTests(TestCase):
         self.assertEqual(VacancyAnalysis.objects.get(vacancy=self.vacancy).profile, self.profile)
         self.assertNotEqual(VacancyAnalysis.objects.get(vacancy=self.vacancy).profile_revision, other_revision)
         queue.assert_called_once()
+
+    @patch("matching.tasks.analyze_vacancy_for_profile.delay")
+    def test_vacancy_scheduling_links_analysis_to_source_query(self, queue):
+        source_query = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="source_query",
+            source=self.vacancy.source,
+            status=OperationalRun.Status.SUCCEEDED,
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            queued = schedule_vacancy_analysis.run(
+                self.vacancy.pk,
+                profile_ids=[self.profile.pk],
+                source_query_run_ids_by_profile={str(self.profile.pk): [source_query.pk]},
+            )
+
+        self.assertEqual(queued, [self.analysis.pk])
+        link = AnalysisSourceQuery.objects.get(source_query=source_query, analysis=self.analysis)
+        self.assertTrue(link.enqueued_by_query)
+        queue.assert_called_once_with(self.analysis.pk)
 
     @patch("matching.tasks.request_model_analysis")
     @patch("matching.tasks.extract_revision_text", return_value="CV extraído")

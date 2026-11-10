@@ -3,10 +3,45 @@ from django.utils import timezone
 
 from jobs.connectors.base import JobListing
 from jobs.models import Vacancy
-from jobs.services import save_listing
+from jobs.services import save_listing, save_listings
 
 
 class VacancyNormalizationTests(TestCase):
+    def test_save_listings_classifies_distinct_vacancies_and_material_changes(self):
+        unchanged = JobListing(
+            source="elempleo_co", external_id="991", title="Analista",
+            company="Empresa", location="Medellín", description="Descripción",
+            original_url="https://example.test/known-unchanged",
+        )
+        updated = JobListing(
+            source="elempleo_co", external_id="992", title="Analista",
+            company="Empresa", location="Medellín", description="Descripción",
+            original_url="https://example.test/known-updated",
+        )
+        save_listing(unchanged)
+        save_listing(updated)
+
+        result = save_listings([
+            unchanged,
+            JobListing(
+                source="elempleo_co", external_id="992", title="Analista",
+                company="Empresa", location="Medellín", description="Nueva descripción",
+                original_url="https://example.test/known-updated",
+            ),
+            JobListing(
+                source="elempleo_co", external_id="993", title="Ingeniera",
+                company="Empresa", location="Medellín", description="Vacante nueva",
+                original_url="https://example.test/brand-new",
+            ),
+            unchanged,
+        ])
+
+        self.assertEqual(len(result.vacancies), 3)
+        self.assertEqual(result.new_count, 1)
+        self.assertEqual(result.known_count, 2)
+        self.assertEqual(result.known_updated_count, 1)
+        self.assertEqual(result.known_unchanged_count, 1)
+
     def test_publicly_observed_listing_marks_availability_active(self):
         listing = JobListing(
             source="elempleo_co", external_id="observed-job", title="Analista",

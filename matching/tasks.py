@@ -12,7 +12,7 @@ from django.utils import timezone
 
 from jobs.models import Vacancy
 from matching.client import OmniRouteError, request_model_analysis, request_model_organization
-from matching.models import AICallAttempt, PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, ProfileVacancyDiscovery, VacancyAnalysis, VacancyOrganization
+from matching.models import AICallAttempt, AnalysisSourceQuery, PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, ProfileVacancyDiscovery, VacancyAnalysis, VacancyOrganization
 from matching.schemas import InvalidAnalysisError, save_validated_analysis, save_validated_organization
 from matching.services import RUBRIC_PROMPT, get_active_matching_config
 from profiles.extract import extract_revision_text
@@ -20,13 +20,21 @@ from profiles.models import Profile
 from profiles.locations import expand_locations, vacancy_location_is_eligible
 from operations.models import OperationalRun
 from operations.services import begin_run, finish_run
+from operations.parameters import processing_is_paused
 from matching.recovery import claim_analysis, enqueue_analysis, reconcile_pending_analyses, release_analysis, expire_discovery_if_due
 
 logger = logging.getLogger(__name__)
 
 
 @transaction.atomic
-def create_analysis(profile: Profile, vacancy: Vacancy, config: MatchingConfig | None = None, *, force=False):
+def create_analysis(
+    profile: Profile,
+    vacancy: Vacancy,
+    config: MatchingConfig | None = None,
+    *,
+    force=False,
+    include_existing=False,
+):
     profile = Profile.objects.select_for_update().filter(pk=profile.pk).first()
     if profile is None:
         return None
@@ -51,10 +59,13 @@ def create_analysis(profile: Profile, vacancy: Vacancy, config: MatchingConfig |
         profile_revision=revision,
         matching_config=config,
     )
-    if not force and prior.filter(status=VacancyAnalysis.Status.COMPLETED).exists():
-        return None
-    if not force and prior.filter(status=VacancyAnalysis.Status.FAILED).exists():
-        return None
+    if not force:
+        completed = prior.filter(status=VacancyAnalysis.Status.COMPLETED).first()
+        if completed:
+            return completed if include_existing else None
+        failed = prior.filter(status=VacancyAnalysis.Status.FAILED).first()
+        if failed:
+            return failed if include_existing else None
     pending = prior.filter(status=VacancyAnalysis.Status.PENDING).first()
     if pending:
         return pending
@@ -73,7 +84,17 @@ def schedule_vacancy_analysis(
     profile_ids=None,
     expected_revision_ids=None,
     expected_matching_config_id=None,
+    source_query_run_ids_by_profile=None,
 ):
+    if processing_is_paused():
+        schedule_vacancy_analysis.apply_async(
+            args=(
+                vacancy_id, force_reanalysis, profile_ids, expected_revision_ids,
+                expected_matching_config_id, source_query_run_ids_by_profile,
+            ),
+            countdown=60,
+        )
+        return []
     vacancy = Vacancy.objects.filter(pk=vacancy_id, is_active=True).first()
     if vacancy is None:
         logger.info("Se omite el análisis de la vacante %s: no existe o está inactiva.", vacancy_id)
@@ -106,14 +127,35 @@ def schedule_vacancy_analysis(
                     profile.pk,
                 )
                 continue
-        analysis = create_analysis(profile, vacancy, config=config, force=force_reanalysis)
-        if analysis and enqueue_analysis(analysis.pk):
+        analysis = create_analysis(
+            profile,
+            vacancy,
+            config=config,
+            force=force_reanalysis,
+            include_existing=bool(source_query_run_ids_by_profile),
+        )
+        enqueued = bool(analysis and enqueue_analysis(analysis.pk))
+        if enqueued:
             queued.append(analysis.pk)
+        run_ids = (source_query_run_ids_by_profile or {}).get(str(profile.pk), [])
+        if analysis and run_ids:
+            for run_id in set(run_ids):
+                link, created = AnalysisSourceQuery.objects.get_or_create(
+                    source_query_id=run_id,
+                    analysis=analysis,
+                    defaults={"enqueued_by_query": enqueued},
+                )
+                if not created and enqueued and not link.enqueued_by_query:
+                    link.enqueued_by_query = True
+                    link.save(update_fields=["enqueued_by_query"])
     return queued
 
 
 @shared_task(name="matching.tasks.schedule_profile_analyses")
 def schedule_profile_analyses(profile_id):
+    if processing_is_paused():
+        schedule_profile_analyses.apply_async(args=(profile_id,), countdown=60)
+        return []
     profile = get_object_or_404(Profile.objects.select_related("owner"), pk=profile_id, owner__is_active=True)
     queued = []
     for vacancy in Vacancy.objects.filter(is_active=True).iterator():
@@ -126,6 +168,8 @@ def schedule_profile_analyses(profile_id):
 @shared_task(name="matching.tasks.schedule_legacy_analyses")
 def schedule_legacy_analyses(batch_size=50, repair_pending=False):
     """Queue current-profile analyses that still use an obsolete rubric or prompt."""
+    if processing_is_paused():
+        return []
     config = get_active_matching_config()
     if config.rubric_version < RUBRIC_VERSION:
         return []
@@ -254,6 +298,9 @@ def _replacement_reason(config):
 
 @shared_task(bind=True, name="matching.tasks.analyze_vacancy_for_profile")
 def analyze_vacancy_for_profile(self, analysis_id):
+    if processing_is_paused():
+        analyze_vacancy_for_profile.apply_async(args=(analysis_id,), countdown=60)
+        return None
     analysis = get_object_or_404(
         VacancyAnalysis.objects.select_related("profile_revision", "profile", "vacancy", "matching_config"),
         pk=analysis_id,
@@ -448,16 +495,22 @@ def queue_organization(analysis):
     now = timezone.now()
     if organization.last_enqueued_at and organization.last_enqueued_at > now - timedelta(minutes=5):
         return organization
+    if processing_is_paused():
+        return organization
     organization.status = VacancyOrganization.Status.PENDING
     organization.last_enqueued_at = now
     organization.error_message = ""
     organization.save(update_fields=["status", "last_enqueued_at", "error_message", "updated_at"])
-    transaction.on_commit(lambda organization_id=organization.pk: organize_vacancy.delay(organization_id))
+    if not processing_is_paused():
+        transaction.on_commit(lambda organization_id=organization.pk: organize_vacancy.delay(organization_id))
     return organization
 
 
 @shared_task(bind=True, name="matching.tasks.organize_vacancy")
 def organize_vacancy(self, organization_id):
+    if processing_is_paused():
+        organize_vacancy.apply_async(args=(organization_id,), countdown=60)
+        return None
     organization = VacancyOrganization.objects.select_related("vacancy", "matching_config").filter(
         pk=organization_id
     ).first()
@@ -540,6 +593,8 @@ def organize_vacancy(self, organization_id):
 
 @shared_task(name="matching.tasks.retry_failed_organizations")
 def retry_failed_organizations(batch_size=50):
+    if processing_is_paused():
+        return 0
     queued = 0
     active_config = get_active_matching_config()
     candidates = VacancyOrganization.objects.filter(
@@ -561,6 +616,8 @@ def retry_failed_organizations(batch_size=50):
 
 @shared_task(name="matching.tasks.reconcile_organizations")
 def reconcile_organizations(batch_size=50):
+    if processing_is_paused():
+        return 0
     stale_cutoff = timezone.now() - timedelta(minutes=10)
     candidates = VacancyOrganization.objects.filter(status=VacancyOrganization.Status.PENDING).filter(
         Q(last_enqueued_at__isnull=True) | Q(last_enqueued_at__lt=stale_cutoff)
@@ -579,6 +636,8 @@ def reconcile_organizations(batch_size=50):
 
 @shared_task(name="matching.tasks.schedule_eligible_organizations")
 def schedule_eligible_organizations(profile_id):
+    if processing_is_paused():
+        return []
     profile = Profile.objects.filter(pk=profile_id, owner__is_active=True).first()
     if profile is None:
         return []
@@ -600,4 +659,6 @@ def schedule_eligible_organizations(profile_id):
 
 @shared_task(name="matching.tasks.reconcile_pending_analyses")
 def reconcile_pending_analyses_task(batch_size=None):
+    if processing_is_paused():
+        return 0
     return reconcile_pending_analyses(batch_size=batch_size)

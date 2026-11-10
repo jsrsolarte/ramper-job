@@ -1,5 +1,7 @@
 import logging
+from dataclasses import dataclass
 from functools import partial
+from time import perf_counter
 
 from celery import shared_task
 from django.db import transaction
@@ -23,8 +25,75 @@ from operations.services import (
     release_refresh_lease,
     start_admin_command,
 )
+from operations.parameters import processing_is_paused
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class SourceFetchSummary:
+    listings: list
+    listing_count: int
+    title_kept_count: int | None = None
+    title_discarded_count: int | None = None
+    details_requested_count: int | None = None
+    details_received_count: int | None = None
+    title_input_tokens: int | None = None
+    listing_fetch_duration_ms: int | None = None
+    title_preselection_duration_ms: int | None = None
+    detail_fetch_duration_ms: int | None = None
+
+
+def _elapsed_ms(started):
+    return max(0, int((perf_counter() - started) * 1000))
+
+
+def _fetch_source_listings(connector, keywords, locations, *, remote_ok):
+    """Run title preselection when a connector supports separate search/detail phases."""
+    if not callable(getattr(type(connector), "fetch_titles", None)) or not callable(
+        getattr(type(connector), "fetch_details", None)
+    ):
+        listings = connector.fetch(keywords, locations=locations, remote_ok=remote_ok)
+        return SourceFetchSummary(
+            listings=listings,
+            listing_count=len(listings),
+            details_requested_count=len(listings),
+            details_received_count=len(listings),
+        )
+
+    fetch_titles = connector.fetch_titles
+    fetch_details = connector.fetch_details
+    from matching.services import preselect_listing_titles
+
+    listing_started = perf_counter()
+    title_listings = fetch_titles(keywords, locations=locations, remote_ok=remote_ok)
+    listing_fetch_duration_ms = _elapsed_ms(listing_started)
+    preselection_started = perf_counter()
+    result = preselect_listing_titles(title_listings, keywords)
+    title_preselection_duration_ms = _elapsed_ms(preselection_started)
+    detail_started = perf_counter()
+    detailed_listings = fetch_details(result.listings)
+    detail_fetch_duration_ms = _elapsed_ms(detail_started)
+    logger.info(
+        "vacancy_title_preselection source=%s titles=%s discarded=%s details_requested=%s input_tokens=%s",
+        connector.source,
+        len(title_listings),
+        result.discarded_count,
+        len(result.listings),
+        result.input_tokens if result.input_tokens is not None else "unknown",
+    )
+    return SourceFetchSummary(
+        listings=detailed_listings,
+        listing_count=len(title_listings),
+        title_kept_count=len(result.listings),
+        title_discarded_count=result.discarded_count,
+        details_requested_count=len(result.listings),
+        details_received_count=len(detailed_listings),
+        title_input_tokens=result.input_tokens,
+        listing_fetch_duration_ms=listing_fetch_duration_ms,
+        title_preselection_duration_ms=title_preselection_duration_ms,
+        detail_fetch_duration_ms=detail_fetch_duration_ms,
+    )
 
 
 def _refresh_profile_sources(profile):
@@ -47,8 +116,11 @@ def _refresh_profile_sources(profile):
         )
         try:
             locations = expand_locations(revision.locations)
-            listings = connector.fetch(search_terms.keywords, locations=locations, remote_ok=revision.remote_ok)
-            vacancies = save_listings(listings)
+            fetched = _fetch_source_listings(
+                connector, search_terms.keywords, locations, remote_ok=revision.remote_ok,
+            )
+            saved = save_listings(fetched.listings)
+            vacancies = saved.vacancies
             from matching.models import ProfileVacancyDiscovery
             ProfileVacancyDiscovery.objects.bulk_create(
                 [
@@ -63,7 +135,12 @@ def _refresh_profile_sources(profile):
             )
             for vacancy in vacancies:
                 if getattr(vacancy, "_materially_changed", True):
-                    transaction.on_commit(partial(schedule_vacancy_analysis.delay, vacancy.pk, force_reanalysis=True))
+                    transaction.on_commit(partial(
+                        schedule_vacancy_analysis.delay,
+                        vacancy.pk,
+                        force_reanalysis=True,
+                        source_query_run_ids_by_profile={str(profile.pk): [run.pk]},
+                    ))
         except SourceUnavailable as exc:
             status_message = str(exc)[:300]
             JobSourceStatus.objects.update_or_create(
@@ -86,17 +163,44 @@ def _refresh_profile_sources(profile):
                 "status_message": getattr(connector, "status_message", "")[:300],
                 "last_checked_at": checked_at,
                 "last_success_at": checked_at,
-                "last_vacancy_count": len(listings),
+                "last_vacancy_count": len(vacancies),
             },
         )
-        finish_run(run, status=OperationalRun.Status.SUCCEEDED, item_count=len(listings))
-        results.append({"source": connector.source, "available": True, "count": len(listings)})
+        finish_run(
+            run,
+            status=OperationalRun.Status.SUCCEEDED,
+            item_count=len(vacancies),
+            new_count=saved.new_count,
+            known_count=saved.known_count,
+            known_updated_count=saved.known_updated_count,
+            known_unchanged_count=saved.known_unchanged_count,
+            listing_count=fetched.listing_count,
+            title_kept_count=fetched.title_kept_count,
+            title_discarded_count=fetched.title_discarded_count,
+            details_requested_count=fetched.details_requested_count,
+            details_received_count=fetched.details_received_count,
+            title_input_tokens=fetched.title_input_tokens,
+            listing_fetch_duration_ms=fetched.listing_fetch_duration_ms,
+            title_preselection_duration_ms=fetched.title_preselection_duration_ms,
+            detail_fetch_duration_ms=fetched.detail_fetch_duration_ms,
+        )
+        results.append({"source": connector.source, "available": True, "count": len(vacancies)})
     return results
 
 
 @shared_task(bind=True, name="jobs.tasks.refresh_profile_sources", max_retries=3)
 def refresh_profile_sources(self, profile_id, command_run_id=None, lease_token=None):
     from matching.client import OmniRouteError
+
+    if processing_is_paused():
+        if lease_token:
+            release_refresh_lease(f"profile-refresh:{profile_id}", lease_token)
+        refresh_profile_sources.apply_async(
+            args=(profile_id,),
+            kwargs={"command_run_id": command_run_id},
+            countdown=60,
+        )
+        return {"deferred": "processing_paused"}
 
     lease_key = f"profile-refresh:{profile_id}"
     if lease_token:
@@ -175,6 +279,12 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
 
     from .search_groups import group_search_requests
 
+    if processing_is_paused():
+        for profile_id_value, token in (profile_leases or {}).items():
+            release_refresh_lease(f"profile-refresh:{int(profile_id_value)}", token)
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        return {"deferred": "processing_paused"}
+
     claimed = {}
     profile_runs = {}
     reports = {}
@@ -187,6 +297,17 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
     found_by_profile = {}
     vacancy_targets = {}
     query_group_count = 0
+
+    def defer_after_current_query():
+        for profile_id, run in profile_runs.items():
+            if run.finished_at is None:
+                finish_run(
+                    run,
+                    status=OperationalRun.Status.PARTIAL,
+                    item_count=len(found_by_profile.get(profile_id, set())),
+                )
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        return {"deferred": "processing_paused"}
 
     for profile_id_value, token in (profile_leases or {}).items():
         profile_id = int(profile_id_value)
@@ -243,9 +364,13 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
             })
 
         for connector in configured_connectors():
+            if processing_is_paused():
+                return defer_after_current_query()
             groups = group_search_requests(connector, requests)
             query_group_count += len(groups)
             for group in groups:
+                if processing_is_paused():
+                    return defer_after_current_query()
                 request = group["request"]
                 members = group["members"]
                 current_config_id = MatchingConfig.objects.filter(is_active=True).order_by(
@@ -277,12 +402,14 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                     source=connector.source,
                 )
                 try:
-                    listings = connector.fetch(
+                    fetched = _fetch_source_listings(
+                        connector,
                         request["keywords"],
-                        locations=request["locations"],
+                        request["locations"],
                         remote_ok=request["remote_ok"],
                     )
-                    vacancies = save_listings(listings)
+                    saved = save_listings(fetched.listings)
+                    vacancies = saved.vacancies
                 except SourceUnavailable as exc:
                     status_message = str(exc)[:300]
                     JobSourceStatus.objects.update_or_create(
@@ -317,10 +444,27 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                         "status_message": getattr(connector, "status_message", "")[:300],
                         "last_checked_at": checked_at,
                         "last_success_at": checked_at,
-                        "last_vacancy_count": len(listings),
+                        "last_vacancy_count": len(vacancies),
                     },
                 )
-                finish_run(run, status=OperationalRun.Status.SUCCEEDED, item_count=len(listings))
+                finish_run(
+                    run,
+                    status=OperationalRun.Status.SUCCEEDED,
+                    item_count=len(vacancies),
+                    new_count=saved.new_count,
+                    known_count=saved.known_count,
+                    known_updated_count=saved.known_updated_count,
+                    known_unchanged_count=saved.known_unchanged_count,
+                    listing_count=fetched.listing_count,
+                    title_kept_count=fetched.title_kept_count,
+                    title_discarded_count=fetched.title_discarded_count,
+                    details_requested_count=fetched.details_requested_count,
+                    details_received_count=fetched.details_received_count,
+                    title_input_tokens=fetched.title_input_tokens,
+                    listing_fetch_duration_ms=fetched.listing_fetch_duration_ms,
+                    title_preselection_duration_ms=fetched.title_preselection_duration_ms,
+                    detail_fetch_duration_ms=fetched.detail_fetch_duration_ms,
+                )
 
                 post_valid_members = []
                 current_config_id = MatchingConfig.objects.filter(is_active=True).order_by(
@@ -345,12 +489,13 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                     continue
                 query_reports.append((
                     [member[0]["profile_id"] for member in post_valid_members],
-                    {"source": connector.source, "available": True, "count": len(listings)},
+                    {"source": connector.source, "available": True, "count": len(vacancies)},
                 ))
 
                 for vacancy in vacancies:
                     target = vacancy_targets.setdefault(vacancy.pk, {
                         "profile_revisions": {},
+                        "source_query_run_ids_by_profile": {},
                         "materially_changed": False,
                     })
                     target["materially_changed"] = (
@@ -361,7 +506,11 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                             continue
                         profile_id = member["profile_id"]
                         target["profile_revisions"][str(profile_id)] = member["revision_id"]
+                        target["source_query_run_ids_by_profile"].setdefault(str(profile_id), set()).add(run.pk)
                         found_by_profile.setdefault(profile_id, set()).add(vacancy.pk)
+
+        if processing_is_paused():
+            return defer_after_current_query()
 
         active_config_id = MatchingConfig.objects.filter(is_active=True).order_by(
             "-version"
@@ -404,6 +553,11 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                     profile_ids=[int(profile_id) for profile_id in profile_revisions],
                     expected_revision_ids=profile_revisions,
                     expected_matching_config_id=request["matching_config_id"],
+                    source_query_run_ids_by_profile={
+                        profile_id: sorted(run_ids)
+                        for profile_id, run_ids in target["source_query_run_ids_by_profile"].items()
+                        if profile_id in profile_revisions
+                    },
                 )
             except Exception as exc:
                 report_failures.update(int(profile_id) for profile_id in profile_revisions)
@@ -447,6 +601,9 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
 
 @shared_task(name="jobs.tasks.refresh_sources")
 def refresh_sources(command_run_id=None):
+    if processing_is_paused():
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        return {"deferred": "processing_paused"}
     profiles = Profile.objects.filter(
         owner__is_active=True,
         cv_file__gt="",
@@ -483,6 +640,9 @@ def refresh_sources(command_run_id=None):
 @shared_task(name="jobs.tasks.process_manual_vacancy_submission")
 def process_manual_vacancy_submission(submission_id):
     """Extract a public vacancy URL and asynchronously schedule profile analysis."""
+    if processing_is_paused():
+        process_manual_vacancy_submission.apply_async(args=(submission_id,), countdown=60)
+        return {"deferred": "processing_paused"}
     claimed = ManualVacancySubmission.objects.filter(
         pk=submission_id,
         status=ManualVacancySubmission.Status.QUEUED,

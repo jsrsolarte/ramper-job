@@ -8,8 +8,9 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Avg, Count, F, OuterRef, Q, Subquery, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -30,6 +31,7 @@ from .forms import (
     ManualVacancySubmissionForm,
 )
 from .models import (
+    ApplicantActivity,
     AdminAuditEvent,
     AdminCommandRun,
     OperationalParameterChange,
@@ -50,8 +52,10 @@ from .parameters import (
     current_follow_up_archive_days,
     current_refresh_interval_minutes,
     initial_refresh_interval_minutes,
+    processing_is_paused,
     reset_refresh_interval,
     save_parameter,
+    set_processing_paused,
     save_refresh_interval,
 )
 from .platform_statistics import build_platform_statistics
@@ -63,14 +67,34 @@ logger = logging.getLogger(__name__)
 
 @platform_admin_required
 def admin_center(request):
+    if request.method == "POST":
+        action = request.POST.get("processing_action")
+        if action not in {"pause", "resume"}:
+            messages.error(request, "La acción solicitada no es válida.")
+        else:
+            paused = action == "pause"
+            previous = set_processing_paused(actor=request.user, paused=paused)
+            if previous == paused:
+                messages.info(request, "El procesamiento ya estaba en ese estado.")
+            else:
+                messages.success(
+                    request,
+                    "Se pausó la búsqueda y el análisis de vacantes." if paused
+                    else "Se reanudó la búsqueda y el análisis de vacantes.",
+                )
+        return redirect("operations:admin_center")
     return render(request, "operations/admin_center.html", {
         "applicant_count": get_user_model().objects.filter(is_superuser=False, is_staff=False).count(),
+        "processing_paused": processing_is_paused(),
     })
 
 
 @platform_admin_required
 def manual_vacancies(request):
     if request.method == "POST":
+        if processing_is_paused():
+            messages.error(request, "El procesamiento está pausado. Reanúdalo desde el centro de administración antes de registrar una vacante.")
+            return redirect("operations:manual_vacancies")
         form = ManualVacancySubmissionForm(request.POST)
         if form.is_valid():
             submission = form.save(commit=False)
@@ -95,6 +119,7 @@ def manual_vacancies(request):
         form = ManualVacancySubmissionForm()
     return render(request, "operations/manual_vacancies.html", {
         "form": form,
+        "processing_paused": processing_is_paused(),
         "submissions": ManualVacancySubmission.objects.select_related(
             "submitted_by", "vacancy",
         )[:25],
@@ -110,7 +135,17 @@ def platform_statistics(request):
 @platform_admin_required
 def users(request):
     User = get_user_model()
-    accounts = User.objects.filter(is_superuser=False, is_staff=False).order_by("username")
+    latest_status_action = AdminAuditEvent.objects.filter(
+        target_id=OuterRef("pk"),
+        action__in=(
+            AdminAuditEvent.Action.ACCOUNT_DEACTIVATED,
+            AdminAuditEvent.Action.ACCOUNT_AUTO_DEACTIVATED,
+            AdminAuditEvent.Action.ACCOUNT_REACTIVATED,
+        ),
+    ).order_by("-created_at").values("action")[:1]
+    accounts = User.objects.filter(is_superuser=False, is_staff=False).annotate(
+        latest_status_action=Subquery(latest_status_action),
+    ).order_by("username")
     return render(request, "operations/users.html", {
         "accounts": accounts,
         "invitations": UserInvitation.objects.select_related("created_by")[:30],
@@ -210,8 +245,8 @@ def invitation_accept(request):
             "validation_url": reverse("invitation_validate"),
         })
         response["Cache-Control"] = "private, no-store"
-        # Keep the HTTPS form submit compatible with Django CSRF checks while limiting referrers to this origin.
-        # The invitation token lives in the URL fragment, which browsers never include in Referer.
+        # HTTPS POST forms need a same-origin Referer when browsers omit Origin.
+        # The invitation secret is in the URL fragment, which is never sent in Referer.
         response["Referrer-Policy"] = "same-origin"
         response["X-Robots-Tag"] = "noindex, nofollow"
         return response
@@ -340,6 +375,11 @@ def toggle_user(request, user_id):
     if applicant.is_active != new_state:
         applicant.is_active = new_state
         applicant.save(update_fields=("is_active",))
+        if new_state:
+            ApplicantActivity.objects.update_or_create(
+                user=applicant,
+                defaults={"last_authenticated_activity": timezone.now()},
+            )
         AdminAuditEvent.objects.create(
             actor=request.user,
             target=applicant,
@@ -414,6 +454,9 @@ def run_command(request):
     command_name = request.POST.get("command", "")
     if command_name not in ALLOWED_COMMANDS:
         return render(request, "operations/invalid_command.html", status=400)
+    if processing_is_paused():
+        messages.error(request, "La búsqueda y el análisis están pausados. Reanúdalos desde el centro de administración.")
+        return redirect("operations:dashboard")
 
     try:
         with transaction.atomic():
@@ -489,6 +532,91 @@ def dashboard(request):
     now = timezone.now()
     since = now - duration
     runs = OperationalRun.objects.filter(started_at__gte=since, started_at__lte=now)
+    source_query_runs = runs.filter(
+        kind=OperationalRun.Kind.INGESTION,
+        operation="source_query",
+    ).only(
+        "started_at", "source", "status", "item_count", "new_count", "known_count",
+        "known_updated_count", "known_unchanged_count", "duration_ms",
+        "listing_count", "title_kept_count", "title_discarded_count",
+        "details_requested_count", "details_received_count", "title_input_tokens",
+        "listing_fetch_duration_ms", "title_preselection_duration_ms", "detail_fetch_duration_ms",
+        "error_category", "error_summary",
+    ).order_by("-started_at", "-pk")
+    source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
+    query_run_ids = [run.pk for run in source_query_page]
+
+    def minutes(milliseconds):
+        return round(milliseconds / 60000, 1) if milliseconds is not None else None
+
+    analysis_metrics_by_query = {}
+    analysis_token_metrics_by_query = {}
+    if query_run_ids:
+        analysis_metrics_by_query = {
+            row["source_queries__source_query_id"]: row
+            for row in VacancyAnalysis.objects.filter(
+                source_queries__source_query_id__in=query_run_ids,
+            ).values("source_queries__source_query_id").annotate(
+                linked=Count("pk", distinct=True),
+                queued=Count(
+                    "pk", filter=Q(source_queries__enqueued_by_query=True), distinct=True,
+                ),
+                reused=Count(
+                    "pk", filter=Q(source_queries__enqueued_by_query=False), distinct=True,
+                ),
+                pending=Count("pk", filter=Q(status=VacancyAnalysis.Status.PENDING), distinct=True),
+                completed=Count("pk", filter=Q(status=VacancyAnalysis.Status.COMPLETED), distinct=True),
+                failed=Count("pk", filter=Q(status=VacancyAnalysis.Status.FAILED), distinct=True),
+                auto_discarded=Count(
+                    "pk",
+                    filter=(
+                        Q(status=VacancyAnalysis.Status.COMPLETED)
+                        & Q(profile__vacancy_discoveries__vacancy_id=F("vacancy_id"))
+                        & Q(profile__vacancy_discoveries__auto_discard_threshold__gt=0)
+                        & Q(score__lt=F("profile__vacancy_discoveries__auto_discard_threshold"))
+                    ),
+                    distinct=True,
+                ),
+            )
+        }
+        analysis_token_metrics_by_query = {
+            row["analysis__source_queries__source_query_id"]: row
+            for row in AICallAttempt.objects.filter(
+                analysis__source_queries__source_query_id__in=query_run_ids,
+                stage=AICallAttempt.Stage.SCORING,
+            ).values("analysis__source_queries__source_query_id").annotate(
+                input_tokens=Sum("input_tokens"),
+                output_tokens=Sum("output_tokens"),
+            )
+        }
+    for run in source_query_page:
+        run.duration_minutes = minutes(run.duration_ms)
+        run.listing_fetch_minutes = minutes(run.listing_fetch_duration_ms)
+        run.title_preselection_minutes = minutes(run.title_preselection_duration_ms)
+        run.detail_fetch_minutes = minutes(run.detail_fetch_duration_ms)
+        run.stage_duration_summary = " / ".join(
+            f"{value:.1f}" if value is not None else "—"
+            for value in (
+                run.listing_fetch_minutes,
+                run.title_preselection_minutes,
+                run.detail_fetch_minutes,
+            )
+        )
+        analysis_metrics = analysis_metrics_by_query.get(run.pk, {})
+        completed = analysis_metrics.get("completed", 0)
+        auto_discarded = analysis_metrics.get("auto_discarded", 0)
+        run.analysis_metrics = {
+            "linked": analysis_metrics.get("linked", 0),
+            "queued": analysis_metrics.get("queued", 0),
+            "reused": analysis_metrics.get("reused", 0),
+            "pending": analysis_metrics.get("pending", 0),
+            "completed": completed,
+            "passed": max(0, completed - auto_discarded),
+            "auto_discarded": auto_discarded,
+            "failed": analysis_metrics.get("failed", 0),
+            "input_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("input_tokens"),
+            "output_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("output_tokens"),
+        }
 
     def summarize(queryset):
         result = queryset.aggregate(
@@ -501,7 +629,7 @@ def dashboard(request):
             average_duration=Avg("duration_ms", filter=Q(finished_at__isnull=False)),
         )
         result["items"] = result["items"] or 0
-        result["average_duration"] = round(result["average_duration"] or 0)
+        result["average_duration"] = minutes(result["average_duration"] or 0)
         result["failure_rate"] = round(100 * result["failed"] / result["total"]) if result["total"] else 0
         return result
 
@@ -512,8 +640,22 @@ def dashboard(request):
     for source in source_names:
         source_runs = runs.filter(kind=OperationalRun.Kind.INGESTION, source=source)
         summary = summarize(source_runs)
+        breakdown = source_runs.aggregate(
+            new_items=Sum("new_count"),
+            known_items=Sum("known_count"),
+            known_updated_items=Sum("known_updated_count"),
+            known_unchanged_items=Sum("known_unchanged_count"),
+            titles_received=Sum("listing_count"),
+            titles_kept=Sum("title_kept_count"),
+            titles_discarded=Sum("title_discarded_count"),
+            details_requested=Sum("details_requested_count"),
+            details_received=Sum("details_received_count"),
+            title_input_tokens=Sum("title_input_tokens"),
+        )
         summary.update({
             "source": source,
+            "classified_queries": source_runs.filter(new_count__isnull=False).count(),
+            **breakdown,
             "last_success": source_runs.filter(status=OperationalRun.Status.SUCCEEDED).order_by(
                 "-started_at"
             ).values_list("started_at", flat=True).first(),
@@ -529,6 +671,7 @@ def dashboard(request):
             "status": source,
             "metrics": source_summaries.get(source.source, {
                 "total": 0, "failed": 0, "average_duration": 0, "last_error": "",
+                "classified_queries": 0,
             }),
         })
 
@@ -538,6 +681,9 @@ def dashboard(request):
         status__in=(OperationalRun.Status.FAILED, OperationalRun.Status.RETRYING),
     ).exclude(error_summary="").order_by("-started_at")[:10]
     coverage_start = OperationalRun.objects.order_by("started_at").values_list("started_at", flat=True).first()
+    admin_commands = list(AdminCommandRun.objects.select_related("requested_by").all()[:20])
+    for command in admin_commands:
+        command.duration_minutes = minutes(command.duration_ms)
     ai_call_stages = []
     for stage, label in AICallAttempt.Stage.choices:
         metric = AICallAttempt.objects.filter(stage=stage, created_at__gte=since, created_at__lte=now).aggregate(
@@ -549,6 +695,7 @@ def dashboard(request):
             input_tokens=Sum("input_tokens"),
             output_tokens=Sum("output_tokens"),
         )
+        metric["average_duration"] = minutes(metric["average_duration"] or 0)
         ai_call_stages.append({"label": label, **metric})
 
     context = admin.site.each_context(request)
@@ -559,6 +706,7 @@ def dashboard(request):
         "since": since,
         "now": now,
         "coverage_start": coverage_start,
+        "source_query_page": source_query_page,
         "ingestion": summarize(runs.filter(kind=OperationalRun.Kind.INGESTION)),
         "analysis": summarize(runs.filter(kind=OperationalRun.Kind.ANALYSIS)),
         "ai_call_stages": ai_call_stages,
@@ -573,7 +721,7 @@ def dashboard(request):
         "oldest_pending": oldest_pending,
         "oldest_pending_age": now - oldest_pending if oldest_pending else None,
         "latest_errors": latest_errors,
-        "admin_commands": AdminCommandRun.objects.select_related("requested_by").all()[:20],
+        "admin_commands": admin_commands,
         "allowed_commands": ALLOWED_COMMANDS,
     })
     return render(request, "operations/dashboard.html", context)

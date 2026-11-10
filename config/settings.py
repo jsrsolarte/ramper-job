@@ -45,6 +45,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "config.middleware.RecordAuthenticatedApplicantActivityMiddleware",
     "config.middleware.LogoutInactiveUsersMiddleware",
     "config.middleware.MandatoryGuidedTourMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
@@ -127,6 +128,7 @@ CELERY_TASK_ROUTES = {
     "jobs.tasks.refresh_profile_sources": {"queue": "matching_v2"},
     "jobs.tasks.refresh_sources": {"queue": "matching_v2"},
     "operations.tasks.cleanup_operational_history": {"queue": "matching_v2"},
+    "operations.tasks.deactivate_inactive_applicants": {"queue": "matching_v2"},
     "matching.tasks.analyze_vacancy_for_profile": {"queue": "matching_v2"},
     "matching.tasks.schedule_legacy_analyses": {"queue": "matching_v2"},
     "matching.tasks.schedule_profile_analyses": {"queue": "matching_v2"},
@@ -169,6 +171,10 @@ CELERY_BEAT_SCHEDULE = {
     "cleanup-operational-history": {
         "task": "operations.tasks.cleanup_operational_history",
         "schedule": 24 * 60 * 60,
+    },
+    "deactivate-inactive-applicants": {
+        "task": "operations.tasks.deactivate_inactive_applicants",
+        "schedule": crontab(hour=3, minute=45),
     },
 }
 CELERY_TASK_TRACK_STARTED = True

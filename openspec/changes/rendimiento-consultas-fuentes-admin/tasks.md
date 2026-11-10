@@ -8,4 +8,4 @@
 ## 2. Presentación del panel
 
 - [x] 2.1 Añadir selector de periodo compartido y tabla junto a seguimiento por perfil; verificar encabezados, estado vacío y apilado responsive mediante revisión del template y estilos.
-- [ ] 2.2 Validar la página administrativa desplegada con consultas registradas y comprobar que la tabla cambia al elegir otro periodo.
+- [x] 2.2 Validar la página administrativa desplegada con consultas registradas y comprobar que la tabla cambia al elegir otro periodo.

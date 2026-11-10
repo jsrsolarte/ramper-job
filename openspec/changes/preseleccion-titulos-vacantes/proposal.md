@@ -11,6 +11,7 @@ Las búsquedas pueden devolver listas grandes y actualmente se consulta la ficha
 - Aplicar la decisión a los perfiles que comparten esa solicitud de búsqueda, sin enviar sus CV ni mezclar datos de solicitudes diferentes.
 - Si el filtro falla o no produce una decisión válida para un título, conservar esa vacante y continuar con el flujo normal.
 - Mantener el registro manual de vacantes desde URL fuera del filtro.
+- Mostrar por consulta el embudo desde títulos encontrados hasta resultados posteriores al análisis, con las duraciones expresadas en minutos.
 
 ## Capabilities
 

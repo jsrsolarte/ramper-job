@@ -5,6 +5,12 @@
 ### Requirement: Preseleccionar vacantes automáticas por título
 El sistema SHALL clasificar en lote los títulos de resultados automáticos frente a los términos compartidos de la solicitud de búsqueda, descartando únicamente incompatibilidades laborales claras.
 
+#### Scenario: Consultar el embudo de una búsqueda
+- **WHEN** una persona administradora revisa una consulta automática
+- **THEN** el sistema muestra títulos recibidos, conservados y descartados por preselección, fichas solicitadas y recibidas, vacantes nuevas o conocidas, y análisis encolados y sus resultados finales
+- **AND** las duraciones de la consulta y sus etapas se muestran en minutos
+- **AND** no se muestran títulos, CV, prompts ni respuestas completas de la IA
+
 #### Scenario: Un título tiene relación clara con la búsqueda
 - **WHEN** el título de una vacante es compatible con los términos de búsqueda del grupo
 - **THEN** el sistema conserva la vacante para consultar su ficha y continuar el análisis habitual

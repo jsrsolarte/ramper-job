@@ -169,6 +169,25 @@ class VacancyAnalysis(models.Model):
         return f"{self.profile} · {self.vacancy}"
 
 
+class AnalysisSourceQuery(models.Model):
+    """Associate an asynchronous profile/vacancy analysis with its source search."""
+
+    source_query = models.ForeignKey(
+        "operations.OperationalRun", on_delete=models.CASCADE, related_name="analysis_links",
+    )
+    analysis = models.ForeignKey(
+        VacancyAnalysis, on_delete=models.CASCADE, related_name="source_queries",
+    )
+    enqueued_by_query = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(
+            fields=["source_query", "analysis"], name="unique_analysis_source_query",
+        )]
+        indexes = [models.Index(fields=["source_query", "created_at"], name="analysis_query_created_idx")]
+
+
 class VacancyOrganization(models.Model):
     class Status(models.TextChoices):
         PENDING = "pending", "Pendiente"

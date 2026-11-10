@@ -12,6 +12,8 @@ Ver `proposal.md` para la motivación y `specs/ingesta-vacantes/spec.md` para el
 - Reutilizar una única decisión para perfiles que comparten una solicitud de búsqueda equivalente.
 - Preferir conservar una vacante ante cualquier duda o fallo del clasificador.
 - Mantener el flujo de análisis por perfil y la extracción manual de URL existentes.
+- Exponer un embudo por consulta que continúe actualizándose mientras se completan los análisis asíncronos.
+- Mostrar las duraciones operativas en minutos y conservar únicamente métricas agregadas, sin contenido de CV o vacantes.
 
 **Non-Goals:**
 
@@ -45,6 +47,12 @@ La salida se valida contra los identificadores del lote. Identificadores duplica
 ### No persistir un descarte como decisión laboral
 
 La preselección solo evita el trabajo detallado de esa ejecución. No crea análisis ni seguimiento para una vacante descartada por título; el conector puede evaluarla nuevamente en otra búsqueda. La deduplicación, elegibilidad geográfica y evaluación final se mantienen para los títulos conservados.
+
+### Relacionar el embudo con el resultado asíncrono
+
+La ejecución de consulta conserva conteos agregados de títulos recibidos, conservados, descartados, fichas solicitadas/recibidas, tokens y duración de etapas. Los análisis encolados registran una relación con la consulta de origen; el panel deriva desde esa relación los conteos pendientes, completados, fallidos, conservados por umbral y descartados por puntaje. No se persisten títulos ni contenido de perfil para construir las métricas.
+
+Las duraciones se conservan en milisegundos para cálculo y compatibilidad interna, pero toda la interfaz las presenta en minutos con un decimal.
 
 ## Risks / Trade-offs
 

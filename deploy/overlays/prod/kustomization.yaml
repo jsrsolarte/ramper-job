@@ -1,0 +1,54 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: prod
+resources:
+  - ../../base
+  - ingress.yaml
+patches:
+  - path: probes.patch.yaml
+  - target:
+      kind: ConfigMap
+      name: ramper-job-config
+    patch: |-
+      - op: replace
+        path: /data/DJANGO_ALLOWED_HOSTS
+        value: jobs.ramper.lat
+      - op: replace
+        path: /data/DJANGO_CSRF_TRUSTED_ORIGINS
+        value: https://jobs.ramper.lat
+      - op: add
+        path: /data/DJANGO_SECURE_SSL_REDIRECT
+        value: "true"
+      - op: replace
+        path: /data/OMNIROUTE_BASE_URL
+        value: http://omniroute.prod.svc.cluster.local:20128/v1
+  - target:
+      kind: Deployment
+      name: ramper-job-web
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ramper-job-web
+      spec:
+        template:
+          metadata:
+            annotations:
+              ops.ramper.lat/config-revision: prod-v1
+  - target:
+      kind: Deployment
+      name: ramper-job-worker
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ramper-job-worker
+      spec:
+        template:
+          metadata:
+            annotations:
+              ops.ramper.lat/config-revision: prod-v1
+images:
+  - name: ramper-job
+    newName: ghcr.io/jsrsolarte/ramper-job
+    newTag: 4e110ecca5876488227efc3a520247d86cbbaf4f

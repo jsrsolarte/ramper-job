@@ -10,6 +10,7 @@ from dashboard.models import VacancyFollowUp
 from jobs.models import Vacancy
 from matching.models import RUBRIC_VERSION, MatchingConfig, VacancyAnalysis
 from profiles.models import Profile
+from profiles.tests.helpers import mark_tour_completed
 
 
 class VacancyFollowUpModelTests(TestCase):
@@ -39,6 +40,7 @@ class VacancyFollowUpActionTests(TestCase):
         user_model = get_user_model()
         self.user = user_model.objects.create_user("follow-up-owner", password="pass")
         self.other_user = user_model.objects.create_user("follow-up-other", password="pass")
+        mark_tour_completed(self.user, self.other_user)
         self.profile = Profile.objects.create(
             owner=self.user, revision_number=1, cv_file="profiles/1/cv/v1.pdf"
         )

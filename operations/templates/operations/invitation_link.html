@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Invitación creada · Administración{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Administración · Usuarios</p><h1>Invitación lista</h1><p class="muted">Copia el enlace y envíalo por tu canal habitual. Solo se muestra ahora y vence el {{ invitation.expires_at|date:"Y-m-d H:i" }}.</p></section>
+<section class="form-panel admin-form-panel">
+  <label for="invitation-link">Enlace de invitación</label>
+  <div class="admin-actions"><input id="invitation-link" type="text" value="{{ invitation_url }}" readonly autocomplete="off" spellcheck="false"><button class="button" id="copy-invitation-link" type="button">Copiar enlace</button></div>
+  <p id="copy-status" class="muted" role="status" aria-live="polite"></p>
+  <p class="muted">Destinatario: {{ invitation.email }}. El enlace permite crear una sola cuenta aspirante y no concede permisos administrativos.</p>
+  <a class="text-link" href="{% url 'operations:users' %}">Volver a usuarios</a>
+</section>
+<script>
+  (() => {
+    const input = document.getElementById("invitation-link");
+    const button = document.getElementById("copy-invitation-link");
+    const status = document.getElementById("copy-status");
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(input.value);
+      } catch (_) {
+        input.select();
+        document.execCommand("copy");
+      }
+      status.textContent = "Enlace copiado.";
+    });
+  })();
+</script>
+{% endblock %}

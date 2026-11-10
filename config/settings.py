@@ -45,7 +45,9 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "config.middleware.RecordAuthenticatedApplicantActivityMiddleware",
     "config.middleware.LogoutInactiveUsersMiddleware",
+    "config.middleware.MandatoryGuidedTourMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -104,16 +106,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "login"
-EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
-EMAIL_HOST = os.getenv("EMAIL_HOST", "")
-EMAIL_PORT = int(os.getenv("EMAIL_PORT", "587"))
-EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
-EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
-DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "")
-ADMIN_PASSWORD_RESET_ENABLED = (
-    env_bool("ADMIN_PASSWORD_RESET_ENABLED") and bool(EMAIL_HOST and DEFAULT_FROM_EMAIL)
-)
 PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "259200"))
 
 SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", not DEBUG)
@@ -136,6 +128,7 @@ CELERY_TASK_ROUTES = {
     "jobs.tasks.refresh_profile_sources": {"queue": "matching_v2"},
     "jobs.tasks.refresh_sources": {"queue": "matching_v2"},
     "operations.tasks.cleanup_operational_history": {"queue": "matching_v2"},
+    "operations.tasks.deactivate_inactive_applicants": {"queue": "matching_v2"},
     "matching.tasks.analyze_vacancy_for_profile": {"queue": "matching_v2"},
     "matching.tasks.schedule_legacy_analyses": {"queue": "matching_v2"},
     "matching.tasks.schedule_profile_analyses": {"queue": "matching_v2"},
@@ -178,6 +171,10 @@ CELERY_BEAT_SCHEDULE = {
     "cleanup-operational-history": {
         "task": "operations.tasks.cleanup_operational_history",
         "schedule": 24 * 60 * 60,
+    },
+    "deactivate-inactive-applicants": {
+        "task": "operations.tasks.deactivate_inactive_applicants",
+        "schedule": crontab(hour=3, minute=45),
     },
 }
 CELERY_TASK_TRACK_STARTED = True

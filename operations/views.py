@@ -1,22 +1,43 @@
+import hashlib
 import logging
+import secrets
 from datetime import timedelta
 
-from django.contrib import admin
 from django.conf import settings
-from django.contrib.auth import get_user_model
+from django.contrib import admin
 from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Avg, Count, OuterRef, Q, Subquery, Sum
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.http import require_POST
 
 from jobs.models import JobSourceStatus, ManualVacancySubmission
 from jobs.tasks import process_manual_vacancy_submission
 from matching.models import AICallAttempt, VacancyAnalysis
 
 from .decorators import platform_admin_required
-from .forms import ApplicantCreationForm, ManualVacancySubmissionForm, StrictPasswordResetForm
-from .models import AdminAuditEvent, AdminCommandRun, OperationalParameterChange, OperationalRun
+from .forms import (
+    ApplicantCreationForm,
+    InvitationAcceptanceForm,
+    InvitationEmailForm,
+    ManualVacancySubmissionForm,
+)
+from .models import (
+    ApplicantActivity,
+    AdminAuditEvent,
+    AdminCommandRun,
+    OperationalParameterChange,
+    OperationalRun,
+    UserInvitation,
+)
 from .parameters import (
     AUTO_DISCARD_DAYS_KEY,
     DEFAULT_AUTO_DISCARD_DAYS,
@@ -31,8 +52,10 @@ from .parameters import (
     current_follow_up_archive_days,
     current_refresh_interval_minutes,
     initial_refresh_interval_minutes,
+    processing_is_paused,
     reset_refresh_interval,
     save_parameter,
+    set_processing_paused,
     save_refresh_interval,
 )
 from .platform_statistics import build_platform_statistics
@@ -44,15 +67,34 @@ logger = logging.getLogger(__name__)
 
 @platform_admin_required
 def admin_center(request):
+    if request.method == "POST":
+        action = request.POST.get("processing_action")
+        if action not in {"pause", "resume"}:
+            messages.error(request, "La acción solicitada no es válida.")
+        else:
+            paused = action == "pause"
+            previous = set_processing_paused(actor=request.user, paused=paused)
+            if previous == paused:
+                messages.info(request, "El procesamiento ya estaba en ese estado.")
+            else:
+                messages.success(
+                    request,
+                    "Se pausó la búsqueda y el análisis de vacantes." if paused
+                    else "Se reanudó la búsqueda y el análisis de vacantes.",
+                )
+        return redirect("operations:admin_center")
     return render(request, "operations/admin_center.html", {
         "applicant_count": get_user_model().objects.filter(is_superuser=False, is_staff=False).count(),
-        "password_reset_enabled": settings.ADMIN_PASSWORD_RESET_ENABLED,
+        "processing_paused": processing_is_paused(),
     })
 
 
 @platform_admin_required
 def manual_vacancies(request):
     if request.method == "POST":
+        if processing_is_paused():
+            messages.error(request, "El procesamiento está pausado. Reanúdalo desde el centro de administración antes de registrar una vacante.")
+            return redirect("operations:manual_vacancies")
         form = ManualVacancySubmissionForm(request.POST)
         if form.is_valid():
             submission = form.save(commit=False)
@@ -77,6 +119,7 @@ def manual_vacancies(request):
         form = ManualVacancySubmissionForm()
     return render(request, "operations/manual_vacancies.html", {
         "form": form,
+        "processing_paused": processing_is_paused(),
         "submissions": ManualVacancySubmission.objects.select_related(
             "submitted_by", "vacancy",
         )[:25],
@@ -92,12 +135,207 @@ def platform_statistics(request):
 @platform_admin_required
 def users(request):
     User = get_user_model()
-    accounts = User.objects.filter(is_superuser=False, is_staff=False).order_by("username")
+    latest_status_action = AdminAuditEvent.objects.filter(
+        target_id=OuterRef("pk"),
+        action__in=(
+            AdminAuditEvent.Action.ACCOUNT_DEACTIVATED,
+            AdminAuditEvent.Action.ACCOUNT_AUTO_DEACTIVATED,
+            AdminAuditEvent.Action.ACCOUNT_REACTIVATED,
+        ),
+    ).order_by("-created_at").values("action")[:1]
+    accounts = User.objects.filter(is_superuser=False, is_staff=False).annotate(
+        latest_status_action=Subquery(latest_status_action),
+    ).order_by("username")
     return render(request, "operations/users.html", {
         "accounts": accounts,
+        "invitations": UserInvitation.objects.select_related("created_by")[:30],
+        "now": timezone.now(),
         "audit_events": AdminAuditEvent.objects.select_related("actor", "target")[:30],
-        "password_reset_enabled": settings.ADMIN_PASSWORD_RESET_ENABLED,
     })
+
+
+@platform_admin_required
+def create_invitation(request):
+    if request.method != "POST":
+        return redirect("operations:users")
+    form = InvitationEmailForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Escribe un correo válido para generar la invitación.")
+        return redirect("operations:users")
+
+    email = form.cleaned_data["email"].strip()
+    raw_token = secrets.token_urlsafe(32)
+    now = timezone.now()
+    with transaction.atomic():
+        # Serialize invitation replacement even when no previous invitation exists yet.
+        get_user_model().objects.select_for_update().get(pk=request.user.pk)
+        previous_invitations = list(UserInvitation.objects.select_for_update().filter(
+            email__iexact=email, used_at__isnull=True, revoked_at__isnull=True,
+        ))
+        UserInvitation.objects.filter(pk__in=[item.pk for item in previous_invitations]).update(revoked_at=now)
+        for previous in previous_invitations:
+            AdminAuditEvent.objects.create(
+                actor=request.user,
+                action=AdminAuditEvent.Action.INVITATION_REVOKED,
+                invitation=previous,
+                invitation_email=previous.email,
+            )
+        invitation = UserInvitation.objects.create(
+            email=email,
+            token_hash=hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+            created_by=request.user,
+            expires_at=now + timedelta(days=7),
+        )
+        AdminAuditEvent.objects.create(
+            actor=request.user,
+            action=AdminAuditEvent.Action.INVITATION_CREATED,
+            invitation=invitation,
+            invitation_email=email,
+        )
+
+    invitation_url = request.build_absolute_uri(reverse("invitation_accept")) + f"#{raw_token}"
+    response = render(request, "operations/invitation_link.html", {
+        "invitation": invitation,
+        "invitation_url": invitation_url,
+    })
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
+@platform_admin_required
+def revoke_invitation(request, invitation_id):
+    if request.method != "POST":
+        return redirect("operations:users")
+    with transaction.atomic():
+        invitation = get_object_or_404(UserInvitation.objects.select_for_update(), pk=invitation_id)
+        if invitation.is_pending():
+            invitation.revoked_at = timezone.now()
+            invitation.save(update_fields=("revoked_at",))
+            AdminAuditEvent.objects.create(
+                actor=request.user,
+                action=AdminAuditEvent.Action.INVITATION_REVOKED,
+                invitation=invitation,
+                invitation_email=invitation.email,
+            )
+            revoked = True
+        else:
+            revoked = False
+    if revoked:
+        messages.success(request, "Se revocó la invitación.")
+    else:
+        messages.info(request, "La invitación ya no está pendiente.")
+    return redirect("operations:users")
+
+
+def _invitation_for_token(raw_token):
+    if not raw_token or len(raw_token) > 128:
+        return None
+    digest = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    invitation = UserInvitation.objects.filter(token_hash=digest).first()
+    return invitation if invitation and invitation.is_pending() else None
+
+
+def invitation_accept(request):
+    if request.method == "GET":
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": InvitationAcceptanceForm(),
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        # HTTPS POST forms need a same-origin Referer when browsers omit Origin.
+        # The invitation secret is in the URL fragment, which is never sent in Referer.
+        response["Referrer-Policy"] = "same-origin"
+        response["X-Robots-Tag"] = "noindex, nofollow"
+        return response
+
+    raw_token = request.POST.get("token", "")
+    invitation = _invitation_for_token(raw_token)
+    if invitation is None:
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": InvitationAcceptanceForm(),
+            "invalid_invitation": True,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        }, status=400)
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "same-origin"
+        return response
+
+    form = InvitationAcceptanceForm(request.POST)
+    if not form.is_valid():
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": form,
+            "invitation_email": invitation.email,
+            "token_for_form": raw_token,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "same-origin"
+        return response
+
+    User = get_user_model()
+    try:
+        with transaction.atomic():
+            locked_invitation = UserInvitation.objects.select_for_update().filter(
+                pk=invitation.pk,
+            ).first()
+            if locked_invitation is None or not locked_invitation.is_pending():
+                response = render(request, "operations/invitation_accept.html", {
+                    "acceptance_form": form,
+                    "invalid_invitation": True,
+                    "acceptance_url": reverse("invitation_accept"),
+                    "validation_url": reverse("invitation_validate"),
+                }, status=400)
+                response["Cache-Control"] = "private, no-store"
+                response["Referrer-Policy"] = "same-origin"
+                return response
+            applicant = form.save(commit=False)
+            applicant.email = locked_invitation.email
+            applicant.is_active = True
+            applicant.is_staff = False
+            applicant.is_superuser = False
+            applicant.save()
+            locked_invitation.used_at = timezone.now()
+            locked_invitation.save(update_fields=("used_at",))
+            AdminAuditEvent.objects.create(
+                actor=locked_invitation.created_by,
+                target=applicant,
+                invitation=locked_invitation,
+                invitation_email=locked_invitation.email,
+                action=AdminAuditEvent.Action.INVITATION_ACCEPTED,
+            )
+    except IntegrityError:
+        form.add_error("username", "Ese nombre de usuario ya está en uso. Elige otro.")
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": form,
+            "invitation_email": invitation.email,
+            "token_for_form": raw_token,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "same-origin"
+        return response
+
+    messages.success(request, "Tu cuenta quedó creada. Ya puedes iniciar sesión.")
+    return redirect("login")
+
+
+@require_POST
+def validate_invitation(request):
+    raw_token = request.POST.get("token", "")
+    invitation = _invitation_for_token(raw_token)
+    if invitation is None:
+        response = JsonResponse({"valid": False}, status=400)
+    else:
+        response = JsonResponse({"valid": True, "email": invitation.email})
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 @platform_admin_required
@@ -137,6 +375,11 @@ def toggle_user(request, user_id):
     if applicant.is_active != new_state:
         applicant.is_active = new_state
         applicant.save(update_fields=("is_active",))
+        if new_state:
+            ApplicantActivity.objects.update_or_create(
+                user=applicant,
+                defaults={"last_authenticated_activity": timezone.now()},
+            )
         AdminAuditEvent.objects.create(
             actor=request.user,
             target=applicant,
@@ -155,64 +398,33 @@ def request_password_reset(request, user_id):
     applicant = get_object_or_404(
         User.objects.filter(is_superuser=False, is_staff=False), pk=user_id,
     )
-    AdminAuditEvent.objects.create(
-        actor=request.user,
-        target=applicant,
-        action=AdminAuditEvent.Action.PASSWORD_RESET_REQUESTED,
-    )
-    if not settings.ADMIN_PASSWORD_RESET_ENABLED:
-        AdminAuditEvent.objects.create(
-            actor=request.user,
-            target=applicant,
-            action=AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
-        )
-        messages.error(request, "La recuperación no está disponible: configura y habilita el correo saliente.")
-        return redirect("operations:users")
-    if not applicant.email:
-        AdminAuditEvent.objects.create(
-            actor=request.user,
-            target=applicant,
-            action=AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
-        )
-        messages.error(request, "La cuenta no tiene un correo registrado para recibir la recuperación.")
-        return redirect("operations:users")
-
     if not applicant.is_active or not applicant.has_usable_password():
         AdminAuditEvent.objects.create(
             actor=request.user,
             target=applicant,
             action=AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
         )
-        messages.error(request, "Solo se puede enviar recuperación a una cuenta activa con contraseña.")
+        messages.error(request, "Solo se puede generar un enlace para una cuenta activa con contraseña.")
         return redirect("operations:users")
 
-    reset_form = StrictPasswordResetForm({"email": applicant.email})
-    reset_form.target_user = applicant
-    if reset_form.is_valid():
-        try:
-            reset_form.save(
-                request=request,
-                use_https=request.is_secure(),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                subject_template_name="registration/password_reset_subject.txt",
-                email_template_name="registration/password_reset_email.txt",
-                extra_email_context={
-                    "site_name": "Ramper Job",
-                    "timeout_days": max(1, (settings.PASSWORD_RESET_TIMEOUT + 86399) // 86400),
-                },
-            )
-        except Exception:
-            AdminAuditEvent.objects.create(
-                actor=request.user,
-                target=applicant,
-                action=AdminAuditEvent.Action.PASSWORD_RESET_DELIVERY_FAILED,
-            )
-            messages.error(request, "No se pudo entregar el correo de recuperación. Revisa la configuración del servicio.")
-        else:
-            messages.success(request, "Se envió el enlace de recuperación al correo de la cuenta.")
-    else:
-        messages.error(request, "No se pudo preparar el enlace de recuperación.")
-    return redirect("operations:users")
+    uidb64 = urlsafe_base64_encode(force_bytes(applicant.pk))
+    token = default_token_generator.make_token(applicant)
+    reset_url = request.build_absolute_uri(reverse(
+        "password_reset_confirm", kwargs={"uidb64": uidb64, "token": token},
+    ))
+    AdminAuditEvent.objects.create(
+        actor=request.user,
+        target=applicant,
+        action=AdminAuditEvent.Action.PASSWORD_RESET_LINK_GENERATED,
+    )
+    response = render(request, "operations/password_reset_link.html", {
+        "applicant": applicant,
+        "reset_url": reset_url,
+        "timeout_minutes": max(1, settings.PASSWORD_RESET_TIMEOUT // 60),
+    })
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
 
 
 def _enqueue_refresh(command_id):
@@ -242,6 +454,9 @@ def run_command(request):
     command_name = request.POST.get("command", "")
     if command_name not in ALLOWED_COMMANDS:
         return render(request, "operations/invalid_command.html", status=400)
+    if processing_is_paused():
+        messages.error(request, "La búsqueda y el análisis están pausados. Reanúdalos desde el centro de administración.")
+        return redirect("operations:dashboard")
 
     try:
         with transaction.atomic():
@@ -317,6 +532,14 @@ def dashboard(request):
     now = timezone.now()
     since = now - duration
     runs = OperationalRun.objects.filter(started_at__gte=since, started_at__lte=now)
+    source_query_runs = runs.filter(
+        kind=OperationalRun.Kind.INGESTION,
+        operation="source_query",
+    ).only(
+        "started_at", "source", "status", "item_count", "duration_ms",
+        "error_category", "error_summary",
+    ).order_by("-started_at", "-pk")
+    source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
 
     def summarize(queryset):
         result = queryset.aggregate(
@@ -387,6 +610,7 @@ def dashboard(request):
         "since": since,
         "now": now,
         "coverage_start": coverage_start,
+        "source_query_page": source_query_page,
         "ingestion": summarize(runs.filter(kind=OperationalRun.Kind.INGESTION)),
         "analysis": summarize(runs.filter(kind=OperationalRun.Kind.ANALYSIS)),
         "ai_call_stages": ai_call_stages,

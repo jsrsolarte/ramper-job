@@ -10,6 +10,7 @@ from dashboard.models import VacancyFollowUp
 from dashboard.score_display import score_star_label, score_star_percent
 from matching.models import RUBRIC_VERSION, MatchingConfig, VacancyAnalysis, VacancyOrganization
 from profiles.models import Profile, ProfileRevision
+from profiles.tests.helpers import mark_tour_completed
 
 
 class DashboardPrivacyTests(TestCase):
@@ -17,6 +18,7 @@ class DashboardPrivacyTests(TestCase):
         user_model = get_user_model()
         self.first = user_model.objects.create_user("first", password="pass")
         self.second = user_model.objects.create_user("second", password="pass")
+        mark_tour_completed(self.first, self.second)
         self.first_profile = Profile.objects.create(owner=self.first, cv_file="profiles/1/cv/v1.pdf", revision_number=1)
         self.second_profile = Profile.objects.create(owner=self.second, cv_file="profiles/2/cv/v1.pdf", revision_number=1)
         self.first_revision = ProfileRevision.objects.create(profile=self.first_profile, version=1)
@@ -91,7 +93,7 @@ class DashboardPrivacyTests(TestCase):
         self.assertContains(response, "$4.214.000 pagos mensuales")
         self.assertContains(response, "$4 a $4,5 millones")
         self.assertContains(response, "Ver detalles del análisis")
-        self.assertContains(response, '<details class="match-details">')
+        self.assertContains(response, '<details class="match-details" data-tour="vacancy-details">')
         self.assertContains(response, "Otra vacante")
         self.assertNotContains(response, "Vacante ajena")
         result_ids = [analysis.pk for analysis in response.context["analyses"]]

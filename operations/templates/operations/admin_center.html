@@ -10,7 +10,7 @@
   <article class="admin-tool">
     <p class="eyebrow">Plataforma</p>
     <h2>Estadísticas globales</h2>
-    <p>Consulta estados actuales de seguimiento, disponibilidad y puntajes agregados por rúbrica.</p>
+    <p>Consulta estados de seguimiento, tiempos de búsqueda y puntajes agregados por rúbrica.</p>
     <a class="button button-secondary" href="{% url 'operations:platform_statistics' %}">Ver estadísticas</a>
   </article>
   <article class="admin-tool">
@@ -32,13 +32,21 @@
     <a class="button button-secondary" href="{% url 'operations:dashboard' %}">Abrir observabilidad</a>
   </article>
   <article class="admin-tool">
+    <p class="eyebrow">Control operativo</p>
+    <h2>Procesamiento de vacantes</h2>
+    {% if processing_paused %}
+    <p><strong>Estado: pausado.</strong> No comenzarán nuevas búsquedas ni análisis. El trabajo pendiente se conservará.</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="processing_action" value="resume"><button class="button" type="submit">Reanudar procesamiento</button></form>
+    {% else %}
+    <p><strong>Estado: habilitado.</strong> La búsqueda y el análisis se ejecutan con normalidad.</p>
+    <form method="post">{% csrf_token %}<input type="hidden" name="processing_action" value="pause"><button class="button button-secondary" type="submit">Pausar procesamiento</button></form>
+    {% endif %}
+  </article>
+  <article class="admin-tool">
     <p class="eyebrow">Configuración</p>
     <h2>Parámetros operativos</h2>
     <p>Ajusta los intervalos de actualización y los plazos de retención.</p>
     <a class="button button-secondary" href="{% url 'operations:parameters' %}">Ver parámetros</a>
   </article>
 </section>
-{% if not password_reset_enabled %}
-  <p class="notice notice-warning" role="status">La recuperación de contraseñas está deshabilitada hasta configurar y habilitar el correo saliente.</p>
-{% endif %}
 {% endblock %}

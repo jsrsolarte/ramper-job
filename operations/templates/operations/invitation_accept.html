@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Crear cuenta · Ramper Job{% endblock %}
+{% block content %}
+<section class="page-heading"><p class="eyebrow">Ramper Job</p><h1>Crear tu cuenta</h1><p class="muted">Usa el enlace personal que te compartió la administración para completar tu cuenta.</p></section>
+<section class="form-panel admin-form-panel">
+  {% if invalid_invitation %}
+    <p class="notice notice-error" role="alert">Este enlace no es válido, venció, fue revocado o ya se utilizó. Solicita una nueva invitación a la administración.</p>
+  {% else %}
+    <p id="invitation-status" class="muted" role="status" aria-live="polite">Validando el enlace…</p>
+    <p id="invitation-error" class="notice notice-error" role="alert" hidden>Este enlace no es válido, venció, fue revocado o ya se utilizó. Solicita una nueva invitación a la administración.</p>
+    {% if invitation_email %}<p id="invitation-email">Invitación para <strong>{{ invitation_email }}</strong></p>{% else %}<p id="invitation-email" hidden></p>{% endif %}
+    <form id="invitation-form" method="post" action="{{ acceptance_url }}"{% if not invitation_email %} hidden{% endif %}>
+      {% csrf_token %}
+      <input type="hidden" name="token" value="{{ token_for_form }}">
+      {% for field in acceptance_form %}<div class="form-field"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.help_text %}<p class="muted">{{ field.help_text }}</p>{% endif %}{% if field.errors %}<ul class="errorlist">{% for error in field.errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}</div>{% endfor %}
+      {% if acceptance_form.non_field_errors %}<ul class="errorlist">{% for error in acceptance_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
+      <div class="form-actions"><button class="button" type="submit">Crear cuenta</button></div>
+    </form>
+  {% endif %}
+</section>
+{% if not invalid_invitation %}
+<script>
+  (() => {
+    const form = document.getElementById("invitation-form");
+    const status = document.getElementById("invitation-status");
+    const error = document.getElementById("invitation-error");
+    const email = document.getElementById("invitation-email");
+    if (form && !form.hidden) {
+      status.hidden = true;
+      return;
+    }
+    const token = window.location.hash.slice(1);
+    window.history.replaceState(null, "", window.location.pathname);
+    if (!token) {
+      status.hidden = true;
+      error.hidden = false;
+      return;
+    }
+    const csrf = form.querySelector("[name=csrfmiddlewaretoken]").value;
+    const body = new URLSearchParams({token, csrfmiddlewaretoken: csrf});
+    fetch("{{ validation_url }}", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: {"Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrf},
+      body,
+    }).then(async response => {
+      const result = await response.json();
+      if (!response.ok || !result.valid) throw new Error("invalid");
+      form.querySelector("[name=token]").value = token;
+      email.textContent = `Invitación para ${result.email}`;
+      email.hidden = false;
+      form.hidden = false;
+      status.hidden = true;
+    }).catch(() => {
+      status.hidden = true;
+      error.hidden = false;
+    });
+  })();
+</script>
+{% endif %}
+{% endblock %}

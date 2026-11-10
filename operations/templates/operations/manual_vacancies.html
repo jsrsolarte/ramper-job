@@ -7,6 +7,7 @@
   <p class="muted">Pega el enlace público de una vacante de El Empleo. La aplicación extraerá sus datos y programará en segundo plano el análisis de los perfiles elegibles.</p>
 </section>
 <p class="admin-page-links"><a class="button button-secondary" href="{% url 'operations:admin_center' %}">Volver al centro de administración</a></p>
+{% if processing_paused %}<p class="notice notice-error" role="status">El procesamiento está pausado. No se iniciarán nuevas búsquedas ni análisis hasta reanudarlo en el centro de administración.</p>{% endif %}
 <section class="form-panel admin-form-panel" aria-labelledby="manual-vacancy-form-heading">
   <h2 id="manual-vacancy-form-heading">Enlace de la publicación</h2>
   <form method="post" novalidate>
@@ -20,7 +21,7 @@
       </div>
     {% endfor %}
     {% if form.non_field_errors %}<ul class="errorlist">{% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% endif %}
-    <div class="form-actions"><button class="button" type="submit">Procesar vacante</button></div>
+    <div class="form-actions"><button class="button" type="submit"{% if processing_paused %} disabled{% endif %}>Procesar vacante</button></div>
   </form>
 </section>
 

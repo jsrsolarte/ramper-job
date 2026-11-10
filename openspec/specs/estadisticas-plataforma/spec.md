@@ -28,17 +28,6 @@ El panel SHALL mostrar conteos globales por estado personal de seguimiento, calc
 - **WHEN** ningún perfil tiene una vacante en uno de los estados de seguimiento
 - **THEN** el panel muestra cero para ese estado sin omitirlo
 
-### Requirement: Consultar la disponibilidad de publicaciones
-El panel SHALL mostrar por separado el número de publicaciones activas y cerradas, sin confundir disponibilidad de la fuente con el estado personal de seguimiento.
-
-#### Scenario: Hay publicaciones abiertas y cerradas
-- **WHEN** existen publicaciones con ambos estados de disponibilidad
-- **THEN** el panel muestra sus conteos como una dimensión separada de los estados de seguimiento
-
-#### Scenario: Una publicación no tiene comprobación concluyente
-- **WHEN** la disponibilidad de una publicación es desconocida o su comprobación no fue concluyente
-- **THEN** el panel la presenta en una categoría separada y no la cuenta como cerrada
-
 ### Requirement: Consultar la distribución global de puntuaciones
 El panel SHALL mostrar la distribución agregada de los puntajes vigentes de compatibilidad, conservando su precisión decimal y señalando el tamaño y periodo de la muestra.
 
@@ -68,6 +57,32 @@ El panel SHALL permitir filtrar las estadísticas de puntuación por periodos de
 #### Scenario: El periodo incluye fechas anteriores a la cobertura
 - **WHEN** la consulta incluye fechas anteriores al inicio del historial disponible
 - **THEN** el panel indica la fecha inicial de cobertura y no presenta datos faltantes como ceros
+
+### Requirement: Consultar tiempos de búsqueda por fuente
+El panel SHALL mostrar por fuente el volumen y la duración de consultas automáticas terminadas dentro del periodo seleccionado, junto con su proporción de resultados no exitosos.
+
+#### Scenario: Hay consultas terminadas de varias fuentes
+- **WHEN** la persona administradora elige un periodo con consultas automáticas terminadas
+- **THEN** el panel muestra por fuente la cantidad, duración mediana, percentil 95 de duración y porcentaje no exitoso, calculados solo con ejecuciones `source_query` terminadas en ese periodo
+
+#### Scenario: Se cambia el periodo
+- **WHEN** la persona administradora selecciona otro periodo disponible
+- **THEN** el resumen por fuente y las estadísticas de puntuación reflejan el mismo intervalo seleccionado
+
+#### Scenario: No hay consultas terminadas
+- **WHEN** el periodo seleccionado no contiene consultas automáticas terminadas
+- **THEN** el panel informa que no hay datos de duración para ese intervalo
+
+#### Scenario: Hay ejecuciones parciales o fallidas
+- **WHEN** una consulta terminada tiene estado parcial, reintento o fallido
+- **THEN** se incluye en el volumen y se cuenta como no exitosa en el porcentaje de su fuente
+
+### Requirement: Mantener el resumen de búsquedas agregado
+El resumen de rendimiento SHALL mostrar solo agregados por fuente y no exponer información de perfiles, vacantes o consultas individuales.
+
+#### Scenario: Se muestra el rendimiento de una fuente
+- **WHEN** la persona administradora consulta la tabla de rendimiento
+- **THEN** el panel muestra únicamente la fuente y métricas agregadas, sin datos personales ni enlaces a ejecuciones individuales
 
 ### Requirement: Proteger información personal en estadísticas globales
 El sistema SHALL mostrar estadísticas agregadas sin incluir perfiles identificables, CV, prompts ni contenido privado de vacantes.

@@ -72,6 +72,6 @@ puede hacer perder los datos, que se consideran descartables.
 Hostname de staging: `ramper-job-staging.ramper.lat`. Cloudflare Tunnel debe enrutarlo a
 `http://traefik.ingress.svc.cluster.local:80`.
 
-Hostname de producción: `ramper-job.ramper.lat`, por la misma ruta del túnel a Traefik.
+Hostname de producción: `jobs.ramper.lat`, por la misma ruta del túnel a Traefik.
 Mantener el login de la aplicación activo; cargar solo datos que se acepta perder, ya que
 no existe una ruta de recuperación.

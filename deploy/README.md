@@ -28,8 +28,9 @@ ni guarda los valores en el repositorio. El bootstrap de la cuenta administrador
 operación interactiva única ejecutada dentro del pod web.
 
 En producción, ejecuta `python3 scripts/provision_prod_secrets.py` desde el checkout de la app
-en el servidor. El provisionador usa credenciales y contraseñas independientes, solicita
-OmniRoute y GHCR con entrada oculta, y solo muestra los nombres de los Secrets creados.
+en el servidor. El provisionador genera la clave Django y la contraseña PostgreSQL, solicita
+OmniRoute sin eco y referencia el Secret `mcp-gateway-ghcr-prod` existente en `prod`. No lee
+ni copia sus credenciales; solo comprueba el nombre y tipo del Secret.
 
 ## Persistencia y alcance de datos
 

@@ -28,17 +28,6 @@ El panel SHALL mostrar conteos globales por estado personal de seguimiento, calc
 - **WHEN** ningún perfil tiene una vacante en uno de los estados de seguimiento
 - **THEN** el panel muestra cero para ese estado sin omitirlo
 
-### Requirement: Consultar la disponibilidad de publicaciones
-El panel SHALL mostrar por separado el número de publicaciones activas y cerradas, sin confundir disponibilidad de la fuente con el estado personal de seguimiento.
-
-#### Scenario: Hay publicaciones abiertas y cerradas
-- **WHEN** existen publicaciones con ambos estados de disponibilidad
-- **THEN** el panel muestra sus conteos como una dimensión separada de los estados de seguimiento
-
-#### Scenario: Una publicación no tiene comprobación concluyente
-- **WHEN** la disponibilidad de una publicación es desconocida o su comprobación no fue concluyente
-- **THEN** el panel la presenta en una categoría separada y no la cuenta como cerrada
-
 ### Requirement: Consultar la distribución global de puntuaciones
 El panel SHALL mostrar la distribución agregada de los puntajes vigentes de compatibilidad, conservando su precisión decimal y señalando el tamaño y periodo de la muestra.
 

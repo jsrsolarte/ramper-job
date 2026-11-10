@@ -6,7 +6,6 @@ from django.db.models import Count, Exists, F, Min, OuterRef, Subquery
 from django.utils import timezone
 
 from dashboard.models import VacancyFollowUp
-from jobs.models import Vacancy
 from matching.models import AICallAttempt, VacancyAnalysis
 
 
@@ -152,19 +151,6 @@ def build_platform_statistics(*, period="30d", now=None):
     for state in tracking_states:
         state["width_percent"] = round(state["count"] * 100 / tracking_scale)
 
-    publication_counts = {status: 0 for status, _label in Vacancy.AvailabilityStatus.choices}
-    for row in Vacancy.objects.values("availability_status").annotate(count=Count("pk")):
-        if row["availability_status"] in publication_counts:
-            publication_counts[row["availability_status"]] = row["count"]
-    publication_total = sum(publication_counts.values())
-    publication_states = [
-        {"value": status, "label": label, "count": publication_counts[status]}
-        for status, label in Vacancy.AvailabilityStatus.choices
-    ]
-    publication_scale = max(publication_counts.values(), default=0) or 1
-    for state in publication_states:
-        state["width_percent"] = round(state["count"] * 100 / publication_scale)
-
     coverage_start = AICallAttempt.objects.filter(
         stage=AICallAttempt.Stage.SCORING,
     ).aggregate(first=Min("created_at"))["first"]
@@ -205,8 +191,6 @@ def build_platform_statistics(*, period="30d", now=None):
         "cutoff_at": timezone.localtime(now),
         "tracking_states": tracking_states,
         "tracking_total": tracking_total,
-        "publication_states": publication_states,
-        "publication_total": publication_total,
         "period": period,
         "period_label": period_label,
         "periods": SCORE_PERIODS,

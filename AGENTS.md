@@ -14,4 +14,4 @@
 
 - La selección de ramas se hace en GitHub Actions; Flux siempre sigue `staging` y nunca se cambia manualmente a una rama feature.
 - Ramper Job todavía no tiene un overlay ni un despliegue de producción. `main` queda reservado para la liberación a producción cuando esa configuración exista.
-- Los datos de staging son sintéticos y descartables. No cargar CV reales hasta contar con backups cifrados externos y una restauración probada.
+- No se configuran backups para staging ni producción. Perfiles, historial y CV pueden perderse permanentemente si falla o se elimina el nodo o un PVC. Staging usa solo datos sintéticos. En producción, informar y aceptar este riesgo antes de cargar información real.

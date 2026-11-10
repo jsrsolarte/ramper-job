@@ -91,6 +91,15 @@ class OperationalParameter(models.Model):
     updated_at = models.DateTimeField(default=timezone.now)
 
 
+class ApplicantActivity(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="applicant_activity",
+    )
+    last_authenticated_activity = models.DateTimeField(default=timezone.now, db_index=True)
+
+
 class OperationalParameterChange(models.Model):
     key = models.CharField(max_length=80)
     changed_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
@@ -106,6 +115,7 @@ class AdminAuditEvent(models.Model):
     class Action(models.TextChoices):
         ACCOUNT_CREATED = "account_created", "Cuenta creada"
         ACCOUNT_DEACTIVATED = "account_deactivated", "Cuenta desactivada"
+        ACCOUNT_AUTO_DEACTIVATED = "account_auto_deactivated", "Desactivada por inactividad"
         ACCOUNT_REACTIVATED = "account_reactivated", "Cuenta reactivada"
         INVITATION_CREATED = "invitation_created", "Invitación creada"
         INVITATION_REVOKED = "invitation_revoked", "Invitación revocada"
@@ -114,8 +124,16 @@ class AdminAuditEvent(models.Model):
         PASSWORD_RESET_DELIVERY_FAILED = "password_reset_delivery_failed", "Fallo de entrega de recuperación"
         PASSWORD_RESET_LINK_GENERATED = "password_reset_link_generated", "Enlace de restablecimiento generado"
         PASSWORD_RESET_UNAVAILABLE = "password_reset_unavailable", "Recuperación no disponible"
+        PROCESSING_PAUSED = "processing_paused", "Procesamiento pausado"
+        PROCESSING_RESUMED = "processing_resumed", "Procesamiento reanudado"
 
-    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="admin_audit_actions")
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name="admin_audit_actions",
+        null=True,
+        blank=True,
+    )
     target = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.PROTECT,

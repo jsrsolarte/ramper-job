@@ -23,6 +23,7 @@ from operations.services import (
     release_refresh_lease,
     start_admin_command,
 )
+from operations.parameters import processing_is_paused
 
 logger = logging.getLogger(__name__)
 
@@ -97,6 +98,16 @@ def _refresh_profile_sources(profile):
 @shared_task(bind=True, name="jobs.tasks.refresh_profile_sources", max_retries=3)
 def refresh_profile_sources(self, profile_id, command_run_id=None, lease_token=None):
     from matching.client import OmniRouteError
+
+    if processing_is_paused():
+        if lease_token:
+            release_refresh_lease(f"profile-refresh:{profile_id}", lease_token)
+        refresh_profile_sources.apply_async(
+            args=(profile_id,),
+            kwargs={"command_run_id": command_run_id},
+            countdown=60,
+        )
+        return {"deferred": "processing_paused"}
 
     lease_key = f"profile-refresh:{profile_id}"
     if lease_token:
@@ -175,6 +186,12 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
 
     from .search_groups import group_search_requests
 
+    if processing_is_paused():
+        for profile_id_value, token in (profile_leases or {}).items():
+            release_refresh_lease(f"profile-refresh:{int(profile_id_value)}", token)
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        return {"deferred": "processing_paused"}
+
     claimed = {}
     profile_runs = {}
     reports = {}
@@ -187,6 +204,17 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
     found_by_profile = {}
     vacancy_targets = {}
     query_group_count = 0
+
+    def defer_after_current_query():
+        for profile_id, run in profile_runs.items():
+            if run.finished_at is None:
+                finish_run(
+                    run,
+                    status=OperationalRun.Status.PARTIAL,
+                    item_count=len(found_by_profile.get(profile_id, set())),
+                )
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        return {"deferred": "processing_paused"}
 
     for profile_id_value, token in (profile_leases or {}).items():
         profile_id = int(profile_id_value)
@@ -243,9 +271,13 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
             })
 
         for connector in configured_connectors():
+            if processing_is_paused():
+                return defer_after_current_query()
             groups = group_search_requests(connector, requests)
             query_group_count += len(groups)
             for group in groups:
+                if processing_is_paused():
+                    return defer_after_current_query()
                 request = group["request"]
                 members = group["members"]
                 current_config_id = MatchingConfig.objects.filter(is_active=True).order_by(
@@ -363,6 +395,9 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                         target["profile_revisions"][str(profile_id)] = member["revision_id"]
                         found_by_profile.setdefault(profile_id, set()).add(vacancy.pk)
 
+        if processing_is_paused():
+            return defer_after_current_query()
+
         active_config_id = MatchingConfig.objects.filter(is_active=True).order_by(
             "-version"
         ).values_list("pk", flat=True).first()
@@ -447,6 +482,9 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
 
 @shared_task(name="jobs.tasks.refresh_sources")
 def refresh_sources(command_run_id=None):
+    if processing_is_paused():
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        return {"deferred": "processing_paused"}
     profiles = Profile.objects.filter(
         owner__is_active=True,
         cv_file__gt="",
@@ -483,6 +521,9 @@ def refresh_sources(command_run_id=None):
 @shared_task(name="jobs.tasks.process_manual_vacancy_submission")
 def process_manual_vacancy_submission(submission_id):
     """Extract a public vacancy URL and asynchronously schedule profile analysis."""
+    if processing_is_paused():
+        process_manual_vacancy_submission.apply_async(args=(submission_id,), countdown=60)
+        return {"deferred": "processing_paused"}
     claimed = ManualVacancySubmission.objects.filter(
         pk=submission_id,
         status=ManualVacancySubmission.Status.QUEUED,

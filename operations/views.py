@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Avg, Count, Q, Sum
+from django.db.models import Avg, Count, OuterRef, Q, Subquery, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -31,6 +31,7 @@ from .forms import (
     ManualVacancySubmissionForm,
 )
 from .models import (
+    ApplicantActivity,
     AdminAuditEvent,
     AdminCommandRun,
     OperationalParameterChange,
@@ -51,8 +52,10 @@ from .parameters import (
     current_follow_up_archive_days,
     current_refresh_interval_minutes,
     initial_refresh_interval_minutes,
+    processing_is_paused,
     reset_refresh_interval,
     save_parameter,
+    set_processing_paused,
     save_refresh_interval,
 )
 from .platform_statistics import build_platform_statistics
@@ -64,14 +67,34 @@ logger = logging.getLogger(__name__)
 
 @platform_admin_required
 def admin_center(request):
+    if request.method == "POST":
+        action = request.POST.get("processing_action")
+        if action not in {"pause", "resume"}:
+            messages.error(request, "La acción solicitada no es válida.")
+        else:
+            paused = action == "pause"
+            previous = set_processing_paused(actor=request.user, paused=paused)
+            if previous == paused:
+                messages.info(request, "El procesamiento ya estaba en ese estado.")
+            else:
+                messages.success(
+                    request,
+                    "Se pausó la búsqueda y el análisis de vacantes." if paused
+                    else "Se reanudó la búsqueda y el análisis de vacantes.",
+                )
+        return redirect("operations:admin_center")
     return render(request, "operations/admin_center.html", {
         "applicant_count": get_user_model().objects.filter(is_superuser=False, is_staff=False).count(),
+        "processing_paused": processing_is_paused(),
     })
 
 
 @platform_admin_required
 def manual_vacancies(request):
     if request.method == "POST":
+        if processing_is_paused():
+            messages.error(request, "El procesamiento está pausado. Reanúdalo desde el centro de administración antes de registrar una vacante.")
+            return redirect("operations:manual_vacancies")
         form = ManualVacancySubmissionForm(request.POST)
         if form.is_valid():
             submission = form.save(commit=False)
@@ -96,6 +119,7 @@ def manual_vacancies(request):
         form = ManualVacancySubmissionForm()
     return render(request, "operations/manual_vacancies.html", {
         "form": form,
+        "processing_paused": processing_is_paused(),
         "submissions": ManualVacancySubmission.objects.select_related(
             "submitted_by", "vacancy",
         )[:25],
@@ -111,7 +135,17 @@ def platform_statistics(request):
 @platform_admin_required
 def users(request):
     User = get_user_model()
-    accounts = User.objects.filter(is_superuser=False, is_staff=False).order_by("username")
+    latest_status_action = AdminAuditEvent.objects.filter(
+        target_id=OuterRef("pk"),
+        action__in=(
+            AdminAuditEvent.Action.ACCOUNT_DEACTIVATED,
+            AdminAuditEvent.Action.ACCOUNT_AUTO_DEACTIVATED,
+            AdminAuditEvent.Action.ACCOUNT_REACTIVATED,
+        ),
+    ).order_by("-created_at").values("action")[:1]
+    accounts = User.objects.filter(is_superuser=False, is_staff=False).annotate(
+        latest_status_action=Subquery(latest_status_action),
+    ).order_by("username")
     return render(request, "operations/users.html", {
         "accounts": accounts,
         "invitations": UserInvitation.objects.select_related("created_by")[:30],
@@ -211,8 +245,8 @@ def invitation_accept(request):
             "validation_url": reverse("invitation_validate"),
         })
         response["Cache-Control"] = "private, no-store"
-        # Keep the HTTPS form submit compatible with Django CSRF checks while limiting referrers to this origin.
-        # The invitation token lives in the URL fragment, which browsers never include in Referer.
+        # HTTPS POST forms need a same-origin Referer when browsers omit Origin.
+        # The invitation secret is in the URL fragment, which is never sent in Referer.
         response["Referrer-Policy"] = "same-origin"
         response["X-Robots-Tag"] = "noindex, nofollow"
         return response
@@ -341,6 +375,11 @@ def toggle_user(request, user_id):
     if applicant.is_active != new_state:
         applicant.is_active = new_state
         applicant.save(update_fields=("is_active",))
+        if new_state:
+            ApplicantActivity.objects.update_or_create(
+                user=applicant,
+                defaults={"last_authenticated_activity": timezone.now()},
+            )
         AdminAuditEvent.objects.create(
             actor=request.user,
             target=applicant,
@@ -415,6 +454,9 @@ def run_command(request):
     command_name = request.POST.get("command", "")
     if command_name not in ALLOWED_COMMANDS:
         return render(request, "operations/invalid_command.html", status=400)
+    if processing_is_paused():
+        messages.error(request, "La búsqueda y el análisis están pausados. Reanúdalos desde el centro de administración.")
+        return redirect("operations:dashboard")
 
     try:
         with transaction.atomic():

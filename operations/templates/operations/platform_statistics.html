@@ -4,27 +4,20 @@
 <section class="page-heading">
   <p class="eyebrow">Administración · Plataforma</p>
   <h1>Estadísticas globales</h1>
-  <p class="muted">Conteos actuales de seguimiento y publicaciones, más la distribución de puntajes por periodo y versión de rúbrica.</p>
+  <p class="muted">Conteos actuales de seguimiento y distribución de puntajes por periodo y versión de rúbrica.</p>
 </section>
 <p class="admin-page-links"><a class="button button-secondary" href="{% url 'operations:admin_center' %}">Centro de administración</a><a class="button button-secondary" href="{% url 'operations:dashboard' %}">Observabilidad</a><a class="button button-secondary" href="{% url 'operations:users' %}">Usuarios</a><a class="button button-secondary" href="{% url 'operations:parameters' %}">Parámetros</a></p>
 
-<p class="muted admin-period-note"><strong>Corte actual:</strong> {{ cutoff_at|date:"Y-m-d H:i" }} · Los estados personales cuentan relaciones perfil-vacante; la disponibilidad cuenta publicaciones únicas.</p>
+<p class="muted admin-period-note"><strong>Corte actual:</strong> {{ cutoff_at|date:"Y-m-d H:i" }} · Los estados personales cuentan relaciones perfil-vacante.</p>
 <div class="global-statistics-grid">
-  <section class="admin-panel global-statistics-panel" aria-labelledby="tracking-title">
-    <div class="global-statistics-heading"><div><h2 id="tracking-title">Seguimiento por perfil</h2><p class="muted">{{ tracking_total }} relaciones activas de seguimiento</p></div></div>
-    <div class="global-statistics-rows" role="list">
-      {% for state in tracking_states %}<div class="global-statistics-row" role="listitem"><span>{{ state.label }}</span><span class="global-statistics-track" aria-hidden="true"><span style="width: {{ state.width_percent }}%"></span></span><strong>{{ state.count }}</strong></div>{% endfor %}
-    </div>
-  </section>
-  <section class="admin-panel global-statistics-panel" aria-labelledby="availability-title">
-    <div class="global-statistics-heading"><div><h2 id="availability-title">Disponibilidad de publicaciones</h2><p class="muted">{{ publication_total }} publicaciones únicas</p></div></div>
-    <div class="global-statistics-rows" role="list">
-      {% for state in publication_states %}<div class="global-statistics-row" role="listitem"><span>{{ state.label }}</span><span class="global-statistics-track" aria-hidden="true"><span style="width: {{ state.width_percent }}%"></span></span><strong>{{ state.count }}</strong></div>{% endfor %}
-    </div>
-  </section>
-</div>
+  <section class="admin-panel gl<section class="admin-panel global-statistics-panel" aria-labelledby="tracking-title">
+  <div class="global-statistics-heading"><div><h2 id="tracking-title">Seguimiento por perfil</h2><p class="muted">{{ tracking_total }} relaciones activas de seguimiento</p></div></div>
+  <div class="global-statistics-rows" role="list">
+    {% for state in tracking_states %}<div class="global-statistics-row" role="listitem"><span>{{ state.label }}</span><span class="global-statistics-track" aria-hidden="true"><span style="width: {{ state.width_percent }}%"></span></span><strong>{{ state.count }}</strong></div>{% endfor %}
+  </div>
+</section>
 
-<section class="admin-panel global-score-panel" aria-labelledby="global-score-title">
+al-score-title">
   <div class="global-statistics-heading"><div><h2 id="global-score-title">Distribución de puntuaciones</h2><p class="muted">Solo el análisis vigente por perfil-vacante; cada rúbrica se presenta por separado.</p></div></div>
   <form method="get" class="admin-period-form"><label for="period">Periodo</label><select name="period" id="period">{% for key, data in periods.items %}<option value="{{ key }}"{% if period == key %} selected{% endif %}>{{ data.0 }}</option>{% endfor %}</select><button class="button button-secondary" type="submit">Actualizar periodo</button></form>
   <p class="muted admin-period-note"><strong>Periodo:</strong> {{ requested_start|date:"Y-m-d H:i" }} – {{ cutoff_at|date:"Y-m-d H:i" }} · <strong>Cobertura registrada desde:</strong> {{ coverage_start|date:"Y-m-d H:i"|default:"Sin cobertura registrada" }}</p>

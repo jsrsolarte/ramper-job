@@ -48,6 +48,15 @@ def finish_run(
     known_count=None,
     known_updated_count=None,
     known_unchanged_count=None,
+    listing_count=None,
+    title_kept_count=None,
+    title_discarded_count=None,
+    details_requested_count=None,
+    details_received_count=None,
+    title_input_tokens=None,
+    listing_fetch_duration_ms=None,
+    title_preselection_duration_ms=None,
+    detail_fetch_duration_ms=None,
 ):
     finished_at = timezone.now()
     run.status = status
@@ -59,6 +68,15 @@ def finish_run(
     run.known_count = known_count
     run.known_updated_count = known_updated_count
     run.known_unchanged_count = known_unchanged_count
+    run.listing_count = listing_count
+    run.title_kept_count = title_kept_count
+    run.title_discarded_count = title_discarded_count
+    run.details_requested_count = details_requested_count
+    run.details_received_count = details_received_count
+    run.title_input_tokens = title_input_tokens
+    run.listing_fetch_duration_ms = listing_fetch_duration_ms
+    run.title_preselection_duration_ms = title_preselection_duration_ms
+    run.detail_fetch_duration_ms = detail_fetch_duration_ms
     if error_category.startswith("omniroute.http_"):
         status_code = error_category.rsplit("_", 1)[-1]
         summary = f"OmniRoute respondió HTTP {status_code}." if status_code.isdigit() else "OmniRoute rechazó la solicitud."
@@ -67,7 +85,10 @@ def finish_run(
     run.error_summary = summary
     run.save(update_fields=(
         "status", "item_count", "new_count", "known_count", "known_updated_count",
-        "known_unchanged_count", "finished_at", "duration_ms", "error_category", "error_summary",
+        "known_unchanged_count", "listing_count", "title_kept_count", "title_discarded_count",
+        "details_requested_count", "details_received_count", "title_input_tokens",
+        "listing_fetch_duration_ms", "title_preselection_duration_ms", "detail_fetch_duration_ms",
+        "finished_at", "duration_ms", "error_category", "error_summary",
     ))
     log = logger.warning if status in {OperationalRun.Status.FAILED, OperationalRun.Status.RETRYING} else logger.info
     log(

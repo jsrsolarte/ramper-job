@@ -17,4 +17,7 @@
 
 ## 4. Medir calidad y ahorro
 
-- [ ] 4.1 Comparar en una muestra representativa títulos conservados y descartados, falsos descartes, consultas a fichas y tokens de análisis frente al flujo actual; verificar que el ahorro no depende de descartar vacantes ambiguas.
+- [x] 4.1 Registrar por consulta los títulos recibidos/conservados/descartados, fichas solicitadas/recibidas, tokens y duración de preselección y extracción, sin guardar títulos ni contenido privado.
+- [x] 4.2 Relacionar los análisis encolados con la consulta de origen y exponer sus estados posteriores: pendientes, completados, fallidos, conservados por umbral y descartados por puntaje.
+- [x] 4.3 Presentar el embudo por consulta y cambiar las duraciones visibles del panel operativo a minutos.
+- [ ] 4.4 Validar en staging una muestra representativa de títulos conservados y descartados, falsos descartes, fichas evitadas y tokens; confirmar que el ahorro no depende de descartar títulos ambiguos.

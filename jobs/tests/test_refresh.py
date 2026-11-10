@@ -108,6 +108,15 @@ class RefreshTasksTests(TestCase):
         self.assertEqual([item.title for item in connector.detail_inputs], ["Analista de procesos"])
         self.assertEqual(Vacancy.objects.count(), 1)
         schedule_analysis.assert_called_once()
+        source_run = OperationalRun.objects.get(operation="source_query", status=OperationalRun.Status.SUCCEEDED)
+        self.assertEqual(source_run.listing_count, 2)
+        self.assertEqual(source_run.title_kept_count, 1)
+        self.assertEqual(source_run.title_discarded_count, 1)
+        self.assertEqual(source_run.details_requested_count, 1)
+        self.assertEqual(source_run.details_received_count, 1)
+        self.assertEqual(source_run.title_input_tokens, 18)
+        self.assertIsNotNone(source_run.title_preselection_duration_ms)
+        self.assertIsNotNone(source_run.detail_fetch_duration_ms)
         preselect.assert_called_once_with(
             search_terms=self.term_set.keywords,
             vacancies=[
@@ -189,7 +198,11 @@ class RefreshTasksTests(TestCase):
             call(self.term_set.keywords, locations=list(MEDELLIN_AREA), remote_ok=False),
         ])
         self.assertEqual(schedule_analysis.call_count, 2)
-        self.assertEqual(schedule_analysis.call_args.kwargs, {"force_reanalysis": True})
+        self.assertEqual(schedule_analysis.call_args.kwargs["force_reanalysis"], True)
+        self.assertEqual(
+            len(schedule_analysis.call_args.kwargs["source_query_run_ids_by_profile"][str(self.profile.pk)]),
+            1,
+        )
         self.assertEqual(
             OperationalRun.objects.filter(
                 operation="source_query", status=OperationalRun.Status.SUCCEEDED
@@ -232,7 +245,13 @@ class RefreshTasksTests(TestCase):
         self.assertEqual(Vacancy.objects.count(), 1)
         self.assertEqual(follow_up.status, VacancyFollowUp.Status.DISCARDED)
         self.assertEqual(VacancyFollowUp.objects.filter(profile=self.profile, vacancy=vacancy).count(), 1)
-        schedule_analysis.assert_called_with(vacancy.pk, force_reanalysis=True)
+        schedule_analysis.assert_called_with(
+            vacancy.pk,
+            force_reanalysis=True,
+            source_query_run_ids_by_profile={
+                str(self.profile.pk): [OperationalRun.objects.filter(operation="source_query").latest("pk").pk],
+            },
+        )
 
     @patch("matching.tasks.schedule_vacancy_analysis.delay")
     @patch("jobs.tasks.configured_connectors")

@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Avg, Count, OuterRef, Q, Subquery, Sum
+from django.db.models import Avg, Count, F, OuterRef, Q, Subquery, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -538,9 +538,85 @@ def dashboard(request):
     ).only(
         "started_at", "source", "status", "item_count", "new_count", "known_count",
         "known_updated_count", "known_unchanged_count", "duration_ms",
+        "listing_count", "title_kept_count", "title_discarded_count",
+        "details_requested_count", "details_received_count", "title_input_tokens",
+        "listing_fetch_duration_ms", "title_preselection_duration_ms", "detail_fetch_duration_ms",
         "error_category", "error_summary",
     ).order_by("-started_at", "-pk")
     source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
+    query_run_ids = [run.pk for run in source_query_page]
+
+    def minutes(milliseconds):
+        return round(milliseconds / 60000, 1) if milliseconds is not None else None
+
+    analysis_metrics_by_query = {}
+    analysis_token_metrics_by_query = {}
+    if query_run_ids:
+        analysis_metrics_by_query = {
+            row["source_queries__source_query_id"]: row
+            for row in VacancyAnalysis.objects.filter(
+                source_queries__source_query_id__in=query_run_ids,
+            ).values("source_queries__source_query_id").annotate(
+                linked=Count("pk", distinct=True),
+                queued=Count(
+                    "pk", filter=Q(source_queries__enqueued_by_query=True), distinct=True,
+                ),
+                reused=Count(
+                    "pk", filter=Q(source_queries__enqueued_by_query=False), distinct=True,
+                ),
+                pending=Count("pk", filter=Q(status=VacancyAnalysis.Status.PENDING), distinct=True),
+                completed=Count("pk", filter=Q(status=VacancyAnalysis.Status.COMPLETED), distinct=True),
+                failed=Count("pk", filter=Q(status=VacancyAnalysis.Status.FAILED), distinct=True),
+                auto_discarded=Count(
+                    "pk",
+                    filter=(
+                        Q(status=VacancyAnalysis.Status.COMPLETED)
+                        & Q(profile__vacancy_discoveries__vacancy_id=F("vacancy_id"))
+                        & Q(profile__vacancy_discoveries__auto_discard_threshold__gt=0)
+                        & Q(score__lt=F("profile__vacancy_discoveries__auto_discard_threshold"))
+                    ),
+                    distinct=True,
+                ),
+            )
+        }
+        analysis_token_metrics_by_query = {
+            row["analysis__source_queries__source_query_id"]: row
+            for row in AICallAttempt.objects.filter(
+                analysis__source_queries__source_query_id__in=query_run_ids,
+                stage=AICallAttempt.Stage.SCORING,
+            ).values("analysis__source_queries__source_query_id").annotate(
+                input_tokens=Sum("input_tokens"),
+                output_tokens=Sum("output_tokens"),
+            )
+        }
+    for run in source_query_page:
+        run.duration_minutes = minutes(run.duration_ms)
+        run.listing_fetch_minutes = minutes(run.listing_fetch_duration_ms)
+        run.title_preselection_minutes = minutes(run.title_preselection_duration_ms)
+        run.detail_fetch_minutes = minutes(run.detail_fetch_duration_ms)
+        run.stage_duration_summary = " / ".join(
+            f"{value:.1f}" if value is not None else "—"
+            for value in (
+                run.listing_fetch_minutes,
+                run.title_preselection_minutes,
+                run.detail_fetch_minutes,
+            )
+        )
+        analysis_metrics = analysis_metrics_by_query.get(run.pk, {})
+        completed = analysis_metrics.get("completed", 0)
+        auto_discarded = analysis_metrics.get("auto_discarded", 0)
+        run.analysis_metrics = {
+            "linked": analysis_metrics.get("linked", 0),
+            "queued": analysis_metrics.get("queued", 0),
+            "reused": analysis_metrics.get("reused", 0),
+            "pending": analysis_metrics.get("pending", 0),
+            "completed": completed,
+            "passed": max(0, completed - auto_discarded),
+            "auto_discarded": auto_discarded,
+            "failed": analysis_metrics.get("failed", 0),
+            "input_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("input_tokens"),
+            "output_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("output_tokens"),
+        }
 
     def summarize(queryset):
         result = queryset.aggregate(
@@ -553,7 +629,7 @@ def dashboard(request):
             average_duration=Avg("duration_ms", filter=Q(finished_at__isnull=False)),
         )
         result["items"] = result["items"] or 0
-        result["average_duration"] = round(result["average_duration"] or 0)
+        result["average_duration"] = minutes(result["average_duration"] or 0)
         result["failure_rate"] = round(100 * result["failed"] / result["total"]) if result["total"] else 0
         return result
 
@@ -569,6 +645,12 @@ def dashboard(request):
             known_items=Sum("known_count"),
             known_updated_items=Sum("known_updated_count"),
             known_unchanged_items=Sum("known_unchanged_count"),
+            titles_received=Sum("listing_count"),
+            titles_kept=Sum("title_kept_count"),
+            titles_discarded=Sum("title_discarded_count"),
+            details_requested=Sum("details_requested_count"),
+            details_received=Sum("details_received_count"),
+            title_input_tokens=Sum("title_input_tokens"),
         )
         summary.update({
             "source": source,
@@ -599,6 +681,9 @@ def dashboard(request):
         status__in=(OperationalRun.Status.FAILED, OperationalRun.Status.RETRYING),
     ).exclude(error_summary="").order_by("-started_at")[:10]
     coverage_start = OperationalRun.objects.order_by("started_at").values_list("started_at", flat=True).first()
+    admin_commands = list(AdminCommandRun.objects.select_related("requested_by").all()[:20])
+    for command in admin_commands:
+        command.duration_minutes = minutes(command.duration_ms)
     ai_call_stages = []
     for stage, label in AICallAttempt.Stage.choices:
         metric = AICallAttempt.objects.filter(stage=stage, created_at__gte=since, created_at__lte=now).aggregate(
@@ -610,6 +695,7 @@ def dashboard(request):
             input_tokens=Sum("input_tokens"),
             output_tokens=Sum("output_tokens"),
         )
+        metric["average_duration"] = minutes(metric["average_duration"] or 0)
         ai_call_stages.append({"label": label, **metric})
 
     context = admin.site.each_context(request)
@@ -635,7 +721,7 @@ def dashboard(request):
         "oldest_pending": oldest_pending,
         "oldest_pending_age": now - oldest_pending if oldest_pending else None,
         "latest_errors": latest_errors,
-        "admin_commands": AdminCommandRun.objects.select_related("requested_by").all()[:20],
+        "admin_commands": admin_commands,
         "allowed_commands": ALLOWED_COMMANDS,
     })
     return render(request, "operations/dashboard.html", context)

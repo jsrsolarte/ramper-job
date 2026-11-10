@@ -7,7 +7,16 @@ spec:
     spec:
       containers:
         - name: web
+          startupProbe:
+            httpGet:
+              httpHeaders:
+                - name: Host
+                  value: jobs.ramper.lat
           readinessProbe:
+            httpGet:
+              httpHeaders:
+                - name: Host
+                  value: jobs.ramper.lat
             timeoutSeconds: 5
           livenessProbe:
             httpGet:

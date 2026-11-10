@@ -667,6 +667,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .global-rubric-heading strong { color: var(--ink-soft); }
 .global-statistics-empty { padding: 16px; border: 1px dashed var(--line-strong); border-radius: 12px; color: var(--muted); text-align: center; }
 .global-statistics-privacy { margin: 12px 0 24px; font-size: 12px; }
+.source-performance-wrap { margin: 14px 0 0; }
+.source-performance-table { table-layout: fixed; font-size: 10px; font-variant-numeric: tabular-nums; }
+.source-performance-table th, .source-performance-table td { padding: 9px 6px; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
+.source-performance-table th:first-child { width: 22%; }
+.source-performance-table th:nth-child(2) { width: 16%; }
+.source-performance-table th:nth-child(3), .source-performance-table th:nth-child(4) { width: 17%; }
+.source-performance-table th:nth-child(5) { width: 28%; }
+.source-performance-table td:not(:first-child) { text-align: center; }
+.source-performance-table tbody th { color: var(--ink-soft); font-size: 10px; }
 .admin-settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .admin-setting-form { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; margin: 18px 0 0; }
 .admin-setting-form input { width: 110px; }

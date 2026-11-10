@@ -4,7 +4,7 @@
 
 - [x] 1.1 Crear `deploy/overlays/prod` con host, CSRF, HTTPS, OmniRoute interno, probes y pin SHA inmutable; validar el render de Kustomize.
 - [x] 1.2 Extender CI para validar los overlays de staging y prod; ejecutar el CI del PR y confirmar que la imagen de producción mantiene el SHA validado.
-- [x] 1.3 Crear un provisionador interactivo exclusivo de `prod` para Django, PostgreSQL, OmniRoute y GHCR; comprobar que no imprime, versiona ni conserva credenciales.
+- [x] 1.3 Crear un provisionador interactivo exclusivo de `prod` para Django, PostgreSQL y OmniRoute; comprobar el Secret GHCR existente sin leer ni copiar sus datos.
 - [x] 1.4 Actualizar documentación y AGENTS con el procedimiento productivo, el host elegido y la decisión de no usar backups; comprobar que no se describe una ruta de recuperación.
 
 ## 2. Registro GitOps de producción

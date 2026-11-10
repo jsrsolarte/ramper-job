@@ -13,7 +13,7 @@ spec:
             httpGet:
               httpHeaders:
                 - name: Host
-                  value: ramper-job.ramper.lat
+                  value: jobs.ramper.lat
             timeoutSeconds: 5
 ---
 apiVersion: apps/v1

@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""Interactively provision production-only Kubernetes Secrets without echoing values."""
+"""Interactively provision production Kubernetes Secrets without echoing values."""
 
 from __future__ import annotations
 
-import base64
 import getpass
-import json
 import os
 import secrets
 import subprocess
@@ -16,12 +14,12 @@ from pathlib import Path
 
 NAMESPACE = "prod"
 APP_SECRET = "ramper-job-secrets"
-REGISTRY_SECRET = "ramper-job-registry"
+REGISTRY_SECRET = "mcp-gateway-ghcr-prod"
 KUBECTL = ["microk8s", "kubectl"]
 
 
 class ProvisionError(Exception):
-    """A safe-to-display provisioning error without secret contents."""
+    """A safe-to-display error that never contains secret values."""
 
 
 def kubectl(args: list[str], *, input_text: str | None = None) -> subprocess.CompletedProcess[str]:
@@ -49,9 +47,7 @@ def get_secret_type(name: str) -> str | None:
     if result.returncode == 0:
         return result.stdout.strip()
     if "NotFound" not in result.stderr:
-        raise ProvisionError(
-            f"No se pudo comprobar el Secret {name}; no se modificó ningún Secret."
-        )
+        raise ProvisionError(f"No se pudo comprobar el Secret {name}; no se modificó ninguno.")
     return None
 
 
@@ -81,20 +77,16 @@ def main() -> int:
         if get_secret_type(APP_SECRET) is not None:
             raise ProvisionError(f"El Secret {APP_SECRET} ya existe; no se modificó ninguno.")
         registry_type = get_secret_type(REGISTRY_SECRET)
-        if registry_type not in (None, "kubernetes.io/dockerconfigjson"):
+        if registry_type != "kubernetes.io/dockerconfigjson":
             raise ProvisionError(
-                f"El Secret {REGISTRY_SECRET} existe con un tipo inesperado; "
-                "no se modificó ninguno."
+                f"No existe el Secret Docker config esperado {REGISTRY_SECRET}; "
+                "no se creó ningún Secret."
             )
-        reuse_registry = registry_type == "kubernetes.io/dockerconfigjson"
 
-        print(f"Se crearán Secrets solo en el namespace {NAMESPACE}.")
+        print("Se crearán Secrets solo en el namespace prod.")
         print("La clave Django y la contraseña PostgreSQL se generarán aquí.")
         print("OmniRoute se solicitará sin mostrar lo que escribas.")
-        if reuse_registry:
-            print(f"Se reutilizará {REGISTRY_SECRET} sin leer sus datos.")
-        else:
-            print("GHCR se solicitará sin mostrar lo que escribas.")
+        print(f"Se referenciará {REGISTRY_SECRET} sin leer ni copiar sus datos.")
         if input("Continuar? [s/N] ").strip().lower() not in {"s", "si", "sí"}:
             print("Cancelado; no se modificó ningún Secret.")
             return 0
@@ -104,16 +96,6 @@ def main() -> int:
         omniroute_key = require_single_line(
             "OMNIROUTE_API_KEY", getpass.getpass("OMNIROUTE_API_KEY (entrada oculta): ")
         )
-        registry_user = registry_token = None
-        if not reuse_registry:
-            registry_user = require_single_line(
-                "Usuario GHCR", input("Usuario de GitHub para GHCR: ").strip()
-            )
-            registry_token = require_single_line(
-                "Token GHCR",
-                getpass.getpass("Token GHCR con permiso read:packages (entrada oculta): "),
-            )
-
         with tempfile.TemporaryDirectory(prefix="ramper-prod-", dir="/dev/shm") as temp_dir:
             temp_path = Path(temp_dir)
             app_env = temp_path / "app-secrets.env"
@@ -125,36 +107,18 @@ def main() -> int:
             )
             app_env.chmod(0o600)
 
-            app_yaml = create_manifest(
+            manifests = create_manifest(
                 ["-n", NAMESPACE, APP_SECRET, f"--from-env-file={app_env}"]
             )
-            manifests = app_yaml
-            if not reuse_registry:
-                auth = base64.b64encode(f"{registry_user}:{registry_token}".encode()).decode()
-                docker_config = {"auths": {"ghcr.io": {"auth": auth}}}
-                docker_config_path = temp_path / "dockerconfig.json"
-                docker_config_path.write_text(json.dumps(docker_config), encoding="utf-8")
-                docker_config_path.chmod(0o600)
-                registry_yaml = create_manifest(
-                    [
-                        "-n",
-                        NAMESPACE,
-                        REGISTRY_SECRET,
-                        "--type=kubernetes.io/dockerconfigjson",
-                        f"--from-file=.dockerconfigjson={docker_config_path}",
-                    ]
-                )
-                manifests = f"{app_yaml}\n---\n{registry_yaml}"
             created = kubectl(["create", "-f", "-"], input_text=manifests)
             if created.returncode:
                 raise ProvisionError(
-                    "kubectl no pudo aplicar los Secrets. Revisa el estado por sus nombres "
-                    "antes de volver a ejecutar; no se imprimieron valores."
+                    "kubectl no pudo aplicar el Secret de la aplicación. Revisa su nombre y tipo antes de "
+                    "volver a ejecutar; no se imprimieron valores."
                 )
 
         print(f"Secret creado en {NAMESPACE}: {APP_SECRET}.")
-        if not reuse_registry:
-            print(f"Secret creado en {NAMESPACE}: {REGISTRY_SECRET}.")
+        print(f"GHCR se referencia desde {REGISTRY_SECRET}; no se copió su contenido.")
         print("Los valores no se mostraron y los archivos temporales se eliminaron.")
         return 0
     except ProvisionError as exc:

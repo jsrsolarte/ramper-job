@@ -1,8 +1,9 @@
 # Despliegue
 
-El único overlay previsto en este cambio es `overlays/staging`; no hay manifiestos ni
-referencias para producción. Flux debe reconciliarlo en el namespace `staging` después de
-que CI publique la imagen del commit aprobado.
+Los overlays `overlays/staging` y `overlays/prod` son independientes. Flux reconcilia staging
+desde su fuente en la rama `staging`. La fuente de producción sigue `main` y su Kustomization
+debe permanecer suspendida hasta que el overlay esté en `main` y los Secrets de `prod` estén
+disponibles.
 
 ## Configuración y secretos
 
@@ -26,14 +27,20 @@ si no existe `ramper-job-registry` con el tipo esperado. Escribe los temporales 
 ni guarda los valores en el repositorio. El bootstrap de la cuenta administradora es una
 operación interactiva única ejecutada dentro del pod web.
 
+En producción, ejecuta `python3 scripts/provision_prod_secrets.py` desde el checkout de la app
+en el servidor. El provisionador usa credenciales y contraseñas independientes, solicita
+OmniRoute y GHCR con entrada oculta, y solo muestra los nombres de los Secrets creados.
+
 ## Persistencia y alcance de datos
 
 PostgreSQL usa un volumen de 2 GiB y los CV un PVC independiente de 2 GiB. Redis no persiste:
-contiene colas reconstruibles. El almacenamiento actual `microk8s-hostpath` reside en el
-nodo y no es un backup. Por ahora staging solo debe contener datos sintéticos y descartables;
-no cargar perfiles ni CV reales hasta acordar un destino de backup cifrado y probar una
-restauración externa. Un restablecimiento completo de datos de prueba puede eliminar los dos
-PVC de staging y permitir que StatefulSet/Deployment los creen de nuevo.
+contiene colas reconstruibles. Ramper Job no configura copias de seguridad locales ni externas
+para PostgreSQL o CV, en staging ni en producción. `microk8s-hostpath` reside en el nodo; si se
+pierde el nodo o un volumen, los datos pueden desaparecer sin posibilidad de restauración.
+Staging solo debe contener datos sintéticos y descartables. No cargar perfiles ni CV reales ni
+datos que deban conservarse. Si se configura producción, sus datos también serán descartables
+mientras esta decisión siga vigente. Un restablecimiento completo puede eliminar los dos PVC de
+staging y permitir que StatefulSet/Deployment los creen de nuevo.
 
 ## Recursos y comprobaciones
 
@@ -51,17 +58,20 @@ Las pruebas de staging siguen identificándose por el SHA de la imagen y no reci
 
 Incrementa PATCH para correcciones compatibles, MINOR para funcionalidades compatibles y MAJOR para cambios incompatibles que requieren adaptación. El asunto de la etiqueta anotada debe explicar el tipo de incremento y su motivo.
 
-El flujo de liberación solo acepta un commit que esté en `staging` y cuya imagen SHA sea la actualmente fijada en el overlay. Resuelve el digest de esa imagen ya construida y adjunta a la versión un manifiesto con etiqueta, versión, SHA, referencia y digest. No reconstruye la imagen. La creación de la versión no despliega a producción ni crea un overlay de producción; eso requiere autorización y configuración separadas.
+El flujo de liberación solo acepta un commit que esté en `staging` y cuya imagen SHA sea la actualmente fijada en el overlay. Resuelve el digest de esa imagen ya construida y adjunta a la versión un manifiesto con etiqueta, versión, SHA, referencia y digest. No reconstruye la imagen. Crear la versión no despliega por sí solo: Flux productivo obtiene `deploy/overlays/prod` desde `main` y solo lo aplica después de que su Kustomization se habilite mediante Git.
 
 El init container del web ejecuta `migrate --noinput` antes de iniciar Gunicorn. Los init
 containers del worker y Beat esperan hasta 15 minutos a que no haya migraciones pendientes;
 así no consumen tareas contra un esquema aún incompleto. Las migraciones futuras deben seguir
 el patrón expandir/migrar/contraer: primero añadir estructuras compatibles con la imagen
 anterior, mover o transformar datos en una etapa reversible y retirar campos antiguos solo
-cuando ninguna imagen de rollback los use. El rollback normal cambia por Git la imagen fijada
-en el overlay y deja que Flux reconcilie; antes de una migración destructiva que no tolere la
-imagen anterior se necesita un backup restaurable y un plan explícito de recuperación.
+cuando ninguna imagen de rollback los use. El rollback normal cambia por Git la imagen fijada en el overlay y deja que Flux reconcilie. No
+hay backups ni ruta de restauración: una migración destructiva o un fallo de almacenamiento
+puede hacer perder los datos, que se consideran descartables.
 
 Hostname de staging: `ramper-job-staging.ramper.lat`. Cloudflare Tunnel debe enrutarlo a
-`http://traefik.ingress.svc.cluster.local:80`. Mantener el login de la aplicación activo y
-publicar únicamente los datos sintéticos autorizados para pruebas.
+`http://traefik.ingress.svc.cluster.local:80`.
+
+Hostname de producción: `ramper-job.ramper.lat`, por la misma ruta del túnel a Traefik.
+Mantener el login de la aplicación activo; cargar solo datos que se acepta perder, ya que
+no existe una ruta de recuperación.

@@ -29,12 +29,12 @@ class TitlePreselectionTests(SimpleTestCase):
         ]
         request.return_value = Mock(
             content={"decisions": [
-                {"id": "0", "keep": False},
-                {"id": "1", "keep": True},
-                {"id": "2", "keep": True},
-                {"id": "3", "keep": False},
-                {"id": "3", "keep": False},
-                {"id": "unknown", "keep": False},
+                {"id": "0", "classification": "clearly_unrelated"},
+                {"id": "1", "classification": "compatible"},
+                {"id": "2", "classification": "uncertain"},
+                {"id": "3", "classification": "clearly_unrelated"},
+                {"id": "3", "classification": "clearly_unrelated"},
+                {"id": "unknown", "classification": "clearly_unrelated"},
             ]},
             input_tokens=42,
         )
@@ -66,7 +66,10 @@ class TitlePreselectionTests(SimpleTestCase):
         self.assertEqual(failed.discarded_count, 0)
 
         request.side_effect = None
-        request.return_value = Mock(content={"decisions": "invalid"}, input_tokens=8)
+        request.return_value = Mock(content={"decisions": [
+            {"id": "0", "classification": "unknown"},
+            {"id": "1", "keep": False},
+        ]}, input_tokens=8)
         invalid = preselect_listing_titles(titles, ["Analista de procesos"])
         self.assertEqual(invalid.listings, titles)
         self.assertEqual(invalid.discarded_count, 0)

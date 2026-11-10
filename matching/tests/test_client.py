@@ -118,7 +118,9 @@ class OmniRouteClientTests(SimpleTestCase):
     def test_title_preselection_sends_only_titles_and_shared_search_terms(self, post):
         response = Mock()
         response.json.return_value = {
-            "choices": [{"message": {"content": '{"decisions": [{"id": "0", "keep": false}]}'}}],
+            "choices": [{"message": {"content": (
+                '{"decisions": [{"id": "0", "classification": "clearly_unrelated"}]}'
+            )}}],
             "usage": {"prompt_tokens": 31},
         }
         post.return_value = response
@@ -128,7 +130,9 @@ class OmniRouteClientTests(SimpleTestCase):
             vacancies=[{"id": "0", "title": "Auxiliar de cocina"}],
         )
 
-        self.assertEqual(result.content, {"decisions": [{"id": "0", "keep": False}]})
+        self.assertEqual(result.content, {
+            "decisions": [{"id": "0", "classification": "clearly_unrelated"}],
+        })
         self.assertEqual(result.input_tokens, 31)
         payload = post.call_args.kwargs["json"]
         body = payload["messages"][1]["content"]
@@ -136,6 +140,7 @@ class OmniRouteClientTests(SimpleTestCase):
         self.assertIn('"search_terms": ["Analista de procesos"]', body)
         self.assertIn('"title": "Auxiliar de cocina"', body)
         self.assertIn("Conserva cualquier título compatible, ambiguo o insuficiente", prompt)
-        self.assertIn("keep=false solo cuando sea claramente ajeno", prompt)
+        self.assertIn("classification=clearly_unrelated solo para incompatibilidades laborales obvias", prompt)
+        self.assertIn('"classification": "compatible | uncertain | clearly_unrelated"', body)
         self.assertNotIn("cv", body.casefold())
         self.assertNotIn("description", body.casefold())

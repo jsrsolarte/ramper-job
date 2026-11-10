@@ -98,7 +98,10 @@ class RefreshTasksTests(TestCase):
         connector = self._staged_connector()
         configured.return_value = [connector]
         preselect.return_value = Mock(
-            content={"decisions": [{"id": "0", "keep": False}, {"id": "1", "keep": True}]},
+            content={"decisions": [
+                {"id": "0", "classification": "clearly_unrelated"},
+                {"id": "1", "classification": "compatible"},
+            ]},
             input_tokens=18,
         )
 
@@ -154,7 +157,10 @@ class RefreshTasksTests(TestCase):
         connector = self._staged_connector()
         configured.return_value = [connector]
         preselect.return_value = Mock(
-            content={"decisions": [{"id": "0", "keep": False}, {"id": "1", "keep": True}]},
+            content={"decisions": [
+                {"id": "0", "classification": "clearly_unrelated"},
+                {"id": "1", "classification": "compatible"},
+            ]},
             input_tokens=18,
         )
         leases = {

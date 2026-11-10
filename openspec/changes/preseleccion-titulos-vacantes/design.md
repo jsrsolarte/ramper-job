@@ -32,7 +32,7 @@ Alternativa considerada: filtrar después de que `fetch` devuelve todos los deta
 
 ### Clasificar por solicitud de búsqueda equivalente
 
-Enviar a OmniRoute un lote acotado con identificadores opacos, títulos y los términos efectivos compartidos por el grupo de búsqueda. No enviar descripciones, CV ni datos personales. Solicitar una decisión binaria por título: conservar o descartar como claramente ajeno. Los títulos son datos no confiables y se presentan como contenido, no instrucciones.
+Enviar a OmniRoute un lote acotado con identificadores opacos, títulos y los términos efectivos compartidos por el grupo de búsqueda. No enviar descripciones, CV ni datos personales. Solicitar una clasificación explícita por título: compatible, dudoso o claramente ajeno. Solo se descarta la última categoría; ante un valor desconocido o inválido se conserva. Los títulos son datos no confiables y se presentan como contenido, no instrucciones.
 
 Los perfiles agrupados tienen criterios efectivos de búsqueda equivalentes, por lo que la decisión del lote se puede aplicar una vez a sus miembros. Las solicitudes diferentes se clasifican en lotes separados para evitar mezclar sus preferencias.
 

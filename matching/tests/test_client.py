@@ -3,7 +3,12 @@ from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase, override_settings
 
-from matching.client import OmniRouteError, request_model_analysis, request_model_keywords
+from matching.client import (
+    OmniRouteError,
+    request_model_analysis,
+    request_model_keywords,
+    request_model_title_preselection,
+)
 
 
 class OmniRouteClientTests(SimpleTestCase):
@@ -102,3 +107,32 @@ class OmniRouteClientTests(SimpleTestCase):
         self.assertEqual(payload["messages"][0]["content"], "Propón términos de cargo")
         self.assertIn('"search_phrases": ["Analista de procesos en Bogotá"]', payload["messages"][1]["content"])
         self.assertIn('"keywords": ["string"]', payload["messages"][1]["content"])
+
+    @override_settings(
+        OMNIROUTE_BASE_URL="http://omniroute.internal/v1",
+        OMNIROUTE_API_KEY="",
+        OMNIROUTE_MODEL="private-model",
+        OMNIROUTE_TIMEOUT_SECONDS=9,
+    )
+    @patch("matching.client.requests.post")
+    def test_title_preselection_sends_only_titles_and_shared_search_terms(self, post):
+        response = Mock()
+        response.json.return_value = {
+            "choices": [{"message": {"content": '{"decisions": [{"id": "0", "keep": false}]}'}}],
+            "usage": {"prompt_tokens": 31},
+        }
+        post.return_value = response
+
+        result = request_model_title_preselection(
+            search_terms=["Analista de procesos"],
+            vacancies=[{"id": "0", "title": "Auxiliar de cocina"}],
+        )
+
+        self.assertEqual(result.content, {"decisions": [{"id": "0", "keep": False}]})
+        self.assertEqual(result.input_tokens, 31)
+        payload = post.call_args.kwargs["json"]
+        body = payload["messages"][1]["content"]
+        self.assertIn('"search_terms": ["Analista de procesos"]', body)
+        self.assertIn('"title": "Auxiliar de cocina"', body)
+        self.assertNotIn("cv", body.casefold())
+        self.assertNotIn("description", body.casefold())

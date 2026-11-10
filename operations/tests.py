@@ -95,8 +95,22 @@ class OperationalDashboardTests(TestCase):
             source="elempleo_co",
             status=OperationalRun.Status.SUCCEEDED,
             item_count=3,
+            new_count=1,
+            known_count=2,
+            known_updated_count=1,
+            known_unchanged_count=1,
             started_at=now - timedelta(hours=1),
             finished_at=now - timedelta(hours=1) + timedelta(seconds=1),
+            duration_ms=1000,
+        )
+        OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="source_query",
+            source="elempleo_co",
+            status=OperationalRun.Status.SUCCEEDED,
+            item_count=2,
+            started_at=now - timedelta(hours=2),
+            finished_at=now - timedelta(hours=2) + timedelta(seconds=1),
             duration_ms=1000,
         )
         OperationalRun.objects.create(
@@ -173,12 +187,18 @@ class OperationalDashboardTests(TestCase):
         self.assertEqual(response.context["recovery"]["succeeded"], 1)
         self.assertEqual(response.context["recovery"]["failed"], 1)
         self.assertEqual(response.context["recovery"]["items"], 3)
-        self.assertEqual(response.context["ingestion"]["items"], 3)
+        self.assertEqual(response.context["ingestion"]["items"], 5)
         self.assertEqual(response.context["pending_count"], 1)
         self.assertEqual(response.context["oldest_pending"], pending.created_at)
         self.assertEqual(response.context["superseded_analyses"], 1)
         self.assertEqual(response.context["coverage_start"], first_run.started_at)
         self.assertEqual(response.context["source_rows"][0]["status"], source_status)
+        self.assertEqual(response.context["source_rows"][0]["metrics"]["classified_queries"], 1)
+        self.assertEqual(response.context["source_rows"][0]["metrics"]["new_items"], 1)
+        self.assertEqual(response.context["source_rows"][0]["metrics"]["known_items"], 2)
+        self.assertContains(response, "Nuevas / conocidas")
+        self.assertContains(response, "Actualizadas")
+        self.assertContains(response, "No disponible")
         self.assertContains(response, "Análisis pendientes")
         self.assertContains(response, "Recuperación de análisis")
         self.assertContains(response, "El análisis agotó sus recuperaciones automáticas.")

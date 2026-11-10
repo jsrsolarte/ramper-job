@@ -9,7 +9,12 @@ from jobs.connectors.base import JobListing, SourceUnavailable
 from jobs.models import JobSourceStatus, Vacancy
 from jobs.tasks import refresh_profile_sources, refresh_shared_sources, refresh_sources
 from matching.client import OmniRouteError
-from matching.models import PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, ProfileSearchTerms
+from matching.models import (
+    PROMPT_VERSION,
+    RUBRIC_VERSION,
+    MatchingConfig,
+    ProfileSearchTerms,
+)
 from matching.tasks import schedule_vacancy_analysis
 from operations.models import AdminCommandRun, OperationalRun, RefreshLease
 from operations.services import acquire_refresh_lease, start_admin_command
@@ -61,6 +66,105 @@ class RefreshTasksTests(TestCase):
             keywords=["procesos", "analista de procesos"],
         )
 
+    def _staged_connector(self):
+        class StagedConnector:
+            source = "test-source"
+            status_message = ""
+
+            def __init__(self):
+                self.detail_inputs = []
+                self.cards = [
+                    listing("Auxiliar de cocina", location="Medellín"),
+                    listing("Analista de procesos", location="Medellín"),
+                ]
+
+            def fetch_titles(self, keywords, locations=None, *, remote_ok=False):
+                self.search = (keywords, locations, remote_ok)
+                return self.cards
+
+            def fetch_details(self, selected):
+                self.detail_inputs = list(selected)
+                return list(selected)
+
+            def fetch(self, *args, **kwargs):
+                raise AssertionError("El conector escalonado no debe usar fetch completo")
+
+        return StagedConnector()
+
+    @patch("matching.services.request_model_title_preselection")
+    @patch("matching.tasks.schedule_vacancy_analysis.delay")
+    @patch("jobs.tasks.configured_connectors")
+    def test_profile_refresh_filters_titles_before_detail_fetch(self, configured, schedule_analysis, preselect):
+        connector = self._staged_connector()
+        configured.return_value = [connector]
+        preselect.return_value = Mock(
+            content={"decisions": [{"id": "0", "keep": False}, {"id": "1", "keep": True}]},
+            input_tokens=18,
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            refresh_profile_sources.run(self.profile.pk)
+
+        self.assertEqual([item.title for item in connector.detail_inputs], ["Analista de procesos"])
+        self.assertEqual(Vacancy.objects.count(), 1)
+        schedule_analysis.assert_called_once()
+        preselect.assert_called_once_with(
+            search_terms=self.term_set.keywords,
+            vacancies=[
+                {"id": "0", "title": "Auxiliar de cocina"},
+                {"id": "1", "title": "Analista de procesos"},
+            ],
+        )
+
+    @patch("matching.services.request_model_title_preselection")
+    @patch("matching.tasks.schedule_vacancy_analysis.delay")
+    @patch("jobs.tasks.configured_connectors")
+    def test_shared_refresh_preselects_once_and_fans_out_to_equivalent_profiles(
+        self, configured, schedule_analysis, preselect,
+    ):
+        other_user = get_user_model().objects.create_user("member2")
+        other_profile = Profile.objects.create(
+            owner=other_user,
+            search_phrases=["Analista de procesos"],
+            locations=["Medellín"],
+            cv_file="profiles/2/cv/v1.pdf",
+            revision_number=1,
+        )
+        other_revision = ProfileRevision.objects.create(
+            profile=other_profile,
+            version=1,
+            search_phrases=other_profile.search_phrases,
+            locations=other_profile.locations,
+            cv_file_path=other_profile.cv_file.name,
+        )
+        ProfileSearchTerms.objects.create(
+            profile_revision=other_revision,
+            matching_config=self.config,
+            keywords=self.term_set.keywords,
+        )
+        connector = self._staged_connector()
+        configured.return_value = [connector]
+        preselect.return_value = Mock(
+            content={"decisions": [{"id": "0", "keep": False}, {"id": "1", "keep": True}]},
+            input_tokens=18,
+        )
+        leases = {
+            str(profile.pk): acquire_refresh_lease(f"profile-refresh:{profile.pk}")
+            for profile in (self.profile, other_profile)
+        }
+
+        with self.captureOnCommitCallbacks(execute=True):
+            refresh_shared_sources.run(leases)
+
+        self.assertEqual(connector.search[0], self.term_set.keywords)
+        self.assertEqual([item.title for item in connector.detail_inputs], ["Analista de procesos"])
+        self.assertEqual(Vacancy.objects.count(), 1)
+        preselect.assert_called_once()
+        schedule_analysis.assert_called_once()
+        self.assertCountEqual(
+            schedule_analysis.call_args.kwargs["profile_ids"], [self.profile.pk, other_profile.pk],
+        )
+
     @patch("matching.tasks.schedule_vacancy_analysis.delay")
     @patch("jobs.tasks.configured_connectors")
     def test_refresh_saves_new_vacancy_updates_duplicate_and_passes_terms(self, configured, schedule_analysis):
@@ -91,6 +195,14 @@ class RefreshTasksTests(TestCase):
                 operation="source_query", status=OperationalRun.Status.SUCCEEDED
             ).count(),
             2,
+        )
+        query_runs = list(OperationalRun.objects.filter(
+            operation="source_query", status=OperationalRun.Status.SUCCEEDED,
+        ).order_by("pk"))
+        self.assertEqual(
+            [(run.item_count, run.new_count, run.known_count,
+              run.known_updated_count, run.known_unchanged_count) for run in query_runs],
+            [(1, 1, 0, 0, 0), (1, 0, 1, 1, 0)],
         )
 
     @patch("matching.tasks.schedule_vacancy_analysis.delay")
@@ -166,6 +278,8 @@ class RefreshTasksTests(TestCase):
         self.assertEqual(run.status, OperationalRun.Status.FAILED)
         self.assertEqual(run.error_category, "source_unavailable")
         self.assertNotIn("Consulta no permitida", run.error_summary)
+        self.assertIsNone(run.new_count)
+        self.assertIsNone(run.known_count)
 
     @patch("jobs.tasks.refresh_shared_sources.delay")
     def test_scheduled_refresh_dispatches_active_profiles_as_one_batch(self, refresh_shared):
@@ -339,6 +453,13 @@ class RefreshTasksTests(TestCase):
         self.assertCountEqual(kwargs["profile_ids"], [self.profile.pk, other_profile.pk])
         self.assertEqual(Vacancy.objects.filter(source="test-source").count(), 1)
         self.assertEqual(JobSourceStatus.objects.get().last_vacancy_count, 1)
+        query_runs = list(OperationalRun.objects.filter(
+            operation="source_query", status=OperationalRun.Status.SUCCEEDED,
+        ))
+        self.assertEqual(len(query_runs), 2)
+        self.assertEqual(sum(run.item_count for run in query_runs), 2)
+        self.assertEqual(sum(run.new_count for run in query_runs), 1)
+        self.assertEqual(sum(run.known_count for run in query_runs), 1)
 
     @patch("matching.tasks.analyze_vacancy_for_profile.delay")
     @patch("matching.tasks.schedule_vacancy_analysis.delay")

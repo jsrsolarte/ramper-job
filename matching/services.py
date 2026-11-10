@@ -1,11 +1,13 @@
 from copy import deepcopy
+from dataclasses import dataclass
+import logging
 
 from django.db import transaction
 
 from profiles.extract import extract_revision_text
 from profiles.locations import expand_locations
 
-from .client import request_model_keywords
+from .client import request_model_keywords, request_model_title_preselection
 from .models import (
     CRITICAL_REQUIREMENT_DEDUCTION,
     DEFAULT_SEARCH_PROMPT,
@@ -17,6 +19,15 @@ from .models import (
     default_matching_parameters,
 )
 from .schemas import validate_search_keywords
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class TitlePreselectionResult:
+    listings: list
+    discarded_count: int = 0
+    input_tokens: int | None = None
 
 CONCISE_ANALYSIS_INSTRUCTION = (
     "En evidence, reasons y gaps incluye solo la evidencia o razón principal que sustenta cada resultado. "
@@ -148,3 +159,58 @@ def get_profile_search_terms(profile_revision, config=None):
         defaults={"keywords": keywords},
     )
     return search_terms
+
+
+def preselect_listing_titles(listings, search_terms):
+    """Discard only titles with one explicit, valid, clear-incompatibility decision."""
+    listings = list(listings)
+    if not listings:
+        return TitlePreselectionResult(listings=[])
+
+    kept = []
+    total_tokens = 0
+    tokens_known = True
+    for offset in range(0, len(listings), 50):
+        batch = listings[offset:offset + 50]
+        submitted = [
+            {"id": str(offset + index), "title": str(listing.title or "")[:240]}
+            for index, listing in enumerate(batch)
+        ]
+        try:
+            response = request_model_title_preselection(
+                search_terms=[str(term)[:160] for term in search_terms[:30]],
+                vacancies=submitted,
+            )
+        except Exception as exc:
+            logger.info("vacancy_title_preselection_fallback exception_type=%s", type(exc).__name__)
+            kept.extend(batch)
+            tokens_known = False
+            continue
+
+        content = getattr(response, "content", response)
+        decisions = content.get("decisions") if isinstance(content, dict) else None
+        response_tokens = getattr(response, "input_tokens", None)
+        if response_tokens is None:
+            tokens_known = False
+        else:
+            total_tokens += response_tokens
+        if not isinstance(decisions, list):
+            kept.extend(batch)
+            continue
+
+        decisions_by_id = {}
+        for decision in decisions:
+            if isinstance(decision, dict) and isinstance(decision.get("id"), str):
+                decisions_by_id.setdefault(decision["id"], []).append(decision.get("keep"))
+
+        for index, listing in enumerate(batch):
+            decision_values = decisions_by_id.get(str(offset + index), [])
+            # Missing, duplicate, or malformed decisions fail open for that title.
+            if len(decision_values) == 1 and decision_values[0] is False:
+                continue
+            kept.append(listing)
+    return TitlePreselectionResult(
+        listings=kept,
+        discarded_count=len(listings) - len(kept),
+        input_tokens=total_tokens if tokens_known else None,
+    )

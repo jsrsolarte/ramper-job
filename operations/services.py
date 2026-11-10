@@ -38,13 +38,27 @@ def begin_run(*, kind, operation, source="", task_id=""):
     )
 
 
-def finish_run(run, *, status, item_count=0, error_category=""):
+def finish_run(
+    run,
+    *,
+    status,
+    item_count=0,
+    error_category="",
+    new_count=None,
+    known_count=None,
+    known_updated_count=None,
+    known_unchanged_count=None,
+):
     finished_at = timezone.now()
     run.status = status
     run.item_count = max(0, int(item_count or 0))
     run.finished_at = finished_at
     run.duration_ms = max(0, int((finished_at - run.started_at).total_seconds() * 1000))
     run.error_category = error_category[:80]
+    run.new_count = new_count
+    run.known_count = known_count
+    run.known_updated_count = known_updated_count
+    run.known_unchanged_count = known_unchanged_count
     if error_category.startswith("omniroute.http_"):
         status_code = error_category.rsplit("_", 1)[-1]
         summary = f"OmniRoute respondió HTTP {status_code}." if status_code.isdigit() else "OmniRoute rechazó la solicitud."
@@ -52,7 +66,8 @@ def finish_run(run, *, status, item_count=0, error_category=""):
         summary = SAFE_ERROR_SUMMARIES.get(error_category, "") if error_category else ""
     run.error_summary = summary
     run.save(update_fields=(
-        "status", "item_count", "finished_at", "duration_ms", "error_category", "error_summary",
+        "status", "item_count", "new_count", "known_count", "known_updated_count",
+        "known_unchanged_count", "finished_at", "duration_ms", "error_category", "error_summary",
     ))
     log = logger.warning if status in {OperationalRun.Status.FAILED, OperationalRun.Status.RETRYING} else logger.info
     log(

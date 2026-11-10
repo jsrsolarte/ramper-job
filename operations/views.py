@@ -536,7 +536,8 @@ def dashboard(request):
         kind=OperationalRun.Kind.INGESTION,
         operation="source_query",
     ).only(
-        "started_at", "source", "status", "item_count", "duration_ms",
+        "started_at", "source", "status", "item_count", "new_count", "known_count",
+        "known_updated_count", "known_unchanged_count", "duration_ms",
         "error_category", "error_summary",
     ).order_by("-started_at", "-pk")
     source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
@@ -563,8 +564,16 @@ def dashboard(request):
     for source in source_names:
         source_runs = runs.filter(kind=OperationalRun.Kind.INGESTION, source=source)
         summary = summarize(source_runs)
+        breakdown = source_runs.aggregate(
+            new_items=Sum("new_count"),
+            known_items=Sum("known_count"),
+            known_updated_items=Sum("known_updated_count"),
+            known_unchanged_items=Sum("known_unchanged_count"),
+        )
         summary.update({
             "source": source,
+            "classified_queries": source_runs.filter(new_count__isnull=False).count(),
+            **breakdown,
             "last_success": source_runs.filter(status=OperationalRun.Status.SUCCEEDED).order_by(
                 "-started_at"
             ).values_list("started_at", flat=True).first(),
@@ -580,6 +589,7 @@ def dashboard(request):
             "status": source,
             "metrics": source_summaries.get(source.source, {
                 "total": 0, "failed": 0, "average_duration": 0, "last_error": "",
+                "classified_queries": 0,
             }),
         })
 

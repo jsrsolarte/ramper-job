@@ -8,4 +8,4 @@
 ## 2. Presentación del historial
 
 - [x] 2.1 Añadir al tablero una tabla cronológica con fecha, fuente, estado, vacantes encontradas, duración y error seguro; verificar que la paginación conserva el periodo y que el estado vacío explica cuando no hubo consultas.
-- [ ] 2.2 Validar el flujo en la consola administrativa con consultas reales registradas y comprobar que se distinguen por fecha y fuente sin confundirlas con los conteos de disponibilidad o seguimiento.
+- [x] 2.2 Validar el flujo en la consola administrativa con consultas reales registradas y comprobar que se distinguen por fecha y fuente sin confundirlas con los conteos de disponibilidad o seguimiento.

@@ -132,7 +132,10 @@ class OmniRouteClientTests(SimpleTestCase):
         self.assertEqual(result.input_tokens, 31)
         payload = post.call_args.kwargs["json"]
         body = payload["messages"][1]["content"]
+        prompt = payload["messages"][0]["content"]
         self.assertIn('"search_terms": ["Analista de procesos"]', body)
         self.assertIn('"title": "Auxiliar de cocina"', body)
+        self.assertIn("Conserva cualquier título compatible, ambiguo o insuficiente", prompt)
+        self.assertIn("keep=false solo cuando sea claramente ajeno", prompt)
         self.assertNotIn("cv", body.casefold())
         self.assertNotIn("description", body.casefold())

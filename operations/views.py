@@ -8,6 +8,7 @@ from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
+from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
 from django.db.models import Avg, Count, Q, Sum
 from django.http import JsonResponse
@@ -489,6 +490,14 @@ def dashboard(request):
     now = timezone.now()
     since = now - duration
     runs = OperationalRun.objects.filter(started_at__gte=since, started_at__lte=now)
+    source_query_runs = runs.filter(
+        kind=OperationalRun.Kind.INGESTION,
+        operation="source_query",
+    ).only(
+        "started_at", "source", "status", "item_count", "duration_ms",
+        "error_category", "error_summary",
+    ).order_by("-started_at", "-pk")
+    source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
 
     def summarize(queryset):
         result = queryset.aggregate(
@@ -559,6 +568,7 @@ def dashboard(request):
         "since": since,
         "now": now,
         "coverage_start": coverage_start,
+        "source_query_page": source_query_page,
         "ingestion": summarize(runs.filter(kind=OperationalRun.Kind.INGESTION)),
         "analysis": summarize(runs.filter(kind=OperationalRun.Kind.ANALYSIS)),
         "ai_call_stages": ai_call_stages,

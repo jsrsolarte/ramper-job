@@ -48,6 +48,27 @@ patches:
           metadata:
             annotations:
               ops.ramper.lat/config-revision: prod-v1
+  - target:
+      kind: Deployment
+      name: ramper-job-web
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/imagePullSecrets/0/name
+        value: mcp-gateway-ghcr-prod
+  - target:
+      kind: Deployment
+      name: ramper-job-worker
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/imagePullSecrets/0/name
+        value: mcp-gateway-ghcr-prod
+  - target:
+      kind: Deployment
+      name: ramper-job-beat
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/imagePullSecrets/0/name
+        value: mcp-gateway-ghcr-prod
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job

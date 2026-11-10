@@ -26,7 +26,7 @@ Añadir la fuente de aplicación desde `main` y la Kustomization `./deploy/overl
 
 ### Secrets y cuenta inicial
 
-Crear Secrets propios para Django, PostgreSQL y OmniRoute, además de GHCR read-only cuando no haya un Secret de registry reutilizable. Usar el provisionador interactivo con entrada oculta y temporales en `/dev/shm`. Crear el administrador después de migraciones.
+Crear Secrets propios para Django, PostgreSQL y OmniRoute. Los pods referencian el Secret Docker config existente `mcp-gateway-ghcr-prod`; su acceso a la imagen se validó con un pod temporal sin leer ni copiar sus datos. El provisionador solicita OmniRoute sin eco y usa temporales en `/dev/shm`. Crear el administrador después de migraciones.
 
 ### Datos sin recuperación
 

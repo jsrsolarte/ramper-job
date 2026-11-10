@@ -28,6 +28,31 @@ from operations.parameters import processing_is_paused
 logger = logging.getLogger(__name__)
 
 
+def _fetch_source_listings(connector, keywords, locations, *, remote_ok):
+    """Run title preselection when a connector supports separate search/detail phases."""
+    if not callable(getattr(type(connector), "fetch_titles", None)) or not callable(
+        getattr(type(connector), "fetch_details", None)
+    ):
+        return connector.fetch(keywords, locations=locations, remote_ok=remote_ok)
+
+    fetch_titles = connector.fetch_titles
+    fetch_details = connector.fetch_details
+    from matching.services import preselect_listing_titles
+
+    title_listings = fetch_titles(keywords, locations=locations, remote_ok=remote_ok)
+    result = preselect_listing_titles(title_listings, keywords)
+    detailed_listings = fetch_details(result.listings)
+    logger.info(
+        "vacancy_title_preselection source=%s titles=%s discarded=%s details_requested=%s input_tokens=%s",
+        connector.source,
+        len(title_listings),
+        result.discarded_count,
+        len(result.listings),
+        result.input_tokens if result.input_tokens is not None else "unknown",
+    )
+    return detailed_listings
+
+
 def _refresh_profile_sources(profile):
     from matching.services import get_active_matching_config, get_profile_search_terms
     from matching.tasks import schedule_vacancy_analysis
@@ -48,8 +73,11 @@ def _refresh_profile_sources(profile):
         )
         try:
             locations = expand_locations(revision.locations)
-            listings = connector.fetch(search_terms.keywords, locations=locations, remote_ok=revision.remote_ok)
-            vacancies = save_listings(listings)
+            listings = _fetch_source_listings(
+                connector, search_terms.keywords, locations, remote_ok=revision.remote_ok,
+            )
+            saved = save_listings(listings)
+            vacancies = saved.vacancies
             from matching.models import ProfileVacancyDiscovery
             ProfileVacancyDiscovery.objects.bulk_create(
                 [
@@ -87,11 +115,19 @@ def _refresh_profile_sources(profile):
                 "status_message": getattr(connector, "status_message", "")[:300],
                 "last_checked_at": checked_at,
                 "last_success_at": checked_at,
-                "last_vacancy_count": len(listings),
+                "last_vacancy_count": len(vacancies),
             },
         )
-        finish_run(run, status=OperationalRun.Status.SUCCEEDED, item_count=len(listings))
-        results.append({"source": connector.source, "available": True, "count": len(listings)})
+        finish_run(
+            run,
+            status=OperationalRun.Status.SUCCEEDED,
+            item_count=len(vacancies),
+            new_count=saved.new_count,
+            known_count=saved.known_count,
+            known_updated_count=saved.known_updated_count,
+            known_unchanged_count=saved.known_unchanged_count,
+        )
+        results.append({"source": connector.source, "available": True, "count": len(vacancies)})
     return results
 
 
@@ -309,12 +345,14 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                     source=connector.source,
                 )
                 try:
-                    listings = connector.fetch(
+                    listings = _fetch_source_listings(
+                        connector,
                         request["keywords"],
-                        locations=request["locations"],
+                        request["locations"],
                         remote_ok=request["remote_ok"],
                     )
-                    vacancies = save_listings(listings)
+                    saved = save_listings(listings)
+                    vacancies = saved.vacancies
                 except SourceUnavailable as exc:
                     status_message = str(exc)[:300]
                     JobSourceStatus.objects.update_or_create(
@@ -349,10 +387,18 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                         "status_message": getattr(connector, "status_message", "")[:300],
                         "last_checked_at": checked_at,
                         "last_success_at": checked_at,
-                        "last_vacancy_count": len(listings),
+                        "last_vacancy_count": len(vacancies),
                     },
                 )
-                finish_run(run, status=OperationalRun.Status.SUCCEEDED, item_count=len(listings))
+                finish_run(
+                    run,
+                    status=OperationalRun.Status.SUCCEEDED,
+                    item_count=len(vacancies),
+                    new_count=saved.new_count,
+                    known_count=saved.known_count,
+                    known_updated_count=saved.known_updated_count,
+                    known_unchanged_count=saved.known_unchanged_count,
+                )
 
                 post_valid_members = []
                 current_config_id = MatchingConfig.objects.filter(is_active=True).order_by(
@@ -377,7 +423,7 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                     continue
                 query_reports.append((
                     [member[0]["profile_id"] for member in post_valid_members],
-                    {"source": connector.source, "available": True, "count": len(listings)},
+                    {"source": connector.source, "available": True, "count": len(vacancies)},
                 ))
 
                 for vacancy in vacancies:

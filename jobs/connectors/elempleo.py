@@ -120,7 +120,10 @@ class ElempleoConnector:
         url = f"{self.listing_url}{city_path}/trabajo-{slug}"
         return f"{url}?{urlencode({'PublishDate': 'hoy'})}" if recent else url
 
-    def fetch(self, keywords: list[str], locations: list[str] | None = None, *, remote_ok=False) -> list[JobListing]:
+    def fetch_titles(
+        self, keywords: list[str], locations: list[str] | None = None, *, remote_ok=False,
+    ) -> list[JobListing]:
+        """Fetch and deduplicate search-card data without requesting detail pages."""
         unique_keywords = list(dict.fromkeys(" ".join(term.split()) for term in keywords if term.strip()))
         if not unique_keywords:
             self.status_message = "El perfil no tiene palabras clave para consultar."
@@ -165,7 +168,12 @@ class ElempleoConnector:
         if successful_queries == 0:
             detail = query_errors[0] if query_errors else "No fue posible consultar las búsquedas públicas."
             raise SourceUnavailable(detail)
-        listings = list(listings_by_identity.values())
+        self.status_message = " ".join(query_errors)[:300]
+        return list(listings_by_identity.values())
+
+    def fetch_details(self, listings: list[JobListing]) -> list[JobListing]:
+        """Enrich only selected search cards with their public detail pages."""
+        listings = list(listings)
         detail_errors = []
         for index, listing in enumerate(listings):
             time.sleep(self.request_delay_seconds)
@@ -191,8 +199,12 @@ class ElempleoConnector:
                 continue
             listings[index] = self._merge_listing_details(listing, enriched)
 
-        self.status_message = " ".join([*query_errors, *detail_errors])[:300]
+        self.status_message = " ".join(filter(None, (self.status_message, *detail_errors)))[:300]
         return listings
+
+    def fetch(self, keywords: list[str], locations: list[str] | None = None, *, remote_ok=False) -> list[JobListing]:
+        """Keep the original all-details behavior for callers outside the staged search flow."""
+        return self.fetch_details(self.fetch_titles(keywords, locations=locations, remote_ok=remote_ok))
 
     def parse_detail(self, html: str, base_url: str | None = None) -> dict:
         """Extract the public fields shown on a single Elempleo vacancy page."""

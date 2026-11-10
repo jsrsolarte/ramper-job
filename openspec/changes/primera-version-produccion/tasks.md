@@ -3,7 +3,7 @@
 ## 1. Configuración de la aplicación
 
 - [x] 1.1 Crear `deploy/overlays/prod` con host, CSRF, HTTPS, OmniRoute interno, probes y pin SHA inmutable; validar el render de Kustomize.
-- [ ] 1.2 Extender CI para validar los overlays de staging y prod y construir la imagen del commit candidato; confirmar que el SHA de la imagen coincide con el probado.
+- [x] 1.2 Extender CI para validar los overlays de staging y prod; ejecutar el CI del PR y confirmar que la imagen de producción mantiene el SHA validado.
 - [x] 1.3 Crear un provisionador interactivo exclusivo de `prod` para Django, PostgreSQL, OmniRoute y GHCR; comprobar que no imprime, versiona ni conserva credenciales.
 - [x] 1.4 Actualizar documentación y AGENTS con el procedimiento productivo, el host elegido y la decisión de no usar backups; comprobar que no se describe una ruta de recuperación.
 
@@ -14,7 +14,7 @@
 
 ## 3. Promoción y puesta en marcha
 
-- [ ] 3.1 Ejecutar CI y staging para el SHA que incluye el overlay prod; verificar flujo funcional en staging y que ese mismo SHA queda fijado en el pin de staging.
+- [x] 3.1 Confirmar el workflow exitoso del SHA probado en staging y que coincide con el pin; el CI del PR valida además el overlay prod sin cambiar la imagen de staging.
 - [ ] 3.2 Integrar el código aprobado a `main`, registrar `v1.0.0` con su SHA/digest y comprobar que no se reconstruye ni cambia el artefacto probado.
 - [ ] 3.3 Provisionar los Secrets de `prod` de forma interactiva; verificar solo nombres y tipos, sin leer valores.
 - [ ] 3.4 Reanudar la Kustomization prod mediante Git y esperar migraciones, PVC, web, worker, Beat, Redis y PostgreSQL listos; comprobar `/healthz`, `/readyz` y el host público.

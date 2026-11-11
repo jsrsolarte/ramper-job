@@ -8,7 +8,7 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
-from .connectors.base import JobListing, SourceUnavailable
+from .connectors.base import JobListing, SourcePartiallyUnavailable, SourceUnavailable
 from .models import JobSourceStatus, ManualVacancySubmission
 from .registry import configured_connectors
 from .services import save_listings
@@ -42,10 +42,45 @@ class SourceFetchSummary:
     listing_fetch_duration_ms: int | None = None
     title_preselection_duration_ms: int | None = None
     detail_fetch_duration_ms: int | None = None
+    source_available: bool = True
 
 
 def _elapsed_ms(started):
     return max(0, int((perf_counter() - started) * 1000))
+
+
+def _record_source_fetch_outcome(connector, fetched, saved, run, checked_at):
+    """Persist source availability and ingestion metrics for complete or partial fetches."""
+    JobSourceStatus.objects.update_or_create(
+        source=connector.source,
+        defaults={
+            "available": fetched.source_available,
+            "status_message": getattr(connector, "status_message", "")[:300],
+            "last_checked_at": checked_at,
+            "last_success_at": checked_at,
+            "last_vacancy_count": len(saved.vacancies),
+        },
+    )
+    finish_run(
+        run,
+        status=OperationalRun.Status.SUCCEEDED if fetched.source_available else OperationalRun.Status.PARTIAL,
+        item_count=len(saved.vacancies),
+        new_count=saved.new_count,
+        known_count=saved.known_count,
+        known_updated_count=saved.known_updated_count,
+        known_unchanged_count=saved.known_unchanged_count,
+        listing_count=fetched.listing_count,
+        title_kept_count=fetched.title_kept_count,
+        title_discarded_count=fetched.title_discarded_count,
+        details_requested_count=fetched.details_requested_count,
+        details_received_count=fetched.details_received_count,
+        title_input_tokens=fetched.title_input_tokens,
+        listing_fetch_duration_ms=fetched.listing_fetch_duration_ms,
+        title_preselection_duration_ms=fetched.title_preselection_duration_ms,
+        detail_fetch_duration_ms=fetched.detail_fetch_duration_ms,
+        error_category="" if fetched.source_available else "source_partially_unavailable",
+        error_summary="" if fetched.source_available else getattr(connector, "status_message", "")[:240],
+    )
 
 
 def _fetch_source_listings(connector, keywords, locations, *, remote_ok):
@@ -66,13 +101,44 @@ def _fetch_source_listings(connector, keywords, locations, *, remote_ok):
     from matching.services import preselect_listing_titles
 
     listing_started = perf_counter()
-    title_listings = fetch_titles(keywords, locations=locations, remote_ok=remote_ok)
+    try:
+        title_listings = fetch_titles(keywords, locations=locations, remote_ok=remote_ok)
+    except SourcePartiallyUnavailable as exc:
+        listing_fetch_duration_ms = _elapsed_ms(listing_started)
+        preselection_started = perf_counter()
+        result = preselect_listing_titles(exc.listings, keywords)
+        title_preselection_duration_ms = _elapsed_ms(preselection_started)
+        logger.info(
+            "vacancy_title_preselection source=%s titles=%s discarded=%s details_requested=0 input_tokens=%s",
+            connector.source,
+            len(exc.listings),
+            result.discarded_count,
+            result.input_tokens if result.input_tokens is not None else "unknown",
+        )
+        return SourceFetchSummary(
+            listings=result.listings,
+            listing_count=len(exc.listings),
+            title_kept_count=len(result.listings),
+            title_discarded_count=result.discarded_count,
+            details_requested_count=0,
+            details_received_count=0,
+            title_input_tokens=result.input_tokens,
+            listing_fetch_duration_ms=listing_fetch_duration_ms,
+            title_preselection_duration_ms=title_preselection_duration_ms,
+            detail_fetch_duration_ms=0,
+            source_available=False,
+        )
     listing_fetch_duration_ms = _elapsed_ms(listing_started)
     preselection_started = perf_counter()
     result = preselect_listing_titles(title_listings, keywords)
     title_preselection_duration_ms = _elapsed_ms(preselection_started)
     detail_started = perf_counter()
-    detailed_listings = fetch_details(result.listings)
+    source_available = True
+    try:
+        detailed_listings = fetch_details(result.listings)
+    except SourcePartiallyUnavailable as exc:
+        detailed_listings = exc.listings
+        source_available = False
     detail_fetch_duration_ms = _elapsed_ms(detail_started)
     logger.info(
         "vacancy_title_preselection source=%s titles=%s discarded=%s details_requested=%s input_tokens=%s",
@@ -93,6 +159,7 @@ def _fetch_source_listings(connector, keywords, locations, *, remote_ok):
         listing_fetch_duration_ms=listing_fetch_duration_ms,
         title_preselection_duration_ms=title_preselection_duration_ms,
         detail_fetch_duration_ms=detail_fetch_duration_ms,
+        source_available=source_available,
     )
 
 
@@ -156,35 +223,8 @@ def _refresh_profile_sources(profile):
             logger.error("source_query_failed source=%s exception_type=%s", connector.source, type(exc).__name__)
             raise
 
-        JobSourceStatus.objects.update_or_create(
-            source=connector.source,
-            defaults={
-                "available": True,
-                "status_message": getattr(connector, "status_message", "")[:300],
-                "last_checked_at": checked_at,
-                "last_success_at": checked_at,
-                "last_vacancy_count": len(vacancies),
-            },
-        )
-        finish_run(
-            run,
-            status=OperationalRun.Status.SUCCEEDED,
-            item_count=len(vacancies),
-            new_count=saved.new_count,
-            known_count=saved.known_count,
-            known_updated_count=saved.known_updated_count,
-            known_unchanged_count=saved.known_unchanged_count,
-            listing_count=fetched.listing_count,
-            title_kept_count=fetched.title_kept_count,
-            title_discarded_count=fetched.title_discarded_count,
-            details_requested_count=fetched.details_requested_count,
-            details_received_count=fetched.details_received_count,
-            title_input_tokens=fetched.title_input_tokens,
-            listing_fetch_duration_ms=fetched.listing_fetch_duration_ms,
-            title_preselection_duration_ms=fetched.title_preselection_duration_ms,
-            detail_fetch_duration_ms=fetched.detail_fetch_duration_ms,
-        )
-        results.append({"source": connector.source, "available": True, "count": len(vacancies)})
+        _record_source_fetch_outcome(connector, fetched, saved, run, checked_at)
+        results.append({"source": connector.source, "available": fetched.source_available, "count": len(vacancies)})
     return results
 
 
@@ -437,34 +477,7 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                     )
                     continue
 
-                JobSourceStatus.objects.update_or_create(
-                    source=connector.source,
-                    defaults={
-                        "available": True,
-                        "status_message": getattr(connector, "status_message", "")[:300],
-                        "last_checked_at": checked_at,
-                        "last_success_at": checked_at,
-                        "last_vacancy_count": len(vacancies),
-                    },
-                )
-                finish_run(
-                    run,
-                    status=OperationalRun.Status.SUCCEEDED,
-                    item_count=len(vacancies),
-                    new_count=saved.new_count,
-                    known_count=saved.known_count,
-                    known_updated_count=saved.known_updated_count,
-                    known_unchanged_count=saved.known_unchanged_count,
-                    listing_count=fetched.listing_count,
-                    title_kept_count=fetched.title_kept_count,
-                    title_discarded_count=fetched.title_discarded_count,
-                    details_requested_count=fetched.details_requested_count,
-                    details_received_count=fetched.details_received_count,
-                    title_input_tokens=fetched.title_input_tokens,
-                    listing_fetch_duration_ms=fetched.listing_fetch_duration_ms,
-                    title_preselection_duration_ms=fetched.title_preselection_duration_ms,
-                    detail_fetch_duration_ms=fetched.detail_fetch_duration_ms,
-                )
+                _record_source_fetch_outcome(connector, fetched, saved, run, checked_at)
 
                 post_valid_members = []
                 current_config_id = MatchingConfig.objects.filter(is_active=True).order_by(
@@ -489,7 +502,7 @@ def refresh_shared_sources(profile_leases, command_run_id=None):
                     continue
                 query_reports.append((
                     [member[0]["profile_id"] for member in post_valid_members],
-                    {"source": connector.source, "available": True, "count": len(vacancies)},
+                        {"source": connector.source, "available": fetched.source_available, "count": len(vacancies)},
                 ))
 
                 for vacancy in vacancies:

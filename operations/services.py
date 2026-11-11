@@ -57,6 +57,7 @@ def finish_run(
     listing_fetch_duration_ms=None,
     title_preselection_duration_ms=None,
     detail_fetch_duration_ms=None,
+    error_summary="",
 ):
     finished_at = timezone.now()
     run.status = status
@@ -77,7 +78,9 @@ def finish_run(
     run.listing_fetch_duration_ms = listing_fetch_duration_ms
     run.title_preselection_duration_ms = title_preselection_duration_ms
     run.detail_fetch_duration_ms = detail_fetch_duration_ms
-    if error_category.startswith("omniroute.http_"):
+    if error_summary:
+        summary = error_summary[:240]
+    elif error_category.startswith("omniroute.http_"):
         status_code = error_category.rsplit("_", 1)[-1]
         summary = f"OmniRoute respondió HTTP {status_code}." if status_code.isdigit() else "OmniRoute rechazó la solicitud."
     else:

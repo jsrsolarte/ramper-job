@@ -35,7 +35,7 @@ El panel SHALL mostrar por fuente el volumen de ejecuciones, resultados, vacante
 
 #### Scenario: Consultar el estado real de una búsqueda por lotes
 - **WHEN** una búsqueda tiene una unidad durable en cola, en ejecución o terminada
-- **THEN** el historial muestra el estado de esa unidad y no presenta como ejecutándose una unidad que sigue en cola; las ejecuciones históricas sin unidad durable conservan su estado registrado
+- **THEN** el historial muestra el estado de esa unidad y no presenta como ejecutándose una unidad que sigue en cola; las ejecuciones históricas terminales sin unidad durable conservan su estado registrado
 
 ### Requirement: Cerrar ejecuciones interrumpidas
 La reconciliación periódica SHALL marcar como fallidas o parciales las ejecuciones de ingesta y sus comandos administrativos que permanezcan sin trabajo activo, en cola o con progreso confirmado por más de 20 minutos. SHALL usar una categoría segura de interrupción, conservar el historial y liberar los leases asociados.
@@ -47,3 +47,8 @@ La reconciliación periódica SHALL marcar como fallidas o parciales las ejecuci
 #### Scenario: Una ejecución continúa avanzando
 - **WHEN** existe trabajo activo o en cola, o una unidad confirmó progreso dentro de los últimos 20 minutos
 - **THEN** la reconciliación conserva la ejecución en curso
+
+
+#### Scenario: Una ejecución antigua no tiene unidad durable
+- **WHEN** una ejecución sin unidad durable permanece registrada como activa durante más de 20 minutos
+- **THEN** el historial la presenta como interrumpida y limita su duración visible a 20 minutos, siguiendo el umbral de reconciliación

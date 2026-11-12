@@ -17,9 +17,9 @@ El panel SHALL mostrar por fuente el volumen de ejecuciones, resultados, vacante
 - **WHEN** una fuente no tiene ejecuciones registradas en el periodo elegido
 - **THEN** el panel indica que no hay datos para ese periodo y presenta desde cuándo existe instrumentación
 
-#### Scenario: Consultar ejecuciones individuales
+#### Scenario: Consultar búsquedas individuales agrupadas por actualización
 - **WHEN** la persona administradora abre el historial para un periodo con consultas de búsqueda registradas
-- **THEN** el panel presenta cada consulta en orden de más reciente a más antigua, con fecha, fuente, estado, cantidad de vacantes encontradas, duración y resumen seguro del error cuando exista
+- **THEN** el panel agrupa las búsquedas por lote de actualización y permite expandir cada grupo para consultar fecha, fuente, estado, cantidad de vacantes encontradas, duración y resumen seguro del error cuando exista
 
 #### Scenario: Consultar más ejecuciones que las visibles en una página
 - **WHEN** las ejecuciones del periodo exceden el tamaño de página

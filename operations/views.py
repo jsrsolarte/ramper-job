@@ -546,11 +546,11 @@ def dashboard(request):
     ).order_by("-started_at", "-pk")
     source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
     query_run_ids = [run.pk for run in source_query_page]
-    work_statuses_by_run = {
-        source_run_id: status
-        for source_run_id, status in RefreshWorkItem.objects.filter(
+    work_items_by_run = {
+        source_run_id: {"status": status, "batch_id": batch_id}
+        for source_run_id, status, batch_id in RefreshWorkItem.objects.filter(
             source_run_id__in=query_run_ids,
-        ).values_list("source_run_id", "status")
+        ).values_list("source_run_id", "status", "batch_id")
     } if query_run_ids else {}
     work_status_labels = dict(RefreshWorkItem.Status.choices)
 
@@ -600,7 +600,8 @@ def dashboard(request):
     stale_run_threshold = timedelta(minutes=20)
     stale_run_cutoff = now - stale_run_threshold
     for run in source_query_page:
-        work_status = work_statuses_by_run.get(run.pk)
+        work_item = work_items_by_run.get(run.pk, {})
+        work_status = work_item.get("status")
         duration_ms = run.duration_ms
         if work_status is not None:
             run.display_status = work_status_labels.get(work_status, run.get_status_display())
@@ -645,6 +646,36 @@ def dashboard(request):
             "input_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("input_tokens"),
             "output_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("output_tokens"),
         }
+
+    source_query_groups_by_key = {}
+    for run in source_query_page:
+        work_item = work_items_by_run.get(run.pk, {})
+        batch_id = work_item.get("batch_id")
+        group_key = ("batch", batch_id) if batch_id else ("run", run.pk)
+        group = source_query_groups_by_key.setdefault(group_key, {
+            "started_at": run.started_at,
+            "runs": [],
+            "sources": set(),
+        })
+        group["started_at"] = min(group["started_at"], run.started_at)
+        group["runs"].append(run)
+        if run.source:
+            group["sources"].add(run.source)
+
+    source_query_groups = []
+    for group in source_query_groups_by_key.values():
+        statuses = {run.display_status for run in group["runs"]}
+        if "En curso" in statuses:
+            group["display_status"] = "En curso"
+        elif "En cola" in statuses:
+            group["display_status"] = "En cola"
+        elif len(statuses) > 1:
+            group["display_status"] = "Parcial"
+        else:
+            group["display_status"] = next(iter(statuses), "—")
+        group["query_count"] = len(group["runs"])
+        group["sources"] = sorted(group["sources"])
+        source_query_groups.append(group)
 
     def summarize(queryset):
         result = queryset.aggregate(
@@ -749,6 +780,7 @@ def dashboard(request):
         "now": now,
         "coverage_start": coverage_start,
         "source_query_page": source_query_page,
+        "source_query_groups": source_query_groups,
         "ingestion": summarize(runs.filter(kind=OperationalRun.Kind.INGESTION)),
         "analysis": summarize(runs.filter(kind=OperationalRun.Kind.ANALYSIS)),
         "ai_call_stages": ai_call_stages,

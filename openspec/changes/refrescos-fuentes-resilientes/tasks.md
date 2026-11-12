@@ -26,7 +26,9 @@
 
 ## 5. Integración en staging
 
-- [ ] 5.1 Desplegar la change únicamente en staging y validar un perfil de alta cardinalidad de extremo a extremo, cobertura de combinaciones, progreso visible, recuperación tras interrupción, deduplicación y cierre de comando; registrar el SHA/digest desplegado y el resultado antes de completar la validación pendiente de `agregar-computrabajo`.
+- [x] 5.1 Desplegar la change únicamente en staging y validar un perfil de alta cardinalidad de extremo a extremo, cobertura de combinaciones, progreso visible, recuperación tras interrupción, deduplicación y cierre de comando; registrar el SHA/digest desplegado y el resultado antes de completar la validación pendiente de `agregar-computrabajo`.
+
+Resultado de staging: el 2026-11-11 la actualización manual de un perfil procesó 32 búsquedas de Computrabajo y El Empleo, terminó en 18,3 minutos con 11 y 40 vacantes respectivamente y cero fallas por fuente. El detalle por consulta mostró vacantes reutilizadas, análisis completados, descartes y cero pendientes. El historial también mostró una ejecución anterior interrumpida reconciliada como fallida, sin unidades activas. Imagen desplegada: `6b51f04ce49637f4274c15f76084266943f86445`.
 
 ## Workflow follow-up
 

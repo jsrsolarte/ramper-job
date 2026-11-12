@@ -15,6 +15,7 @@
 
 - [x] 3.1 Actualizar métricas agregadas de fuente solo al confirmar unidades y mostrar conteos y duración en el dashboard sin términos ni ubicaciones; verificar la agregación por fuente y el renderizado mediante `manage.py check`.
 - [x] 3.2 Agregar el resultado del comando desde las unidades y evitar comandos equivalentes duplicados mientras existan leases; verificar que los reportes agregados respetan consultas, vacantes y fallas confirmadas.
+- [x] 3.3 Mostrar en el historial el estado real de cada unidad durable y conservar el estado registrado para consultas históricas sin unidad asociada.
 
 ## 4. Reconciliación de interrupciones
 

@@ -546,6 +546,13 @@ def dashboard(request):
     ).order_by("-started_at", "-pk")
     source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
     query_run_ids = [run.pk for run in source_query_page]
+    work_statuses_by_run = {
+        source_run_id: status
+        for source_run_id, status in RefreshWorkItem.objects.filter(
+            source_run_id__in=query_run_ids,
+        ).values_list("source_run_id", "status")
+    } if query_run_ids else {}
+    work_status_labels = dict(RefreshWorkItem.Status.choices)
 
     def minutes(milliseconds):
         return round(milliseconds / 60000, 1) if milliseconds is not None else None
@@ -591,8 +598,15 @@ def dashboard(request):
             )
         }
     for run in source_query_page:
+        work_status = work_statuses_by_run.get(run.pk)
+        run.display_status = work_status_labels.get(work_status, run.get_status_display())
         duration_ms = run.duration_ms
-        if duration_ms is None and run.status == OperationalRun.Status.RUNNING:
+        if work_status == RefreshWorkItem.Status.QUEUED:
+            duration_ms = None
+        elif duration_ms is None and (
+            work_status == RefreshWorkItem.Status.RUNNING
+            or (work_status is None and run.status == OperationalRun.Status.RUNNING)
+        ):
             duration_ms = max(0, int((now - run.started_at).total_seconds() * 1000))
         run.duration_minutes = minutes(duration_ms)
         run.listing_fetch_minutes = minutes(run.listing_fetch_duration_ms)

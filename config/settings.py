@@ -119,6 +119,9 @@ CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 CELERY_TIMEZONE = TIME_ZONE
 JOB_REFRESH_MINUTES = int(os.getenv("JOB_REFRESH_MINUTES", "120"))
+REFRESH_LOCATION_BATCH_SIZE = min(6, max(1, int(os.getenv("REFRESH_LOCATION_BATCH_SIZE", "6"))))
+REFRESH_DETAIL_BATCH_SIZE = min(5, max(1, int(os.getenv("REFRESH_DETAIL_BATCH_SIZE", "5"))))
+REFRESH_WORK_LEASE_SECONDS = max(12 * 60, int(os.getenv("REFRESH_WORK_LEASE_SECONDS", "720")))
 from operations.schedules import DatabaseRefreshInterval
 from celery.schedules import crontab
 
@@ -171,6 +174,10 @@ CELERY_BEAT_SCHEDULE = {
     "cleanup-operational-history": {
         "task": "operations.tasks.cleanup_operational_history",
         "schedule": 24 * 60 * 60,
+    },
+    "reconcile-refresh-work": {
+        "task": "operations.tasks.reconcile_refresh_work",
+        "schedule": 5 * 60,
     },
     "deactivate-inactive-applicants": {
         "task": "operations.tasks.deactivate_inactive_applicants",

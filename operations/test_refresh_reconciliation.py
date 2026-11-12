@@ -111,7 +111,10 @@ class RefreshWorkReconciliationTests(TestCase):
         self.assertEqual(source_run.error_category, "execution_interrupted")
         self.assertEqual(profile_run.status, OperationalRun.Status.FAILED)
         self.assertIsNotNone(batch_profile.finished_at)
-        release_lease.assert_called_once_with("profile-refresh:1", batch_profile.lease_token)
+        release_lease.assert_called_once_with(
+            f"profile-refresh:{batch_profile.profile_id}",
+            batch_profile.lease_token,
+        )
 
     @patch("jobs.resumable.process_refresh_work_item.delay")
     def test_recent_heartbeat_and_valid_lease_preserve_active_unit(self, dispatch):

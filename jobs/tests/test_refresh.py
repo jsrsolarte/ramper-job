@@ -68,7 +68,7 @@ class RefreshTasksTests(TestCase):
         batch_profile = RefreshBatchProfile.objects.get(batch=batch, profile=self.profile)
         prepare_refresh_profile.run(batch_profile.pk)
         plan_refresh_batch.run(batch.pk)
-        return batch, batch_profile, RefreshWorkItem.objects.get(batch=batch)
+        return batch, batch_profile, list(RefreshWorkItem.objects.filter(batch=batch).order_by("pk"))
 
     @patch("jobs.tasks.refresh_shared_sources.delay")
     def test_scheduled_refresh_dispatches_active_profiles_as_one_batch(self, refresh_shared):
@@ -119,31 +119,38 @@ class RefreshTasksTests(TestCase):
         self.assertEqual(refresh_sources.run(command.pk), {"scheduled_profiles": 1})
         leases = dispatch.call_args.args[0]
         self.assertEqual(dispatch.call_args.kwargs["command_run_id"], command.pk)
-        batch, batch_profile, work_item = self._advance_batch_to_work_item(leases, command.pk)
+        batch, batch_profile, work_items = self._advance_batch_to_work_item(leases, command.pk)
 
         from jobs.resumable import process_refresh_work_item
 
         with self.captureOnCommitCallbacks(execute=True):
-            process_refresh_work_item.run(work_item.pk)
+            for work_item in work_items:
+                process_refresh_work_item.run(work_item.pk)
 
         command.refresh_from_db()
         batch.refresh_from_db()
         batch_profile.refresh_from_db()
-        work_item.refresh_from_db()
-        source_run = OperationalRun.objects.get(operation="source_query")
+        for work_item in work_items:
+            work_item.refresh_from_db()
+        source_runs = OperationalRun.objects.filter(refresh_work_items__batch=batch, operation="source_query")
         self.assertEqual(command.status, AdminCommandRun.Status.SUCCEEDED)
         self.assertEqual(command.completed_profiles, 1)
-        self.assertEqual(command.source_results["test-source"], {"queries": 1, "vacancies": 1, "failures": 0})
+        self.assertEqual(
+            command.source_results["test-source"],
+            {"queries": len(work_items), "vacancies": 1, "failures": 0},
+        )
         self.assertEqual(batch.status, RefreshBatch.Status.SUCCEEDED)
         self.assertTrue(batch_profile.finished_at)
-        self.assertEqual(work_item.status, RefreshWorkItem.Status.SUCCEEDED)
-        self.assertEqual(source_run.listing_count, 1)
-        self.assertEqual(source_run.title_kept_count, 1)
-        self.assertEqual(source_run.details_requested_count, 1)
-        self.assertEqual(source_run.details_received_count, 1)
+        self.assertTrue(all(item.status == RefreshWorkItem.Status.SUCCEEDED for item in work_items))
+        self.assertEqual(source_runs.count(), len(work_items))
+        for source_run in source_runs:
+            self.assertEqual(source_run.listing_count, 1)
+            self.assertEqual(source_run.title_kept_count, 1)
+            self.assertEqual(source_run.details_requested_count, 1)
+            self.assertEqual(source_run.details_received_count, 1)
         self.assertEqual(Vacancy.objects.count(), 1)
         self.assertTrue(JobSourceStatus.objects.get(source="test-source").available)
-        schedule_analysis.assert_called_once()
+        self.assertEqual(schedule_analysis.call_count, len(work_items))
 
     @patch("jobs.resumable.prepare_refresh_batch.delay")
     def test_profile_refresh_only_schedules_durable_batch(self, prepare_batch):

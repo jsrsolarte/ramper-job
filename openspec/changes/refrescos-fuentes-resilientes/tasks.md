@@ -17,7 +17,7 @@
 - [x] 3.2 Agregar el resultado del comando desde las unidades y evitar comandos equivalentes duplicados mientras existan leases; verificar que los reportes agregados respetan consultas, vacantes y fallas confirmadas.
 - [x] 3.3 Mostrar en el historial el estado real de cada unidad durable y conservar el estado registrado para consultas históricas sin unidad asociada.
 - [x] 3.4 Mostrar como interrumpidas las consultas sin unidad durable que excedan el umbral de reconciliación y limitar su duración visible al mismo umbral.
-- [ ] 3.5 Agrupar el embudo y los resultados de análisis por lote de actualización, con detalle individual expandible.
+- [x] 3.5 Agrupar el embudo y los resultados de análisis por lote de actualización, con detalle individual expandible.
 
 ## 4. Reconciliación de interrupciones
 

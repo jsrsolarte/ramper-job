@@ -597,10 +597,20 @@ def dashboard(request):
                 output_tokens=Sum("output_tokens"),
             )
         }
+    stale_run_threshold = timedelta(minutes=20)
+    stale_run_cutoff = now - stale_run_threshold
     for run in source_query_page:
         work_status = work_statuses_by_run.get(run.pk)
-        run.display_status = work_status_labels.get(work_status, run.get_status_display())
         duration_ms = run.duration_ms
+        if work_status is not None:
+            run.display_status = work_status_labels.get(work_status, run.get_status_display())
+        elif run.status == OperationalRun.Status.RUNNING and run.started_at < stale_run_cutoff:
+            # A legacy run without a durable unit cannot still be active after the
+            # same 20-minute threshold used by operational reconciliation.
+            run.display_status = "Interrumpida"
+            duration_ms = duration_ms or int(stale_run_threshold.total_seconds() * 1000)
+        else:
+            run.display_status = run.get_status_display()
         if work_status == RefreshWorkItem.Status.QUEUED:
             duration_ms = None
         elif duration_ms is None and (

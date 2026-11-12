@@ -1,1 +1,745 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×]µÑ:-jZ.¶›­–)Ş³V–×÷'B†6†Æ– ¦–×÷'BÆövv–æp¦–×÷'B6V7&WG0¦g&öÒFFWF–ÖR–×÷'BF–ÖVFVÇF ¦g&öÒF¦ævòæ6öæb–×÷'B6WGF–æw0¦g&öÒF¦ævòæ6öçG&–"–×÷'BFÖ–à¦g&öÒF¦ævòæ6öçG&–"–×÷'BÖW76vW0¦g&öÒF¦ævòæ6öçG&–"æWF‚–×÷'BvWE÷W6W%öÖöFVÀ¦g&öÒF¦ævòæ6öçG&–"æWF‚çFö¶Vç2–×÷'BFVfVÇE÷Fö¶VåövVæW&F÷ ¦g&öÒF¦ævòæ6÷&Rçv–æF÷"–×÷'Bv–æF÷ ¦g&öÒF¦ævòæF"–×÷'B–çFVw&—G”W'&÷"ÂG&ç67F–öà¦g&öÒF¦ævòæF"æÖöFVÇ2–×÷'BfrÂ6÷VçBÂbÂ÷WFW%&VbÂÂ7V'VW'’Â7VĞ¦g&öÒF¦ævòæ‡GG–×÷'B§6öå&W7öç6P¦g&öÒF¦ævòç6†÷'F7WG2–×÷'BvWEöö&¦V7Eö÷%óCBÂ&VF—&V7BÂ&VæFW ¦g&öÒF¦ævòçW&Ç2–×÷'B&WfW'6P¦g&öÒF¦ævòçWF–Ç2–×÷'BF–ÖW¦öæP¦g&öÒF¦ævòçWF–Ç2æVæ6öF–ær–×÷'Bf÷&6Uö'—FW0¦g&öÒF¦ævòçWF–Ç2æ‡GG–×÷'BW&Ç6fUö&6ScEöVæ6öFP¦g&öÒF¦ævòçf–Ww2æFV6÷&F÷'2æ‡GG–×÷'B&WV—&Uõõ5@ ¦g&öÒ¦ö'2æÖöFVÇ2–×÷'B¦ö%6÷W&6U7FGW2ÂÖçVÅf6æ7•7V&Ö—76–öà¦g&öÒ¦ö'2çF6·2–×÷'B&ö6W75öÖçVÅ÷f6æ7•÷7V&Ö—76–öà¦g&öÒÖF6†–æræÖöFVÇ2–×÷'B”6ÆÄGFV×BÂf6æ7”æÇ—6—0 ¦g&öÒæFV6÷&F÷'2–×÷'BÆFf÷&ÕöFÖ–å÷&WV—&V@¦g&öÒæf÷&×2–×÷'B€¢Æ–6çD7&VF–öäf÷&ÒÀ¢–çf—FF–öä66WFæ6Tf÷&ÒÀ¢–çf—FF–öäVÖ–Äf÷&ÒÀ¢ÖçVÅf6æ7•7V&Ö—76–öäf÷&ÒÀ¢¦g&öÒæÖöFVÇ2–×÷'B€¢Æ–6çD7F—f—G’À¢FÖ–äVF—DWfVçBÀ¢FÖ–ä6öÖÖæE'VâÀ¢÷W&F–öæÅ&ÖWFW$6†ævRÀ¢÷W&F–öæÅ'VâÀ¢&Vg&W6…v÷&´—FVÒÀ¢W6W$–çf—FF–öâÀ¢¦g&öÒç&ÖWFW'2–×÷'B€¢UDõôD•44$EôD•5ô´U’À¢DTdTÅEôUDõôD•44$EôD•2À¢DTdTÅEôdôÄÄõuõUô$4„•dUôD•2À¢dôÄÄõuõUô$4„•dUôD•5ô´U’À¢Ô…õ$UDTåD”ôåôD•2À¢Ô…õ$Te$U4…ôÔ”åUDU2À¢Ô”åõ$UDTåD”ôåôD•2À¢Ô”åõ$Te$U4…ôÔ”åUDU2À¢$Te$U4…ô”åDU%dÅô´U’À¢7W'&VçEöWFõöF—66&EöF—2À¢7W'&VçEöföÆÆ÷u÷Wö&6†—fUöF—2À¢7W'&VçE÷&Vg&W6…ö–çFW'fÅöÖ–çWFW2À¢–æ—F–Å÷&Vg&W6…ö–çFW'fÅöÖ–çWFW2À¢&ö6W76–æuö—5÷W6VBÀ¢&W6WE÷&Vg&W6…ö–çFW'fÂÀ¢6fU÷&ÖWFW"À¢6WE÷&ö6W76–æu÷W6VBÀ¢6fU÷&Vg&W6…ö–çFW'fÂÀ¢¦g&öÒçÆFf÷&Õ÷7FF—7F–72–×÷'B'V–ÆE÷ÆFf÷&Õ÷7FF—7F–70 ¥U$”ôE2Ò²##F‚#¢‚##B†÷&2"ÂF–ÖVFVÇF††÷W'3Ó#B’’Â#vB#¢‚#rL:Ö2"ÂF–ÖVFVÇF†F—3Ór’’Â#3B#¢‚#3L:Ö2"ÂF–ÖVFVÇF†F—3Ó3’—Ğ¤ÄÄõtTEô4ôÔÔäE2Ò²'&Vg&W6…÷6÷W&6W2#¢$7GVÆ—¦"gVVçFW2†÷&'Ğ¦ÆövvW"ÒÆövv–ærævWDÆövvW"…õöæÖUõò  ¤ÆFf÷&ÕöFÖ–å÷&WV—&V@¦FVbFÖ–åö6VçFW"‡&WVW7B“ ¢–b&WVW7BæÖWF†öBÓÒ%õ5B# ¢7F–öâÒ&WVW7Båõ5BævWB‚'&ö6W76–æuö7F–öâ"¢–b7F–öâæ÷B–â²'W6R"Â'&W7VÖR'Ó ¢ÖW76vW2æW'&÷"‡&WVW7BÂ$Æ66œ;6â6öÆ–6—FFæòW2l:Æ–Fâ"¢VÇ6S ¢W6VBÒ7F–öâÓÒ'W6R ¢&Wf–÷W2Ò6WE÷&ö6W76–æu÷W6VB†7F÷#×&WVW7BçW6W"ÂW6VC×W6VB¢–b&Wf–÷W2ÓÒW6VC ¢ÖW76vW2æ–æfò‡&WVW7BÂ$VÂ&ö6W6Ö–VçFò–W7F&VâW6RW7FFòâ"¢VÇ6S ¢ÖW76vW2ç7V66W72€¢&WVW7BÀ¢%6RW<;2Æ,;§7VVF’VÂì:Æ—6—2FRf6çFW2â"–bW6V@¢VÇ6R%6R&VçVL;2Æ,;§7VVF’VÂì:Æ—6—2FRf6çFW2â"À¢¢&WGW&â&VF—&V7B‚&÷W&F–öç3¦FÖ–åö6VçFW""¢&WGW&â&VæFW"‡&WVW7BÂ&÷W&F–öç2öFÖ–åö6VçFW"æ‡FÖÂ"Â°¢&Æ–6çEö6÷VçB#¢vWE÷W6W%öÖöFVÂ‚’æö&¦V7G2æf–ÇFW"†—5÷7WW'W6W#ÔfÇ6RÂ—5÷7FfcÔfÇ6R’æ6÷VçB‚’À¢'&ö6W76–æu÷W6VB#¢&ö6W76–æuö—5÷W6VB‚’À¢Ò  ¤ÆFf÷&ÕöFÖ–å÷&WV—&V@¦FVbÖçVÅ÷f6æ6–W2‡&WVW7B“ ¢–b&WVW7BæÖWF†öBÓÒ%õ5B# ¢–b&ö6W76–æuö—5÷W6VB‚“ ¢ÖW76vW2æW'&÷"‡&WVW7BÂ$VÂ&ö6W6Ö–VçFòW7L:W6Fòâ&Vì;¦FÆòFW6FRVÂ6VçG&òFRFÖ–æ—7G&6œ;6âçFW2FR&Vv—7G&"Væf6çFRâ"¢&WGW&â&VF—&V7B‚&÷W&F–öç3¦ÖçVÅ÷f6æ6–W2"¢f÷&ÒÒÖçVÅf6æ7•7V&Ö—76–öäf÷&Ò‡&WVW7Båõ5B¢–bf÷&Òæ—5÷fÆ–B‚“ ¢7V&Ö—76–öâÒf÷&Òç6fR†6öÖÖ—CÔfÇ6R¢7V&Ö—76–öâç7V&Ö—GFVEö'’Ò&WVW7BçW6W ¢7V&Ö—76–öâç6fR‚¢G'“ ¢&ö6W75öÖçVÅ÷f6æ7•÷7V&Ö—76–öâæFVÆ’‡7V&Ö—76–öâç²¢W†6WBW†6WF–öâ2W†3 ¢7V&Ö—76–öâç7FGW2ÒÖçVÅf6æ7•7V&Ö—76–öâå7FGW2äd”ÄT@¢7V&Ö—76–öâç&W7VÇEöÖW76vRÒ$æògVR÷6–&ÆRöæW"VÂ&Vv—7G&òVâ6öÆâVVFW2föÇfW"–çFVçF&Æòâ ¢7V&Ö—76–öâç6fR‡WFFUöf–VÆG3Ò‚'7FGW2"Â'&W7VÇEöÖW76vR"Â'WFFVEöB"’¢ÆövvW"æW'&÷"€¢&ÖçVÅ÷f6æ7•öF—7F6…öf–ÆVB7V&Ö—76–öåö–CÒW2W†6WF–öå÷G—SÒW2"À¢7V&Ö—76–öâç²À¢G—R†W†2’åõöæÖUõòÀ¢¢ÖW76vW2æW'&÷"‡&WVW7BÂ7V&Ö—76–öâç&W7VÇEöÖW76vR¢VÇ6S ¢ÖW76vW2ç7V66W72‡&WVW7BÂ%f6çFR&V6–&–FâVÂ&ö6W6Ö–VçFò6öçF–çV,:Vâ6VwVæFòÆæòâ"¢&WGW&â&VF—&V7B‚&÷W&F–öç3¦ÖçVÅ÷f6æ6–W2"¢VÇ6S ¢f÷&ÒÒÖçVÅf6æ7•7V&Ö—76–öäf÷&Ò‚¢&WGW&â&VæFW"‡&WVW7BÂ&÷W&F–öç2öÖçVÅ÷f6æ6–W2æ‡FÖÂ"Â°¢&f÷&Ò#¢f÷&ÒÀ¢'&ö6W76–æu÷W6VB#¢&ö6W76–æuö—5÷W6VB‚’À¢'7V&Ö—76–öç2#¢ÖçVÅf6æ7•7V&Ö—76–öâæö&¦V7G2ç6VÆV7E÷&VÆFVB€¢'7V&Ö—GFVEö'’"Â'f6æ7’"À¢•³£#UÒÀ¢Ò  ¤ÆFf÷&ÕöFÖ–å÷&WV—&V@¦FVbÆFf÷&Õ÷7FF—7F–72‡&WVW7B“ ¢W&–öBÒ&WVW7BätUBævWB‚'W&–öB"Â#3B"¢&WGW&â&VæFW"‡&WVW7BÂ&÷W&F–öç2÷ÆFf÷&Õ÷7FF—7F–72æ‡FÖÂ"Â'V–ÆE÷ÆFf÷&Õ÷7FF—7F–72‡W&–öC×W&–öB’  ¤ÆFf÷&ÕöFÖ–å÷&WV—&V@¦FVbW6W'2‡&WVW7B“ ¢W6W"ÒvWE÷W6W%öÖöFVÂ‚¢ÆFW7E÷7FGW5ö7F–öâÒFÖ–äVF—DWfVçBæö&¦V7G2æf–ÇFW"€¢F&vWEö–CÔ÷WFW%&Vb‚'²"’À¢7F–öåõö–ãÒ€¢FÖ–äVF—DWfVçBä7F–öâä44õTåEôDT5D•dDTBÀ¢FÖ–äVF—DWfVçBä7F–öâä44õTåEôUDõôDT5D•dDTBÀ¢FÖ–äVF—DWfVçBä7F–öâä44õTåEõ$T5D•dDTBÀ¢’À¢’æ÷&FW%ö'’‚"Ö7&VFVEöB"’çfÇVW2‚&7F–öâ"•³£Ğ¢66÷VçG2ÒW6W"æö&¦V7G2æf–ÇFW"†—5÷7WW'W6W#ÔfÇ6RÂ—5÷7FfcÔfÇ6R’æææ÷FFR€¢ÆFW7E÷7FGW5ö7F–öãÕ7V'VW'’†ÆFW7E÷7FGW5ö7F–öâ’À¢’æ÷&FW%ö'’‚'W6W&æÖR"¢&WGW&â&VæFW"‡&WVW7BÂ&÷W&F–öç2÷W6W'2æ‡FÖÂ"Â°¢&66÷VçG2#¢66÷VçG2À¢&–çf—FF–öç2#¢W6W$–çf—FF–öâæö&¦V7G2ç6VÆV7E÷&VÆFVB‚&7&VFVEö'’"•³£3ÒÀ¢&æ÷r#¢F–ÖW¦öæRææ÷r‚’À¢&VF—EöWfVçG2#¢FÖ–äVF—DWfVçBæö&¦V7G2ç6VÆV7E÷&VÆFVB‚&7F÷""Â'F&vWB"•³£3ÒÀ¢Ò  ¤ÆFf÷&ÕöFÖ–å÷&WV—&V@¦FVb7&VFUö–çf—FF–öâ‡&WVW7B“ ¢–b&WVW7BæÖWF†öBÒ%õ5B# ¢&WGW&â&VF—&V7B‚&÷W&F–öç3§W6W'2"¢f÷&ÒÒ–çf—FF–öäVÖ–Äf÷&Ò‡&WVW7Båõ5B¢–bæ÷Bf÷&Òæ—5÷fÆ–B‚“ ¢ÖW76vW2æW'&÷"‡&WVW7BÂ$W67&–&RVâ6÷'&Vòl:Æ–Fò&vVæW&"Æ–çf—F6œ;6ââ"¢&WGW&â&VF—&V7B‚&÷W&F–öç3§W6W'2" ¢VÖ–ÂÒf÷&Òæ6ÆVæVEöFF²&VÖ–Â%Òç7G&—‚¢&u÷Fö¶VâÒ6V7&WG2çFö¶Vå÷W&Ç6fRƒ3"¢æ÷rÒF–ÖW¦öæRææ÷r‚¢v—F‚G&ç67F–öâæFöÖ–2‚“ ¢26W&–Æ—¦R–çf—FF–öâ&WÆ6VÖVçBWfVâv†Vâæò&Wf–÷W2–çf—FF–öâW†—7G2–WBà¢vWE÷W6W%öÖöFVÂ‚’æö&¦V7G2ç6VÆV7Eöf÷%÷WFFR‚’ævWB‡³×&WVW7BçW6W"ç²¢&Wf–÷W5ö–çf—FF–öç2ÒÆ—7B…W6W$–çf—FF–öâæö&¦V7G2ç6VÆV7Eöf÷%÷WFFR‚’æf–ÇFW"€¢VÖ–Åõö–W†7CÖVÖ–ÂÂW6VEöEõö—6çVÆÃÕG'VRÂ&Wfö¶VEöEõö—6çVÆÃÕG'VRÀ¢’¢W6W$–çf—FF–öâæö&¦V7G2æf–ÇFW"‡µõö–ãÕ¶—FVÒç²f÷"—FVÒ–â&Wf–÷W5ö–çf—FF–öç5Ò’çWFFR‡&Wfö¶VEöCÖæ÷r¢f÷"&Wf–÷W2–â&Wf–÷W5ö–çf—FF–öç3 ¢FÖ–äVF—DWfVçBæö&¦V7G2æ7&VFR€¢7F÷#×&WVW7BçW6W"À¢7F–öãÔFÖ–äVF—DWfVçBä7F–öâä”åd•DD”ôåõ$Udô´TBÀ¢–çf—FF–öã×&Wf–÷W2À¢–çf—FF–öåöVÖ–Ã×&Wf–÷W2æVÖ–ÂÀ¢¢–çf—FF–öâÒW6W$–çf—FF–öâæö&¦V7G2æ7&VFR€¢VÖ–ÃÖVÖ–ÂÀ¢Fö¶Våö†6ƒÖ†6†Æ–"ç6†#Sb‡&u÷Fö¶VâæVæ6öFR‚'WFbÓ‚"’’æ†W†F–vW7B‚’À¢7&VFVEö'“×&WVW7BçW6W"À¢W‡—&W5öCÖæ÷r²F–ÖVFVÇF†F—3Ór’À¢¢FÖ–äVF—DWfVçBæö&¦V7G2æ7&VFR€¢7F÷#×&WVW7BçW6W"À¢7F–öãÔFÖ–äVF—DWfVçBä7F–öâä”åd•DD”ôåô5$TDTBÀ¢–çf—FF–öãÖ–çf—FF–öâÀ¢–çf—FF–öåöVÖ–ÃÖVÖ–ÂÀ¢ ¢–çf—FF–öå÷W&ÂÒ&WVW7Bæ'V–ÆEö'6öÇWFU÷W&’‡&WfW'6R‚&–çf—FF–öåö66WB"’’²b"7·&u÷Fö¶VçÒ ¢&W7öç6RÒ&VæFW"‡&WVW7BÂ&÷W&F–öç2ö–çf—FF–öåöÆ–æ²æ‡FÖÂ"Â°¢&–çf—FF–öâ#¢–çf—FF–öâÀ¢&–çf—FF–öå÷W&Â#¢–çf—FF–öå÷W&ÂÀ¢Ò¢&W7öç6U²$66†RÔ6öçG&öÂ%ÒÒ'&—fFRÂæò×7F÷&R ¢&W7öç6U²%&VfW'&W"ÕöÆ–7’%ÒÒ&æò×&VfW'&W" ¢&W7öç6U²%‚Õ&ö&÷G2ÕFr%ÒÒ&æö–æFW‚ÂæöföÆÆ÷r ¢&WGW&â&W7öç6P  ¤ÆFf÷&ÕöFÖ–å÷&WV—&V@¦FVb&Wfö¶Uö–çf—FF–öâ‡&WVW7BÂ–çf—FF–öåö–B“ ¢–b&WVW7BæÖWF†öBÒ%õ5B# ¢&WGW&â&VF—&V7B‚&÷W&F–öç3§W6W'2"¢v—F‚G&ç67F–öâæFöÖ–2‚“ ¢–çf—FF–öâÒvWEöö&¦V7Eö÷%óCB…W6W$–çf—FF–öâæö&¦V7G2ç6VÆV7Eöf÷%÷WFFR‚’Â³Ö–çf—FF–öåö–B¢–b–çf—FF–öâæ—5÷VæF–ær‚“ ¢–çf—FF–öâç&Wfö¶VEöBÒF–ÖW¦öæRææ÷r‚¢–çf—FF–öâç6fR‡WFFUöf–VÆG3Ò‚'&Wfö¶VEöB"Â’¢FÖ–äVF—DWfVçBæö&¦V7G2æ7&VFR€¢7F÷#×&WVW7BçW6W"À¢7F–öãÔFÖ–äVF—DWfVçBä7F–öâä”åd•DD”ôåõ$Udô´TBÀ¢–çf—FF–öãÖ–çf—FF–öâÀ¢–çf—FF–öåöVÖ–ÃÖ–çf—FF–öâæVÖ–ÂÀ¢¢&Wfö¶VBÒG'VP¢VÇ6S ¢&Wfö¶VBÒfÇ6P¢–b&Wfö¶VC ¢ÖW76vW2ç7V66W72‡&WVW7BÂ%6R&Wfö<;2Æ–çf—F6œ;6ââ"¢VÇ6S ¢ÖW76vW2æ–æfò‡&WVW7BÂ$Æ–çf—F6œ;6â–æòW7L:VæF–VçFRâ"¢&WGW&â&VF—&V7B‚&÷W&F–öç3§W6W'2"  ¦FVbö–çf—FF–öåöf÷%÷Fö¶Vâ‡&u÷Fö¶Vâ“ ¢–bæ÷B&u÷Fö¶Vâ÷"ÆVâ‡&u÷Fö¶Vâ’â#ƒ ¢&WGW&âæöæP¢F–vW7BÒ†6†Æ–"ç6†#Sb‡&u÷Fö¶VâæVæ6öFR‚'WFbÓ‚"’’æ†W†F–vW7B‚¢–çf—FF–öâÒW6W$–çf—FF–öâæö&¦V7G2æf–ÇFW"‡Fö¶Våö†6ƒÖF–vW7B’æf—'7B‚¢&WGW&â–çf—FF–öâ–b–çf—FF–öâæB–çf—FF–öâæ—5÷VæF–ær‚’VÇ6RæöæP  ¦FVb–çf—FF–öåö66WB‡&WVW7B“ ¢–b&WVW7BæÖWF†öBÓÒ$tUB# ¢&W7öç6RÒ&VæFW"‡&WVW7BÂ&÷W&F–öç2ö–çf—FF–öåö66WBæ‡FÖÂ"Â°¢&66WFæ6Uöf÷&Ò#¢–çf—FF–öä66WFæ6Tf÷&Ò‚’À¢&66WFæ6U÷W&Â#¢&WfW'6R‚&–çf—FF–öåö66WB"’À¢'fÆ–FF–öå÷W&Â#¢&WfW'6R‚&–çf—FF–öå÷fÆ–FFR"’À¢Ò¢&W7öç6U²$66†RÔ6öçG&öÂ%ÒÒ'&—fFRÂæò×7F÷&R ¢2…EE2õ5Bf÷&×2æVVB6ÖRÖ÷&–v–â&VfW&W"v†Vâ'&÷w6W'2öÖ—B÷&–v–âà¢2F†R–çf—FF–öâ6V7&WB—2–âF†RU$Âg&vÖVçBÂv†–6‚—2æWfW"6VçB–â&VfW&W"à¢&W7öç6U²%&VfW'&W"ÕöÆ–7’%ÒÒ'6ÖRÖ÷&–v–â ¢&W7öç6U²%‚Õ&ö&÷G2ÕFr%ÒÒ&æö–æFW‚ÂæöföÆÆ÷r ¢&WGW&â&W7öç6P ¢&u÷Fö¶VâÒ&WVW7Båõ5BævWB‚'Fö¶Vâ"Â""¢–çf—FF–öâÒö–çf—FF–öåöf÷%÷Fö¶Vâ‡&u÷Fö¶Vâ¢–b–çf—FF–öâ—2æöæS ¢&W7öç6RÒ&VæFW"‡&WVW7BÂ&÷W&F–öç2ö–çf—FF–öåö66WBæ‡FÖÂ"Â°¢&66WFæ6Uöf÷&Ò#¢–çf—FF–öä66WFæ6Tf÷&Ò‚’À¢&–çfÆ–Eö–çf—FF–öâ#¢G'VRÀ¢&66WFæ6U÷W&Â#¢&WfW'6R‚&–çf—FF–öåö66WB"’À¢'fÆ–FF–öå÷W&Â#¢&WfW'6R‚&–çf—FF–öå÷fÆ–FFR"’À¢ÒÂ7FGW3ÓC¢&W7öç6U²$66†RÔ6öçG&öÂ%ÒÒ'&—fFRÂæò×7F÷&R ¢&W7öç6U²%&VfW'&W"ÕöÆ–7’%ÒÒ'6ÖRÖ÷&–v–â ¢&WGW&â&W7öç6P ¢f÷&ÒÒ–çf—FF–öä66WFæ6Tf÷&Ò‡&WVW7Båõ5B¢–bæ÷Bf÷&Òæ—5÷fÆ–B‚“ ¢&W7öç6RÒ&VæFW"‡&WVW7BÂ&÷W&F–öç2ö–çf—FF–öåö66WBæ‡FÖÂ"Â°¢&66WFæ6Uöf÷&Ò#¢f÷&ÒÀ¢&–çf—FF–öåöVÖ–Â#¢–çf—FF–öâæVÖ–ÂÀ¢'Fö¶Våöf÷%öf÷&Ò#¢&u÷Fö¶VâÀ¢&66WFæ6U÷W&Â#¢&WfW'6R‚&–çf—FF–öåö66WB"’À¢'fÆ–FF–öå÷W&Â#¢&WfW'6R‚&–çf—FF–öå÷fÆ–FFR"’À¢Ò¢&W7öç6U²$66†RÔ6öçG&öÂ%ÒÒ'&—fFRÂæò×7F÷&R ¢&W7öç6U²%&VfW'&W"ÕöÆ–7’%ÒÒ'6ÖRÖ÷&–v–â ¢&WGW&â&W7öç6P ¢W6W"ÒvWE÷W6W%öÖöFVÂ‚¢G'“ ¢v—F‚G&ç67F–öâæFöÖ–2‚“ ¢Æö6¶VEö–çf—FF–öâÒW6W$–çf—FF–öâæö&¦V7G2ç6VÆV7Eöf÷%÷WFFR‚’æf–ÇFW"€¢³Ö–çf—FF–öâç²À¢’æf—'7B‚¢–bÆö6¶VEö–çf—FF–öâ—2æöæR÷"æ÷BÆö6¶VEö–çf—FF–öâæ—5÷VæF–ær‚“ ¢&W7öç6RÒ&VæFW"‡&WVW7BÂ&÷W&F–öç2ö–çf—FF–öåö66WBæ‡FÖÂ"Â°¢&66WFæ6Uöf÷&Ò#¢f÷&ÒÀ¢&–çfÆ–Eö–çf—FF–öâ#¢G'VRÀ¢&66WFæ6U÷W&Â#¢&WfW'6R‚&–çf—FF–öåö66WB"’À¢'fÆ–FF–öå÷W&Â#¢&WfW'6R‚&–çf—FF–öå÷fÆ–FFR"’À¢ÒÂ7FGW3ÓC¢&W7öç6U²$66†RÔ6öçG&öÂ%ÒÒ'&—fFRÂæò×7F÷&R ¢&W7öç6U²%&Vmö×Kh‘éì¶»§q«^t•±Í”è(€€€€€€€€€€€•ÉÉ½È€ô€‰M•±•¥½¹„Õ¹„…§Í¸‘¥ÍÁ½¹¥‰±”¸ˆ((€€€½¹Ñ•áĞ€ô…‘µ¥¸¹Í¥Ñ”¹•…¡}½¹Ñ•áĞ¡É•ÅÕ•ÍĞ¤(€€€½¹Ñ•áĞ¹ÕÁ‘…Ñ”¡ì(€€€€€€€€‰ÕÉÉ•¹Ñ}¥¹Ñ•ÉÙ…°ˆèÕÉÉ•¹Ñ}É•™É•Í¡}¥¹Ñ•ÉÙ…±}µ¥¹ÕÑ•Ì ¤°(€€€€€€€€‰¥¹¥Ñ¥…±}¥¹Ñ•ÉÙ…°ˆè¥¹¥Ñ¥…±}É•™É•Í¡}¥¹Ñ•ÉÙ…±}µ¥¹ÕÑ•Ì ¤°(€€€€€€€€‰µ¥¹}¥¹Ñ•ÉÙ…°ˆè5%9}IIM!}5%9UQL°(€€€€€€€€‰µ…á}¥¹Ñ•ÉÙ…°ˆè5a}IIM!}5%9UQL°(€€€€€€€€‰…ÕÑ½}‘¥Í…É‘}‘…åÌˆèÕÉÉ•¹Ñ}…ÕÑ½}‘¥Í…É‘}‘…åÌ ¤°(€€€€€€€€‰¥¹¥Ñ¥…±}…ÕÑ½}‘¥Í…É‘}‘…åÌˆèU1Q}UQ=}%MI}eL°(€€€€€€€€‰™½±±½İ}ÕÁ}…É¡¥Ù•}‘…åÌˆèÕÉÉ•¹Ñ}™½±±½İ}ÕÁ}…É¡¥Ù•}‘…åÌ ¤°(€€€€€€€€‰¥¹¥Ñ¥…±}™½±±½İ}ÕÁ}…É¡¥Ù•}‘…åÌˆèU1Q}=11=]}UA}I!%Y}eL°(€€€€€€€€‰µ¥¹}É•Ñ•¹Ñ¥½¹}‘…åÌˆè5%9}IQ9Q%=9}eL°(€€€€€€€€‰µ…á}É•Ñ•¹Ñ¥½¹}‘…åÌˆè5a}IQ9Q%=9}eL°(€€€€€€€€‰¡¥ÍÑ½Éäˆè=Á•É…Ñ¥½¹…±A…É…µ•Ñ•É¡…¹”¹½‰©•ÑÌ¹Í•±•Ñ}É•±…Ñ• ‰¡…¹•‘}‰äˆ¥lèÈÁt°(€€€€€€€€‰•ÉÉ½Èˆè•ÉÉ½È°(€€€ô¤(€€€É•ÑÕÉ¸É•¹‘•È¡É•ÅÕ•ÍĞ°€‰½Á•É…Ñ¥½¹Ì½Á…É…µ•Ñ•ÉÌ¹¡Ñµ°ˆ°½¹Ñ•áĞ°ÍÑ…ÑÕÌôĞÀÀ¥˜•ÉÉ½È•±Í”€ÈÀÀ¤(()Á±…Ñ™½Éµ}…‘µ¥¹}É•ÅÕ¥É•)‘•˜‘…Í¡‰½…É¡É•ÅÕ•ÍĞ¤è(€€€Á•É¥½€ôÉ•ÅÕ•ÍĞ¹P¹•Ğ ‰Á•É¥½ˆ°€ˆÈÑ ˆ¤(€€€¥˜Á•É¥½¹½Ğ¥¸AI%=Lè(€€€€€€€Á•É¥½€ô€ˆÈÑ ˆ(€€€Á•É¥½‘}±…‰•°°‘ÕÉ…Ñ¥½¸€ôAI%=MmÁ•É¥½‘t(€€€¹½Ü€ôÑ¥µ•é½¹”¹¹½Ü ¤(€€€Í¥¹”€ô¹½Ü€´‘ÕÉ…Ñ¥½¸(€€€ÉÕ¹Ì€ô=Á•É…Ñ¥½¹…±IÕ¸¹½‰©•ÑÌ¹™¥±Ñ•È¡ÍÑ…ÉÑ•‘}…Ñ}}Ñ”õÍ¥¹”°ÍÑ…ÉÑ•‘}…Ñ}}±Ñ”õ¹½Ü¤(€€€Í½ÕÉ•}ÅÕ•Éå}ÉÕ¹Ì€ôÉÕ¹Ì¹™¥±Ñ•È (€€€€€€€­¥¹õ=Á•É…Ñ¥½¹…±IÕ¸¹-¥¹¹%9MQ%=8°(€€€€€€€½Á•É…Ñ¥½¸ô‰Í½ÕÉ•}ÅÕ•Éäˆ°(€€€€¤¹½¹±ä (€€€€€€€€‰ÍÑ…ÉÑ•‘}…Ğˆ°€‰Í½ÕÉ”ˆ°€‰ÍÑ…ÑÕÌˆ°€‰¥Ñ•µ}½Õ¹Ğˆ°€‰¹•İ}½Õ¹Ğˆ°€‰­¹½İ¹}½Õ¹Ğˆ°(€€€€€€€€‰­¹½İ¹}ÕÁ‘…Ñ•‘}½Õ¹Ğˆ°€‰­¹½İ¹}Õ¹¡…¹•‘}½Õ¹Ğˆ°€‰‘ÕÉ…Ñ¥½¹}µÌˆ°(€€€€€€€€‰±¥ÍÑ¥¹}½Õ¹Ğˆ°€‰Ñ¥Ñ±•}­•ÁÑ}½Õ¹Ğˆ°€‰Ñ¥Ñ±•}‘¥Í…É‘•‘}½Õ¹Ğˆ°(€€€€€€€€‰‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•‘}½Õ¹Ğˆ°€‰‘•Ñ…¥±Í}É••¥Ù•‘}½Õ¹Ğˆ°€‰Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹Ìˆ°(€€€€€€€€‰±¥ÍÑ¥¹}™•Ñ¡}‘ÕÉ…Ñ¥½¹}µÌˆ°€‰Ñ¥Ñ±•}ÁÉ•Í•±•Ñ¥½¹}‘ÕÉ…Ñ¥½¹}µÌˆ°€‰‘•Ñ…¥±}™•Ñ¡}‘ÕÉ…Ñ¥½¹}µÌˆ°(€€€€€€€€‰•ÉÉ½É}…Ñ•½Éäˆ°€‰•ÉÉ½É}ÍÕµµ…Éäˆ°(€€€€¤¹½É‘•É}‰ä ˆµÍÑ…ÉÑ•‘}…Ğˆ°€ˆµÁ¬ˆ¤(€€€Í½ÕÉ•}ÅÕ•Éå}Á…”€ôA…¥¹…Ñ½È¡Í½ÕÉ•}ÅÕ•Éå}ÉÕ¹Ì°€ÔÀ¤¹•Ñ}Á…”¡É•ÅÕ•ÍĞ¹P¹•Ğ ‰ÉÕ¹}Á…”ˆ¤¤(€€€ÅÕ•Éå}ÉÕ¹}¥‘Ì€ômÉÕ¸¹Á¬™½ÈÉÕ¸¥¸Í½ÕÉ•}ÅÕ•Éå}Á…•t((€€€‘•˜µ¥¹ÕÑ•Ì¡µ¥±±¥Í•½¹‘Ì¤è(€€€€€€€É•ÑÕÉ¸É½Õ¹¡µ¥±±¥Í•½¹‘Ì€¼€ØÀÀÀÀ°€Ä¤¥˜µ¥±±¥Í•½¹‘Ì¥Ì¹½Ğ9½¹”•±Í”9½¹”((€€€…¹…±åÍ¥Í}µ•ÑÉ¥Í}‰å}ÅÕ•Éä€ôíô(€€€…¹…±åÍ¥Í}Ñ½­•¹}µ•ÑÉ¥Í}‰å}ÅÕ•Éä€ôíô(€€€¥˜ÅÕ•Éå}ÉÕ¹}¥‘Ìè(€€€€€€€…¹…±åÍ¥Í}µ•ÑÉ¥Í}‰å}ÅÕ•Éä€ôì(€€€€€€€€€€€É½İl‰Í½ÕÉ•}ÅÕ•É¥•Í}}Í½ÕÉ•}ÅÕ•Éå}¥‰tèÉ½Ü(€€€€€€€€€€€™½ÈÉ½Ü¥¸Y……¹å¹…±åÍ¥Ì¹½‰©•ÑÌ¹™¥±Ñ•È (€€€€€€€€€€€€€€€Í½ÕÉ•}ÅÕ•É¥•Í}}Í½ÕÉ•}ÅÕ•Éå}¥‘}}¥¸õÅÕ•Éå}ÉÕ¹}¥‘Ì°(€€€€€€€€€€€€¤¹Ù…±Õ•Ì ‰Í½ÕÉ•}ÅÕ•É¥•Í}}Í½ÕÉ•}ÅÕ•Éå}¥ˆ¤¹…¹¹½Ñ…Ñ” (€€€€€€€€€€€€€€€±¥¹­•õ½Õ¹Ğ ‰Á¬ˆ°‘¥ÍÑ¥¹ĞõQÉÕ”¤°(€€€€€€€€€€€€€€€ÅÕ•Õ•õ½Õ¹Ğ (€€€€€€€€€€€€€€€€€€€€‰Á¬ˆ°™¥±Ñ•ÈõD¡Í½ÕÉ•}ÅÕ•É¥•Í}}•¹ÅÕ•Õ•‘}‰å}ÅÕ•ÉäõQÉÕ”¤°‘¥ÍÑ¥¹ĞõQÉÕ”°(€€€€€€€€€€€€€€€€¤°(€€€€€€€€€€€€€€€É•ÕÍ•õ½Õ¹Ğ (€€€€€€€€€€€€€€€€€€€€‰Á¬ˆ°™¥±Ñ•ÈõD¡Í½ÕÉ•}ÅÕ•É¥•Í}}•¹ÅÕ•Õ•‘}‰å}ÅÕ•Éäõ…±Í”¤°‘¥ÍÑ¥¹ĞõQÉÕ”°(€€€€€€€€€€€€€€€€¤°(€€€€€€€€€€€€€€€Á•¹‘¥¹œõ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõY……¹å¹…±åÍ¥Ì¹MÑ…ÑÕÌ¹A9%9¤°‘¥ÍÑ¥¹ĞõQÉÕ”¤°(€€€€€€€€€€€€€€€½µÁ±•Ñ•õ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõY……¹å¹…±åÍ¥Ì¹MÑ…ÑÕÌ¹=5A1Q¤°‘¥ÍÑ¥¹ĞõQÉÕ”¤°(€€€€€€€€€€€€€€€™…¥±•õ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõY……¹å¹…±åÍ¥Ì¹MÑ…ÑÕÌ¹%1¤°‘¥ÍÑ¥¹ĞõQÉÕ”¤°(€€€€€€€€€€€€€€€…ÕÑ½}‘¥Í…É‘•õ½Õ¹Ğ (€€€€€€€€€€€€€€€€€€€€‰Á¬ˆ°(€€€€€€€€€€€€€€€€€€€™¥±Ñ•Èô (€€€€€€€€€€€€€€€€€€€€€€€D¡ÍÑ…ÑÕÌõY……¹å¹…±åÍ¥Ì¹MÑ…ÑÕÌ¹=5A1Q¤(€€€€€€€€€€€€€€€€€€€€€€€€˜D¡ÁÉ½™¥±•}}Ù……¹å}‘¥Í½Ù•É¥•Í}}Ù……¹å}¥õ ‰Ù……¹å}¥ˆ¤¤(€€€€€€€€€€€€€€€€€€€€€€€€˜D¡ÁÉ½™¥±•}}Ù……¹å}‘¥Í½Ù•É¥•Í}}…ÕÑ½}‘¥Í…É‘}Ñ¡É•Í¡½±‘}}ĞôÀ¤(€€€€€€€€€€€€€€€€€€€€€€€€˜D¡Í½É•}}±Ğõ ‰ÁÉ½™¥±•}}Ù……¹å}‘¥Í½Ù•É¥•Í}}…ÕÑ½}‘¥Í…É‘}Ñ¡É•Í¡½±ˆ¤¤(€€€€€€€€€€€€€€€€€€€€¤°(€€€€€€€€€€€€€€€€€€€‘¥ÍÑ¥¹ĞõQÉÕ”°(€€€€€€€€€€€€€€€€¤°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€€€€€…¹…±åÍ¥Í}Ñ½­•¹}µ•ÑÉ¥Í}‰å}ÅÕ•Éä€ôì(€€€€€€€€€€€É½İl‰…¹…±åÍ¥Í}}Í½ÕÉ•}ÅÕ•É¥•Í}}Í½ÕÉ•}ÅÕ•Éå}¥‰tèÉ½Ü(€€€€€€€€€€€™½ÈÉ½Ü¥¸%…±±ÑÑ•µÁĞ¹½‰©•ÑÌ¹™¥±Ñ•È (€€€€€€€€€€€€€€€…¹…±åÍ¥Í}}Í½ÕÉ•}ÅÕ•É¥•Í}}Í½ÕÉ•}ÅÕ•Éå}¥‘}}¥¸õÅÕ•Éå}ÉÕ¹}¥‘Ì°(€€€€€€€€€€€€€€€ÍÑ…”õ%…±±ÑÑ•µÁĞ¹MÑ…”¹M=I%9°(€€€€€€€€€€€€¤¹Ù…±Õ•Ì ‰…¹…±åÍ¥Í}}Í½ÕÉ•}ÅÕ•É¥•Í}}Í½ÕÉ•}ÅÕ•Éå}¥ˆ¤¹…¹¹½Ñ…Ñ” (€€€€€€€€€€€€€€€¥¹ÁÕÑ}Ñ½­•¹ÌõMÕ´ ‰¥¹ÁÕÑ}Ñ½­•¹Ìˆ¤°(€€€€€€€€€€€€€€€½ÕÑÁÕÑ}Ñ½­•¹ÌõMÕ´ ‰½ÕÑÁÕÑ}Ñ½­•¹Ìˆ¤°(€€€€€€€€€€€€¤(€€€€€€€ô(€€€™½ÈÉÕ¸¥¸Í½ÕÉ•}ÅÕ•Éå}Á…”è(€€€€€€€‘ÕÉ…Ñ¥½¹}µÌ€ôÉÕ¸¹‘ÕÉ…Ñ¥½¹}µÌ(€€€€€€€¥˜‘ÕÉ…Ñ¥½¹}µÌ¥Ì9½¹”…¹ÉÕ¸¹ÍÑ…ÑÕÌ€ôô=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹IU99%9è(€€€€€€€€€€€‘ÕÉ…Ñ¥½¹}µÌ€ôµ…à À°¥¹Ğ ¡¹½Ü€´ÉÕ¸¹ÍÑ…ÉÑ•‘}…Ğ¤¹Ñ½Ñ…±}Í•½¹‘Ì ¤€¨€ÄÀÀÀ¤¤(€€€€€€€ÉÕ¸¹‘ÕÉ…Ñ¥½¹}µ¥¹ÕÑ•Ì€ôµ¥¹ÕÑ•Ì¡‘ÕÉ…Ñ¥½¹}µÌ¤(€€€€€€€ÉÕ¸¹±¥ÍÑ¥¹}™•Ñ¡}µ¥¹ÕÑ•Ì€ôµ¥¹ÕÑ•Ì¡ÉÕ¸¹±¥ÍÑ¥¹}™•Ñ¡}‘ÕÉ…Ñ¥½¹}µÌ¤(€€€€€€€ÉÕ¸¹Ñ¥Ñ±•}ÁÉ•Í•±•Ñ¥½¹}µ¥¹ÕÑ•Ì€ôµ¥¹ÕÑ•Ì¡ÉÕ¸¹Ñ¥Ñ±•}ÁÉ•Í•±•Ñ¥½¹}‘ÕÉ…Ñ¥½¹}µÌ¤(€€€€€€€ÉÕ¸¹‘•Ñ…¥±}™•Ñ¡}µ¥¹ÕÑ•Ì€ôµ¥¹ÕÑ•Ì¡ÉÕ¸¹‘•Ñ…¥±}™•Ñ¡}‘ÕÉ…Ñ¥½¹}µÌ¤(€€€€€€€ÉÕ¸¹ÍÑ…•}‘ÕÉ…Ñ¥½¹}ÍÕµµ…Éä€ô€ˆ€¼€ˆ¹©½¥¸ (€€€€€€€€€€€˜‰íÙ…±Õ”è¸Å™ôˆ¥˜Ù…±Õ”¥Ì¹½Ğ9½¹”•±Í”€‹ŠPˆ(€€€€€€€€€€€™½ÈÙ…±Õ”¥¸€ (€€€€€€€€€€€€€€€ÉÕ¸¹±¥ÍÑ¥¹}™•Ñ¡}µ¥¹ÕÑ•Ì°(€€€€€€€€€€€€€€€ÉÕ¸¹Ñ¥Ñ±•}ÁÉ•Í•±•Ñ¥½¹}µ¥¹ÕÑ•Ì°(€€€€€€€€€€€€€€€ÉÕ¸¹‘•Ñ…¥±}™•Ñ¡}µ¥¹ÕÑ•Ì°(€€€€€€€€€€€€¤(€€€€€€€€¤(€€€€€€€…¹…±åÍ¥Í}µ•ÑÉ¥Ì€ô…¹…±åÍ¥Í}µ•ÑÉ¥Í}‰å}ÅÕ•Éä¹•Ğ¡ÉÕ¸¹Á¬°íô¤(€€€€€€€½µÁ±•Ñ•€ô…¹…±åÍ¥Í}µ•ÑÉ¥Ì¹•Ğ ‰½µÁ±•Ñ•ˆ°€À¤(€€€€€€€…ÕÑ½}‘¥Í…É‘•€ô…¹…±åÍ¥Í}µ•ÑÉ¥Ì¹•Ğ ‰…ÕÑ½}‘¥Í…É‘•ˆ°€À¤(€€€€€€€ÉÕ¸¹…¹…±åÍ¥Í}µ•ÑÉ¥Ì€ôì(€€€€€€€€€€€€‰±¥¹­•ˆè…¹…±åÍ¥Í}µ•ÑÉ¥Ì¹•Ğ ‰±¥¹­•ˆ°€À¤°(€€€€€€€€€€€€‰ÅÕ•Õ•ˆè…¹…±åÍ¥Í}µ•ÑÉ¥Ì¹•Ğ ‰ÅÕ•Õ•ˆ°€À¤°(€€€€€€€€€€€€‰É•ÕÍ•ˆè…¹…±åÍ¥Í}µ•ÑÉ¥Ì¹•Ğ ‰É•ÕÍ•ˆ°€À¤°(€€€€€€€€€€€€‰Á•¹‘¥¹œˆè…¹…±åÍ¥Í}µ•ÑÉ¥Ì¹•Ğ ‰Á•¹‘¥¹œˆ°€À¤°(€€€€€€€€€€€€‰½µÁ±•Ñ•ˆè½µÁ±•Ñ•°(€€€€€€€€€€€€‰Á…ÍÍ•ˆèµ…à À°½µÁ±•Ñ•€´…ÕÑ½}‘¥Í…É‘•¤°(€€€€€€€€€€€€‰…ÕÑ½}‘¥Í…É‘•ˆè…ÕÑ½}‘¥Í…É‘•°(€€€€€€€€€€€€‰™…¥±•ˆè…¹…±åÍ¥Í}µ•ÑÉ¥Ì¹•Ğ ‰™…¥±•ˆ°€À¤°(€€€€€€€€€€€€‰¥¹ÁÕÑ}Ñ½­•¹Ìˆè…¹…±åÍ¥Í}Ñ½­•¹}µ•ÑÉ¥Í}‰å}ÅÕ•Éä¹•Ğ¡ÉÕ¸¹Á¬°íô¤¹•Ğ ‰¥¹ÁÕÑ}Ñ½­•¹Ìˆ¤°(€€€€€€€€€€€€‰½ÕÑÁÕÑ}Ñ½­•¹Ìˆè…¹…±åÍ¥Í}Ñ½­•¹}µ•ÑÉ¥Í}‰å}ÅÕ•Éä¹•Ğ¡ÉÕ¸¹Á¬°íô¤¹•Ğ ‰½ÕÑÁÕÑ}Ñ½­•¹Ìˆ¤°(€€€€€€€ô((€€€‘•˜ÍÕµµ…É¥é”¡ÅÕ•ÉåÍ•Ğ¤è(€€€€€€€É•ÍÕ±Ğ€ôÅÕ•ÉåÍ•Ğ¹…É•…Ñ” (€€€€€€€€€€€Ñ½Ñ…°õ½Õ¹Ğ ‰Á¬ˆ¤°(€€€€€€€€€€€ÍÕ••‘•õ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõ=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹MU¤¤°(€€€€€€€€€€€Á…ÉÑ¥…°õ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõ=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹AIQ%0¤¤°(€€€€€€€€€€€É•ÑÉå¥¹œõ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõ=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹IQIe%9¤¤°(€€€€€€€€€€€™…¥±•õ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõ=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹%1¤¤°(€€€€€€€€€€€¥Ñ•µÌõMÕ´ ‰¥Ñ•µ}½Õ¹Ğˆ¤°(€€€€€€€€€€€…Ù•É…•}‘ÕÉ…Ñ¥½¸õÙœ ‰‘ÕÉ…Ñ¥½¹}µÌˆ°™¥±Ñ•ÈõD¡™¥¹¥Í¡•‘}…Ñ}}¥Í¹Õ±°õ…±Í”¤¤°(€€€€€€€€¤(€€€€€€€É•ÍÕ±Ñl‰¥Ñ•µÌ‰t€ôÉ•ÍÕ±Ñl‰¥Ñ•µÌ‰t½È€À(€€€€€€€É•ÍÕ±Ñl‰…Ù•É…•}‘ÕÉ…Ñ¥½¸‰t€ôµ¥¹ÕÑ•Ì¡É•ÍÕ±Ñl‰…Ù•É…•}‘ÕÉ…Ñ¥½¸‰t½È€À¤(€€€€€€€É•ÍÕ±Ñl‰™…¥±ÕÉ•}É…Ñ”‰t€ôÉ½Õ¹ ÄÀÀ€¨É•ÍÕ±Ñl‰™…¥±•‰t€¼É•ÍÕ±Ñl‰Ñ½Ñ…°‰t¤¥˜É•ÍÕ±Ñl‰Ñ½Ñ…°‰t•±Í”€À(€€€€€€€É•ÑÕÉ¸É•ÍÕ±Ğ((€€€Í½ÕÉ•}ÍÕµµ…É¥•Ì€ôíô(€€€Í½ÕÉ•}¹…µ•Ì€ôÉÕ¹Ì¹™¥±Ñ•È¡­¥¹õ=Á•É…Ñ¥½¹…±IÕ¸¹-¥¹¹%9MQ%=8°Í½ÕÉ•}}Ğôˆˆ¤¹Ù…±Õ•Í}±¥ÍĞ (€€€€€€€€‰Í½ÕÉ”ˆ°™±…ĞõQÉÕ”(€€€€¤¹‘¥ÍÑ¥¹Ğ ¤(€€€™½ÈÍ½ÕÉ”¥¸Í½ÕÉ•}¹…µ•Ìè(€€€€€€€Í½ÕÉ•}ÉÕ¹Ì€ôÉÕ¹Ì¹™¥±Ñ•È¡­¥¹õ=Á•É…Ñ¥½¹…±IÕ¸¹-¥¹¹%9MQ%=8°Í½ÕÉ”õÍ½ÕÉ”¤(€€€€€€€ÍÕµµ…Éä€ôÍÕµµ…É¥é”¡Í½ÕÉ•}ÉÕ¹Ì¤(€€€€€€€‰É•…­‘½İ¸€ôÍ½ÕÉ•}ÉÕ¹Ì¹…É•…Ñ” (€€€€€€€€€€€¹•İ}¥Ñ•µÌõMÕ´ ‰¹•İ}½Õ¹Ğˆ¤°(€€€€€€€€€€€­¹½İ¹}¥Ñ•µÌõMÕ´ ‰­¹½İ¹}½Õ¹Ğˆ¤°(€€€€€€€€€€€­¹½İ¹}ÕÁ‘…Ñ•‘}¥Ñ•µÌõMÕ´ ‰­¹½İ¹}ÕÁ‘…Ñ•‘}½Õ¹Ğˆ¤°(€€€€€€€€€€€­¹½İ¹}Õ¹¡…¹•‘}¥Ñ•µÌõMÕ´ ‰­¹½İ¹}Õ¹¡…¹•‘}½Õ¹Ğˆ¤°(€€€€€€€€€€€Ñ¥Ñ±•Í}É••¥Ù•õMÕ´ ‰±¥ÍÑ¥¹}½Õ¹Ğˆ¤°(€€€€€€€€€€€Ñ¥Ñ±•Í}­•ÁĞõMÕ´ ‰Ñ¥Ñ±•}­•ÁÑ}½Õ¹Ğˆ¤°(€€€€€€€€€€€Ñ¥Ñ±•Í}‘¥Í…É‘•õMÕ´ ‰Ñ¥Ñ±•}‘¥Í…É‘•‘}½Õ¹Ğˆ¤°(€€€€€€€€€€€‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•õMÕ´ ‰‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•‘}½Õ¹Ğˆ¤°(€€€€€€€€€€€‘•Ñ…¥±Í}É••¥Ù•õMÕ´ ‰‘•Ñ…¥±Í}É••¥Ù•‘}½Õ¹Ğˆ¤°(€€€€€€€€€€€Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹ÌõMÕ´ ‰Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹Ìˆ¤°(€€€€€€€€¤(€€€€€€€ÍÕµµ…Éä¹ÕÁ‘…Ñ”¡ì(€€€€€€€€€€€€‰Í½ÕÉ”ˆèÍ½ÕÉ”°(€€€€€€€€€€€€‰±…ÍÍ¥™¥•‘}ÅÕ•É¥•ÌˆèÍ½ÕÉ•}ÉÕ¹Ì¹™¥±Ñ•È¡¹•İ}½Õ¹Ñ}}¥Í¹Õ±°õ…±Í”¤¹½Õ¹Ğ ¤°(€€€€€€€€€€€€¨©‰É•…­‘½İ¸°(€€€€€€€€€€€€‰±…ÍÑ}ÍÕ•ÍÌˆèÍ½ÕÉ•}ÉÕ¹Ì¹™¥±Ñ•È¡ÍÑ…ÑÕÌõ=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹MU¤¹½É‘•É}‰ä (€€€€€€€€€€€€€€€€ˆµÍÑ…ÉÑ•‘}…Ğˆ(€€€€€€€€€€€€¤¹Ù…±Õ•Í}±¥ÍĞ ‰ÍÑ…ÉÑ•‘}…Ğˆ°™±…ĞõQÉÕ”¤¹™¥ÉÍĞ ¤°(€€€€€€€€€€€€‰±…ÍÑ}•ÉÉ½ÈˆèÍ½ÕÉ•}ÉÕ¹Ì¹™¥±Ñ•È (€€€€€€€€€€€€€€€ÍÑ…ÑÕÍ}}¥¸ô¡=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹%1°=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹IQIe%9¤(€€€€€€€€€€€€¤¹½É‘•É}‰ä ˆµÍÑ…ÉÑ•‘}…Ğˆ¤¹Ù…±Õ•Í}±¥ÍĞ ‰•ÉÉ½É}ÍÕµµ…Éäˆ°™±…ĞõQÉÕ”¤¹™¥ÉÍĞ ¤°(€€€€€€€ô¤(€€€€€€€Í½ÕÉ•}ÍÕµµ…É¥•ÍmÍ½ÕÉ•t€ôÍÕµµ…Éä((€€€É•™É•Í¡}ÁÉ½É•ÍÌ€ôì(€€€€€€€É½İl‰Í½ÕÉ”‰tèÉ½Ü(€€€€€€€™½ÈÉ½Ü¥¸I•™É•Í¡]½É­%Ñ•´¹½‰©•ÑÌ¹™¥±Ñ•È (€€€€€€€€€€€ÍÑ…ÑÕÍ}}¥¸ô¡I•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹EUU°I•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹IU99%9¤°(€€€€€€€€¤¹Ù…±Õ•Ì ‰Í½ÕÉ”ˆ¤¹…¹¹½Ñ…Ñ” (€€€€€€€€€€€ÅÕ•Õ•õ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹EUU¤¤°(€€€€€€€€€€€ÉÕ¹¹¥¹œõ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡ÍÑ…ÑÕÌõI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹IU99%9¤¤°(€€€€€€€€€€€½¹™¥Éµ•‘}±¥ÍÑ¥¹ÌõMÕ´ ‰Í½ÕÉ•}ÉÕ¹}}¥Ñ•µ}½Õ¹Ğˆ¤°(€€€€€€€€¤(€€€ô(€€€ÍÑ…ÑÕÍ•Í}‰å}Í½ÕÉ”€ôíÍÑ…ÑÕÌ¹Í½ÕÉ”èÍÑ…ÑÕÌ™½ÈÍÑ…ÑÕÌ¥¸)½‰M½ÕÉ•MÑ…ÑÕÌ¹½‰©•ÑÌ¹½É‘•É}‰ä ‰Í½ÕÉ”ˆ¥ô(€€€Í½ÕÉ•}É½İÌ€ômt(€€€™½ÈÍ½ÕÉ”¥¸Í½ÉÑ•¡Í•Ğ¡ÍÑ…ÑÕÍ•Í}‰å}Í½ÕÉ”¤ğÍ•Ğ¡É•™É•Í¡}ÁÉ½É•ÍÌ¤¤è(€€€€€€€Í½ÕÉ•}É½İÌ¹…ÁÁ•¹¡ì(€€€€€€€€€€€€‰Í½ÕÉ”ˆèÍ½ÕÉ”°(€€€€€€€€€€€€‰¡…Í}ÍÑ…ÑÕÌˆèÍ½ÕÉ”¥¸ÍÑ…ÑÕÍ•Í}‰å}Í½ÕÉ”°(€€€€€€€€€€€€‰ÍÑ…ÑÕÌˆèÍÑ…ÑÕÍ•Í}‰å}Í½ÕÉ”¹•Ğ¡Í½ÕÉ”¤°(€€€€€€€€€€€€‰µ•ÑÉ¥ÌˆèÍ½ÕÉ•}ÍÕµµ…É¥•Ì¹•Ğ¡Í½ÕÉ”¹Í½ÕÉ”°ì(€€€€€€€€€€€€€€€€‰Ñ½Ñ…°ˆè€À°€‰™…¥±•ˆè€À°€‰…Ù•É…•}‘ÕÉ…Ñ¥½¸ˆè€À°€‰±…ÍÑ}•ÉÉ½Èˆè€ˆˆ°(€€€€€€€€€€€€€€€€‰±…ÍÍ¥™¥•‘}ÅÕ•É¥•Ìˆè€À°(€€€€€€€€€€€ô¤°(€€€€€€€€€€€€‰ÁÉ½É•ÍÌˆèÉ•™É•Í¡}ÁÉ½É•ÍÌ¹•Ğ¡Í½ÕÉ”¹Í½ÕÉ”°ì‰ÅÕ•Õ•ˆè€À°€‰ÉÕ¹¹¥¹œˆè€À°€‰½¹™¥Éµ•‘}±¥ÍÑ¥¹Ìˆè€Áô¤°(€€€€€€€ô¤((€€€Á•¹‘¥¹œ€ôY……¹å¹…±åÍ¥Ì¹½‰©•ÑÌ¹™¥±Ñ•È¡ÍÑ…ÑÕÌõY……¹å¹…±åÍ¥Ì¹MÑ…ÑÕÌ¹A9%9¤(€€€½±‘•ÍÑ}Á•¹‘¥¹œ€ôÁ•¹‘¥¹œ¹½É‘•É}‰ä ‰É•…Ñ•‘}…Ğˆ¤¹Ù…±Õ•Í}±¥ÍĞ ‰É•…Ñ•‘}…Ğˆ°™±…ĞõQÉÕ”¤¹™¥ÉÍĞ ¤(€€€±…Ñ•ÍÑ}•ÉÉ½ÉÌ€ôÉÕ¹Ì¹™¥±Ñ•È (€€€€€€€ÍÑ…ÑÕÍ}}¥¸ô¡=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹%1°=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹IQIe%9¤°(€€€€¤¹•á±Õ‘”¡•ÉÉ½É}ÍÕµµ…Éäôˆˆ¤¹½É‘•É}‰ä ˆµÍÑ…ÉÑ•‘}…Ğˆ¥lèÄÁt(€€€½Ù•É…•}ÍÑ…ÉĞ€ô=Á•É…Ñ¥½¹…±IÕ¸¹½‰©•ÑÌ¹½É‘•É}‰ä ‰ÍÑ…ÉÑ•‘}…Ğˆ¤¹Ù…±Õ•Í}±¥ÍĞ ‰ÍÑ…ÉÑ•‘}…Ğˆ°™±…ĞõQÉÕ”¤¹™¥ÉÍĞ ¤(€€€…‘µ¥¹}½µµ…¹‘Ì€ô±¥ÍĞ¡‘µ¥¹½µµ…¹‘IÕ¸¹½‰©•ÑÌ¹Í•±•Ñ}É•±…Ñ• ‰É•ÅÕ•ÍÑ•‘}‰äˆ¤¹…±° ¥lèÈÁt¤(€€€™½È½µµ…¹¥¸…‘µ¥¹}½µµ…¹‘Ìè(€€€€€€€½µµ…¹¹‘ÕÉ…Ñ¥½¹}µ¥¹ÕÑ•Ì€ôµ¥¹ÕÑ•Ì¡½µµ…¹¹‘ÕÉ…Ñ¥½¹}µÌ¤(€€€…¥}…±±}ÍÑ…•Ì€ômt(€€€™½ÈÍÑ…”°±…‰•°¥¸%…±±ÑÑ•µÁĞ¹MÑ…”¹¡½¥•Ìè(€€€€€€€µ•ÑÉ¥Œ€ô%…±±ÑÑ•µÁĞ¹½‰©•ÑÌ¹™¥±Ñ•È¡ÍÑ…”õÍÑ…”°É•…Ñ•‘}…Ñ}}Ñ”õÍ¥¹”°É•…Ñ•‘}…Ñ}}±Ñ”õ¹½Ü¤¹…É•…Ñ” (€€€€€€€€€€€Ñ½Ñ…°õ½Õ¹Ğ ‰Á¬ˆ¤°(€€€€€€€€€€€ÍÕ••‘•õ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡½ÕÑ½µ”õ%…±±ÑÑ•µÁĞ¹=ÕÑ½µ”¹MU¤¤°(€€€€€€€€€€€É•ÑÉå¥¹œõ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡½ÕÑ½µ”õ%…±±ÑÑ•µÁĞ¹=ÕÑ½µ”¹IQIe%9¤¤°(€€€€€€€€€€€™…¥±•õ½Õ¹Ğ ‰Á¬ˆ°™¥±Ñ•ÈõD¡½ÕÑ½µ”õ%…±±ÑÑ•µÁĞ¹=ÕÑ½µ”¹%1¤¤°(€€€€€€€€€€€…Ù•É…•}‘ÕÉ…Ñ¥½¸õÙœ ‰‘ÕÉ…Ñ¥½¹}µÌˆ¤°(€€€€€€€€€€€¥¹ÁÕÑ}Ñ½­•¹ÌõMÕ´ ‰¥¹ÁÕÑ}Ñ½­•¹Ìˆ¤°(€€€€€€€€€€€½ÕÑÁÕÑ}Ñ½­•¹ÌõMÕ´ ‰½ÕÑÁÕÑ}Ñ½­•¹Ìˆ¤°(€€€€€€€€¤(€€€€€€€µ•ÑÉ¥l‰…Ù•É…•}‘ÕÉ…Ñ¥½¸‰t€ôµ¥¹ÕÑ•Ì¡µ•ÑÉ¥l‰…Ù•É…•}‘ÕÉ…Ñ¥½¸‰t½È€À¤(€€€€€€€…¥}…±±}ÍÑ…•Ì¹…ÁÁ•¹¡ì‰±…‰•°ˆè±…‰•°°€¨©µ•ÑÉ¥ô¤((€€€½¹Ñ•áĞ€ô…‘µ¥¸¹Í¥Ñ”¹•…¡}½¹Ñ•áĞ¡É•ÅÕ•ÍĞ¤(€€€½¹Ñ•áĞ¹ÕÁ‘…Ñ”¡ì(€€€€€€€€‰Á•É¥½ˆèÁ•É¥½°(€€€€€€€€‰Á•É¥½‘}±…‰•°ˆèÁ•É¥½‘}±…‰•°°(€€€€€€€€‰Á•É¥½‘ÌˆèAI%=L°(€€€€€€€€‰Í¥¹”ˆèÍ¥¹”°(€€€€€€€€‰¹½Üˆè¹½Ü°(€€€€€€€€‰½Ù•É…•}ÍÑ…ÉĞˆè½Ù•É…•}ÍÑ…ÉĞ°(€€€€€€€€‰Í½ÕÉ•}ÅÕ•Éå}Á…”ˆèÍ½ÕÉ•}ÅÕ•Éå}Á…”°(€€€€€€€€‰¥¹•ÍÑ¥½¸ˆèÍÕµµ…É¥é”¡ÉÕ¹Ì¹™¥±Ñ•È¡­¥¹õ=Á•É…Ñ¥½¹…±IÕ¸¹-¥¹¹%9MQ%=8¤¤°(€€€€€€€€‰…¹…±åÍ¥ÌˆèÍÕµµ…É¥é”¡ÉÕ¹Ì¹™¥±Ñ•È¡­¥¹õ=Á•É…Ñ¥½¹…±IÕ¸¹-¥¹¹91eM%L¤¤°(€€€€€€€€‰…¥}…±±}ÍÑ…•Ìˆè…¥}…±±}ÍÑ…•Ì°(€€€€€€€€‰É•½Ù•ÉäˆèÍÕµµ…É¥é”¡ÉÕ¹Ì¹™¥±Ñ•È¡­¥¹õ=Á•É…Ñ¥½¹…±IÕ¸¹-¥¹¹I=YId¤¤°(€€€€€€€€‰ÍÕÁ•ÉÍ•‘•‘}…¹…±åÍ•ÌˆèY……¹å¹…±åÍ¥Ì¹½‰©•ÑÌ¹™¥±Ñ•È (€€€€€€€€€€€ÍÑ…ÑÕÌõY……¹å¹…±åÍ¥Ì¹MÑ…ÑÕÌ¹MUAIM°(€€€€€€€€€€€ÕÁ‘…Ñ•‘}…Ñ}}Ñ”õÍ¥¹”°(€€€€€€€€€€€ÕÁ‘…Ñ•‘}…Ñ}}±Ñ”õ¹½Ü°(€€€€€€€€¤¹½Õ¹Ğ ¤°(€€€€€€€€‰Í½ÕÉ•}É½İÌˆèÍ½ÕÉ•}É½İÌ°(€€€€€€€€‰Á•¹‘¥¹}½Õ¹ĞˆèÁ•¹‘¥¹œ¹½Õ¹Ğ ¤°(€€€€€€€€‰½±‘•ÍÑ}Á•¹‘¥¹œˆè½±‘•ÍÑ}Á•¹‘¥¹œ°(€€€€€€€€‰½±‘•ÍÑ}Á•¹‘¥¹}…”ˆè¹½Ü€´½±‘•ÍÑ}Á•¹‘¥¹œ¥˜½±‘•ÍÑ}Á•¹‘¥¹œ•±Í”9½¹”°(€€€€€€€€‰±…Ñ•ÍÑ}•ÉÉ½ÉÌˆè±…Ñ•ÍÑ}•ÉÉ½ÉÌ°(€€€€€€€€‰…‘µ¥¹}½µµ…¹‘Ìˆè…‘µ¥¹}½µµ…¹‘Ì°(€€€€€€€€‰…±±½İ•‘}½µµ…¹‘Ìˆè11=]}=559L°(€€€ô¤(€€€É•ÑÕÉ¸É•¹‘•È¡É•ÅÕ•ÍĞ°€‰½Á•É…Ñ¥½¹Ì½‘…Í¡‰½…É¹¡Ñµ°ˆ°½¹Ñ•áĞ¤
+import hashlib
+import logging
+import secrets
+from datetime import timedelta
+
+from django.conf import settings
+from django.contrib import admin
+from django.contrib import messages
+from django.contrib.auth import get_user_model
+from django.contrib.auth.tokens import default_token_generator
+from django.core.paginator import Paginator
+from django.db import IntegrityError, transaction
+from django.db.models import Avg, Count, F, OuterRef, Q, Subquery, Sum
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils import timezone
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.views.decorators.http import require_POST
+
+from jobs.models import JobSourceStatus, ManualVacancySubmission
+from jobs.tasks import process_manual_vacancy_submission
+from matching.models import AICallAttempt, VacancyAnalysis
+
+from .decorators import platform_admin_required
+from .forms import (
+    ApplicantCreationForm,
+    InvitationAcceptanceForm,
+    InvitationEmailForm,
+    ManualVacancySubmissionForm,
+)
+from .models import (
+    ApplicantActivity,
+    AdminAuditEvent,
+    AdminCommandRun,
+    OperationalParameterChange,
+    OperationalRun,
+    RefreshWorkItem,
+    UserInvitation,
+)
+from .parameters import (
+    AUTO_DISCARD_DAYS_KEY,
+    DEFAULT_AUTO_DISCARD_DAYS,
+    DEFAULT_FOLLOW_UP_ARCHIVE_DAYS,
+    FOLLOW_UP_ARCHIVE_DAYS_KEY,
+    MAX_RETENTION_DAYS,
+    MAX_REFRESH_MINUTES,
+    MIN_RETENTION_DAYS,
+    MIN_REFRESH_MINUTES,
+    REFRESH_INTERVAL_KEY,
+    current_auto_discard_days,
+    current_follow_up_archive_days,
+    current_refresh_interval_minutes,
+    initial_refresh_interval_minutes,
+    processing_is_paused,
+    reset_refresh_interval,
+    save_parameter,
+    set_processing_paused,
+    save_refresh_interval,
+)
+from .platform_statistics import build_platform_statistics
+
+PERIODS = {"24h": ("24 horas", timedelta(hours=24)), "7d": ("7 dÃ­as", timedelta(days=7)), "30d": ("30 dÃ­as", timedelta(days=30))}
+ALLOWED_COMMANDS = {"refresh_sources": "Actualizar fuentes ahora"}
+logger = logging.getLogger(__name__)
+
+
+@platform_admin_required
+def admin_center(request):
+    if request.method == "POST":
+        action = request.POST.get("processing_action")
+        if action not in {"pause", "resume"}:
+            messages.error(request, "La acciÃ³n solicitada no es vÃ¡lida.")
+        else:
+            paused = action == "pause"
+            previous = set_processing_paused(actor=request.user, paused=paused)
+            if previous == paused:
+                messages.info(request, "El procesamiento ya estaba en ese estado.")
+            else:
+                messages.success(
+                    request,
+                    "Se pausÃ³ la bÃºsqueda y el anÃ¡lisis de vacantes." if paused
+                    else "Se reanudÃ³ la bÃºsqueda y el anÃ¡lisis de vacantes.",
+                )
+        return redirect("operations:admin_center")
+    return render(request, "operations/admin_center.html", {
+        "applicant_count": get_user_model().objects.filter(is_superuser=False, is_staff=False).count(),
+        "processing_paused": processing_is_paused(),
+    })
+
+
+@platform_admin_required
+def manual_vacancies(request):
+    if request.method == "POST":
+        if processing_is_paused():
+            messages.error(request, "El procesamiento estÃ¡ pausado. ReanÃºdalo desde el centro de administraciÃ³n antes de registrar una vacante.")
+            return redirect("operations:manual_vacancies")
+        form = ManualVacancySubmissionForm(request.POST)
+        if form.is_valid():
+            submission = form.save(commit=False)
+            submission.submitted_by = request.user
+            submission.save()
+            try:
+                process_manual_vacancy_submission.delay(submission.pk)
+            except Exception as exc:
+                submission.status = ManualVacancySubmission.Status.FAILED
+                submission.result_message = "No fue posible poner el registro en cola. Puedes volver a intentarlo."
+                submission.save(update_fields=("status", "result_message", "updated_at"))
+                logger.error(
+                    "manual_vacancy_dispatch_failed submission_id=%s exception_type=%s",
+                    submission.pk,
+                    type(exc).__name__,
+                )
+                messages.error(request, submission.result_message)
+            else:
+                messages.success(request, "Vacante recibida. El procesamiento continuarÃ¡ en segundo plano.")
+            return redirect("operations:manual_vacancies")
+    else:
+        form = ManualVacancySubmissionForm()
+    return render(request, "operations/manual_vacancies.html", {
+        "form": form,
+        "processing_paused": processing_is_paused(),
+        "submissions": ManualVacancySubmission.objects.select_related(
+            "submitted_by", "vacancy",
+        )[:25],
+    })
+
+
+@platform_admin_required
+def platform_statistics(request):
+    period = request.GET.get("period", "30d")
+    return render(request, "operations/platform_statistics.html", build_platform_statistics(period=period))
+
+
+@platform_admin_required
+def users(request):
+    User = get_user_model()
+    latest_status_action = AdminAuditEvent.objects.filter(
+        target_id=OuterRef("pk"),
+        action__in=(
+            AdminAuditEvent.Action.ACCOUNT_DEACTIVATED,
+            AdminAuditEvent.Action.ACCOUNT_AUTO_DEACTIVATED,
+            AdminAuditEvent.Action.ACCOUNT_REACTIVATED,
+        ),
+    ).order_by("-created_at").values("action")[:1]
+    accounts = User.objects.filter(is_superuser=False, is_staff=False).annotate(
+        latest_status_action=Subquery(latest_status_action),
+    ).order_by("username")
+    return render(request, "operations/users.html", {
+        "accounts": accounts,
+        "invitations": UserInvitation.objects.select_related("created_by")[:30],
+        "now": timezone.now(),
+        "audit_events": AdminAuditEvent.objects.select_related("actor", "target")[:30],
+    })
+
+
+@platform_admin_required
+def create_invitation(request):
+    if request.method != "POST":
+        return redirect("operations:users")
+    form = InvitationEmailForm(request.POST)
+    if not form.is_valid():
+        messages.error(request, "Escribe un correo vÃ¡lido para generar la invitaciÃ³n.")
+        return redirect("operations:users")
+
+    email = form.cleaned_data["email"].strip()
+    raw_token = secrets.token_urlsafe(32)
+    now = timezone.now()
+    with transaction.atomic():
+        # Serialize invitation replacement even when no previous invitation exists yet.
+        get_user_model().objects.select_for_update().get(pk=request.user.pk)
+        previous_invitations = list(UserInvitation.objects.select_for_update().filter(
+            email__iexact=email, used_at__isnull=True, revoked_at__isnull=True,
+        ))
+        UserInvitation.objects.filter(pk__in=[item.pk for item in previous_invitations]).update(revoked_at=now)
+        for previous in previous_invitations:
+            AdminAuditEvent.objects.create(
+                actor=request.user,
+                action=AdminAuditEvent.Action.INVITATION_REVOKED,
+                invitation=previous,
+                invitation_email=previous.email,
+            )
+        invitation = UserInvitation.objects.create(
+            email=email,
+            token_hash=hashlib.sha256(raw_token.encode("utf-8")).hexdigest(),
+            created_by=request.user,
+            expires_at=now + timedelta(days=7),
+        )
+        AdminAuditEvent.objects.create(
+            actor=request.user,
+            action=AdminAuditEvent.Action.INVITATION_CREATED,
+            invitation=invitation,
+            invitation_email=email,
+        )
+
+    invitation_url = request.build_absolute_uri(reverse("invitation_accept")) + f"#{raw_token}"
+    response = render(request, "operations/invitation_link.html", {
+        "invitation": invitation,
+        "invitation_url": invitation_url,
+    })
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
+
+
+@platform_admin_required
+def revoke_invitation(request, invitation_id):
+    if request.method != "POST":
+        return redirect("operations:users")
+    with transaction.atomic():
+        invitation = get_object_or_404(UserInvitation.objects.select_for_update(), pk=invitation_id)
+        if invitation.is_pending():
+            invitation.revoked_at = timezone.now()
+            invitation.save(update_fields=("revoked_at",))
+            AdminAuditEvent.objects.create(
+                actor=request.user,
+                action=AdminAuditEvent.Action.INVITATION_REVOKED,
+                invitation=invitation,
+                invitation_email=invitation.email,
+            )
+            revoked = True
+        else:
+            revoked = False
+    if revoked:
+        messages.success(request, "Se revocÃ³ la invitaciÃ³n.")
+    else:
+        messages.info(request, "La invitaciÃ³n ya no estÃ¡ pendiente.")
+    return redirect("operations:users")
+
+
+def _invitation_for_token(raw_token):
+    if not raw_token or len(raw_token) > 128:
+        return None
+    digest = hashlib.sha256(raw_token.encode("utf-8")).hexdigest()
+    invitation = UserInvitation.objects.filter(token_hash=digest).first()
+    return invitation if invitation and invitation.is_pending() else None
+
+
+def invitation_accept(request):
+    if request.method == "GET":
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": InvitationAcceptanceForm(),
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        # HTTPS POST forms need a same-origin Referer when browsers omit Origin.
+        # The invitation secret is in the URL fragment, which is never sent in Referer.
+        response["Referrer-Policy"] = "same-origin"
+        response["X-Robots-Tag"] = "noindex, nofollow"
+        return response
+
+    raw_token = request.POST.get("token", "")
+    invitation = _invitation_for_token(raw_token)
+    if invitation is None:
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": InvitationAcceptanceForm(),
+            "invalid_invitation": True,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        }, status=400)
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "same-origin"
+        return response
+
+    form = InvitationAcceptanceForm(request.POST)
+    if not form.is_valid():
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": form,
+            "invitation_email": invitation.email,
+            "token_for_form": raw_token,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "same-origin"
+        return response
+
+    User = get_user_model()
+    try:
+        with transaction.atomic():
+            locked_invitation = UserInvitation.objects.select_for_update().filter(
+                pk=invitation.pk,
+            ).first()
+            if locked_invitation is None or not locked_invitation.is_pending():
+                response = render(request, "operations/invitation_accept.html", {
+                    "acceptance_form": form,
+                    "invalid_invitation": True,
+                    "acceptance_url": reverse("invitation_accept"),
+                    "validation_url": reverse("invitation_validate"),
+                }, status=400)
+                response["Cache-Control"] = "private, no-store"
+                response["Referrer-Policy"] = "same-origin"
+                return response
+            applicant = form.save(commit=False)
+            applicant.email = locked_invitation.email
+            applicant.is_active = True
+            applicant.is_staff = False
+            applicant.is_superuser = False
+            applicant.save()
+            locked_invitation.used_at = timezone.now()
+            locked_invitation.save(update_fields=("used_at",))
+            AdminAuditEvent.objects.create(
+                actor=locked_invitation.created_by,
+                target=applicant,
+                invitation=locked_invitation,
+                invitation_email=locked_invitation.email,
+                action=AdminAuditEvent.Action.INVITATION_ACCEPTED,
+            )
+    except IntegrityError:
+        form.add_error("username", "Ese nombre de usuario ya estÃ¡ en uso. Elige otro.")
+        response = render(request, "operations/invitation_accept.html", {
+            "acceptance_form": form,
+            "invitation_email": invitation.email,
+            "token_for_form": raw_token,
+            "acceptance_url": reverse("invitation_accept"),
+            "validation_url": reverse("invitation_validate"),
+        })
+        response["Cache-Control"] = "private, no-store"
+        response["Referrer-Policy"] = "same-origin"
+        return response
+
+    messages.success(request, "Tu cuenta quedÃ³ creada. Ya puedes iniciar sesiÃ³n.")
+    return redirect("login")
+
+
+@require_POST
+def validate_invitation(request):
+    raw_token = request.POST.get("token", "")
+    invitation = _invitation_for_token(raw_token)
+    if invitation is None:
+        response = JsonResponse({"valid": False}, status=400)
+    else:
+        response = JsonResponse({"valid": True, "email": invitation.email})
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+@platform_admin_required
+def create_user(request):
+    if request.method == "POST":
+        form = ApplicantCreationForm(request.POST)
+        if form.is_valid():
+            with transaction.atomic():
+                applicant = form.save(commit=False)
+                applicant.is_staff = False
+                applicant.is_superuser = False
+                applicant.save()
+                AdminAuditEvent.objects.create(
+                    actor=request.user, target=applicant,
+                    action=AdminAuditEvent.Action.ACCOUNT_CREATED,
+                )
+            messages.success(request, "La cuenta del aspirante quedÃ³ creada.")
+            return redirect("operations:users")
+    else:
+        form = ApplicantCreationForm()
+    return render(request, "operations/user_form.html", {"form": form})
+
+
+@platform_admin_required
+def toggle_user(request, user_id):
+    if request.method != "POST":
+        return redirect("operations:users")
+    User = get_user_model()
+    applicant = get_object_or_404(
+        User.objects.filter(is_superuser=False, is_staff=False), pk=user_id,
+    )
+    active = request.POST.get("active")
+    if active not in {"true", "false"}:
+        messages.error(request, "La acciÃ³n solicitada no es vÃ¡lida.")
+        return redirect("operations:users")
+    new_state = active == "true"
+    if applicant.is_active != new_state:
+        applicant.is_active = new_state
+        applicant.save(update_fields=("is_active",))
+        if new_state:
+            ApplicantActivity.objects.update_or_create(
+                user=applicant,
+                defaults={"last_authenticated_activity": timezone.now()},
+            )
+        AdminAuditEvent.objects.create(
+            actor=request.user,
+            target=applicant,
+            action=(AdminAuditEvent.Action.ACCOUNT_REACTIVATED if new_state
+                    else AdminAuditEvent.Action.ACCOUNT_DEACTIVATED),
+        )
+        messages.success(request, "Se reactivÃ³ la cuenta." if new_state else "Se desactivÃ³ la cuenta.")
+    return redirect("operations:users")
+
+
+@platform_admin_required
+def request_password_reset(request, user_id):
+    if request.method != "POST":
+        return redirect("operations:users")
+    User = get_user_model()
+    applicant = get_object_or_404(
+        User.objects.filter(is_superuser=False, is_staff=False), pk=user_id,
+    )
+    if not applicant.is_active or not applicant.has_usable_password():
+        AdminAuditEvent.objects.create(
+            actor=request.user,
+            target=applicant,
+            action=AdminAuditEvent.Action.PASSWORD_RESET_UNAVAILABLE,
+        )
+        messages.error(request, "Solo se puede generar un enlace para una cuenta activa con contraseÃ±a.")
+        return redirect("operations:users")
+
+    uidb64 = urlsafe_base64_encode(force_bytes(applicant.pk))
+    token = default_token_generator.make_token(applicant)
+    reset_url = request.build_absolute_uri(reverse(
+        "password_reset_confirm", kwargs={"uidb64": uidb64, "token": token},
+    ))
+    AdminAuditEvent.objects.create(
+        actor=request.user,
+        target=applicant,
+        action=AdminAuditEvent.Action.PASSWORD_RESET_LINK_GENERATED,
+    )
+    response = render(request, "operations/password_reset_link.html", {
+        "applicant": applicant,
+        "reset_url": reset_url,
+        "timeout_minutes": max(1, settings.PASSWORD_RESET_TIMEOUT // 60),
+    })
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    return response
+
+
+def _enqueue_refresh(command_id):
+    from jobs.tasks import refresh_sources
+
+    try:
+        task = refresh_sources.delay(command_id)
+        AdminCommandRun.objects.filter(pk=command_id).update(task_id=task.id or "")
+    except Exception:
+        command = AdminCommandRun.objects.filter(pk=command_id).first()
+        if command:
+            now = timezone.now()
+            command.status = AdminCommandRun.Status.FAILED
+            command.error_summary = "No fue posible poner la actualizaciÃ³n en cola."
+            command.started_at = now
+            command.finished_at = now
+            command.duration_ms = 0
+            command.save(update_fields=("status", "error_summary", "started_at", "finished_at", "duration_ms"))
+
+
+@platform_admin_required
+def run_command(request):
+    if request.method != "POST":
+        return redirect("operations:dashboard")
+    if set(request.POST.keys()) - {"command", "csrfmiddlewaretoken"}:
+        return render(request, "operations/invalid_command.html", status=400)
+    command_name = request.POST.get("command", "")
+    if command_name not in ALLOWED_COMMANDS:
+        return render(request, "operations/invalid_command.html", status=400)
+    if processing_is_paused():
+        messages.error(request, "La bÃºsqueda y el anÃ¡lisis estÃ¡n pausados. ReanÃºdalos desde el centro de administraciÃ³n.")
+        return redirect("operations:dashboard")
+
+    try:
+        with transaction.atomic():
+            command = AdminCommandRun.objects.create(command=command_name, requested_by=request.user)
+            transaction.on_commit(lambda command_id=command.pk: _enqueue_refresh(command_id))
+        messages.success(request, "La actualizaciÃ³n quedÃ³ en cola.")
+    except IntegrityError:
+        messages.info(request, "Ya hay una actualizaciÃ³n manual en cola o en curso.")
+    return redirect("operations:dashboard")
+
+
+@platform_admin_required
+def parameters(request):
+    error = ""
+    if request.method == "POST":
+        if set(request.POST.keys()) - {"parameter", "value", "action", "csrfmiddlewaretoken"}:
+            error = "La solicitud contiene campos que no estÃ¡n habilitados."
+        elif request.POST.get("parameter") not in {
+            REFRESH_INTERVAL_KEY, AUTO_DISCARD_DAYS_KEY, FOLLOW_UP_ARCHIVE_DAYS_KEY,
+        }:
+            error = "El parÃ¡metro solicitado no estÃ¡ disponible."
+        elif request.POST.get("parameter") == REFRESH_INTERVAL_KEY and request.POST.get("action") == "reset":
+            reset_refresh_interval(actor=request.user)
+            messages.success(request, "Se restaurÃ³ el intervalo inicial. El cambio aplicarÃ¡ en los siguientes ciclos.")
+            return redirect("operations:parameters")
+        elif request.POST.get("action") == "save":
+            parameter_key = request.POST.get("parameter")
+            raw_value = request.POST.get("value", "")
+            if not raw_value.isdecimal():
+                unit = "minutos" if parameter_key == REFRESH_INTERVAL_KEY else "dÃ­as"
+                error = f"Ingresa un nÃºmero entero de {unit}."
+            else:
+                value = int(raw_value)
+                if parameter_key == REFRESH_INTERVAL_KEY and not MIN_REFRESH_MINUTES <= value <= MAX_REFRESH_MINUTES:
+                    error = f"El intervalo debe estar entre {MIN_REFRESH_MINUTES} y {MAX_REFRESH_MINUTES} minutos."
+                elif parameter_key != REFRESH_INTERVAL_KEY and not MIN_RETENTION_DAYS <= value <= MAX_RETENTION_DAYS:
+                    error = f"El plazo debe estar entre {MIN_RETENTION_DAYS} y {MAX_RETENTION_DAYS} dÃ­as."
+                else:
+                    if parameter_key == REFRESH_INTERVAL_KEY:
+                        save_refresh_interval(actor=request.user, value_minutes=value)
+                        messages.success(request, "Se guardÃ³ el intervalo. No se iniciÃ³ una bÃºsqueda; aplicarÃ¡ en los siguientes ciclos.")
+                    else:
+                        save_parameter(actor=request.user, key=parameter_key, value=value)
+                        messages.success(request, "Se guardÃ³ el plazo. No se iniciÃ³ una tarea; aplicarÃ¡ en la siguiente ejecuciÃ³n diaria.")
+                    return redirect("operations:parameters")
+        else:
+            error = "Selecciona una acciÃ³n disponible."
+
+    context = admin.site.each_context(request)
+    context.update({
+        "current_interval": current_refresh_interval_minutes(),
+        "initial_interval": initial_refresh_interval_minutes(),
+        "min_interval": MIN_REFRESH_MINUTES,
+        "max_interval": MAX_REFRESH_MINUTES,
+        "auto_discard_days": current_auto_discard_days(),
+        "initial_auto_discard_days": DEFAULT_AUTO_DISCARD_DAYS,
+        "follow_up_archive_days": current_follow_up_archive_days(),
+        "initial_follow_up_archive_days": DEFAULT_FOLLOW_UP_ARCHIVE_DAYS,
+        "min_retention_days": MIN_RETENTION_DAYS,
+        "max_retention_days": MAX_RETENTION_DAYS,
+        "history": OperationalParameterChange.objects.select_related("changed_by")[:20],
+        "error": error,
+    })
+    return render(request, "operations/parameters.html", context, status=400 if error else 200)
+
+
+@platform_admin_required
+def dashboard(request):
+    period = request.GET.get("period", "24h")
+    if period not in PERIODS:
+        period = "24h"
+    period_label, duration = PERIODS[period]
+    now = timezone.now()
+    since = now - duration
+    runs = OperationalRun.objects.filter(started_at__gte=since, started_at__lte=now)
+    source_query_runs = runs.filter(
+        kind=OperationalRun.Kind.INGESTION,
+        operation="source_query",
+    ).only(
+        "started_at", "source", "status", "item_count", "new_count", "known_count",
+        "known_updated_count", "known_unchanged_count", "duration_ms",
+        "listing_count", "title_kept_count", "title_discarded_count",
+        "details_requested_count", "details_received_count", "title_input_tokens",
+        "listing_fetch_duration_ms", "title_preselection_duration_ms", "detail_fetch_duration_ms",
+        "error_category", "error_summary",
+    ).order_by("-started_at", "-pk")
+    source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
+    query_run_ids = [run.pk for run in source_query_page]
+
+    def minutes(milliseconds):
+        return round(milliseconds / 60000, 1) if milliseconds is not None else None
+
+    analysis_metrics_by_query = {}
+    analysis_token_metrics_by_query = {}
+    if query_run_ids:
+        analysis_metrics_by_query = {
+            row["source_queries__source_query_id"]: row
+            for row in VacancyAnalysis.objects.filter(
+                source_queries__source_query_id__in=query_run_ids,
+            ).values("source_queries__source_query_id").annotate(
+                linked=Count("pk", distinct=True),
+                queued=Count(
+                    "pk", filter=Q(source_queries__enqueued_by_query=True), distinct=True,
+                ),
+                reused=Count(
+                    "pk", filter=Q(source_queries__enqueued_by_query=False), distinct=True,
+                ),
+                pending=Count("pk", filter=Q(status=VacancyAnalysis.Status.PENDING), distinct=True),
+                completed=Count("pk", filter=Q(status=VacancyAnalysis.Status.COMPLETED), distinct=True),
+                failed=Count("pk", filter=Q(status=VacancyAnalysis.Status.FAILED), distinct=True),
+                auto_discarded=Count(
+                    "pk",
+                    filter=(
+                        Q(status=VacancyAnalysis.Status.COMPLETED)
+                        & Q(profile__vacancy_discoveries__vacancy_id=F("vacancy_id"))
+                        & Q(profile__vacancy_discoveries__auto_discard_threshold__gt=0)
+                        & Q(score__lt=F("profile__vacancy_discoveries__auto_discard_threshold"))
+                    ),
+                    distinct=True,
+                ),
+            )
+        }
+        analysis_token_metrics_by_query = {
+            row["analysis__source_queries__source_query_id"]: row
+            for row in AICallAttempt.objects.filter(
+                analysis__source_queries__source_query_id__in=query_run_ids,
+                stage=AICallAttempt.Stage.SCORING,
+            ).values("analysis__source_queries__source_query_id").annotate(
+                input_tokens=Sum("input_tokens"),
+                output_tokens=Sum("output_tokens"),
+            )
+        }
+    for run in source_query_page:
+        duration_ms = run.duration_ms
+        if duration_ms is None and run.status == OperationalRun.Status.RUNNING:
+            duration_ms = max(0, int((now - run.started_at).total_seconds() * 1000))
+        run.duration_minutes = minutes(duration_ms)
+        run.listing_fetch_minutes = minutes(run.listing_fetch_duration_ms)
+        run.title_preselection_minutes = minutes(run.title_preselection_duration_ms)
+        run.detail_fetch_minutes = minutes(run.detail_fetch_duration_ms)
+        run.stage_duration_summary = " / ".join(
+            f"{value:.1f}" if value is not None else "â€”"
+            for value in (
+                run.listing_fetch_minutes,
+                run.title_preselection_minutes,
+                run.detail_fetch_minutes,
+            )
+        )
+        analysis_metrics = analysis_metrics_by_query.get(run.pk, {})
+        completed = analysis_metrics.get("completed", 0)
+        auto_discarded = analysis_metrics.get("auto_discarded", 0)
+        run.analysis_metrics = {
+            "linked": analysis_metrics.get("linked", 0),
+            "queued": analysis_metrics.get("queued", 0),
+            "reused": analysis_metrics.get("reused", 0),
+            "pending": analysis_metrics.get("pending", 0),
+            "completed": completed,
+            "passed": max(0, completed - auto_discarded),
+            "auto_discarded": auto_discarded,
+            "failed": analysis_metrics.get("failed", 0),
+            "input_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("input_tokens"),
+            "output_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("output_tokens"),
+        }
+
+    def summarize(queryset):
+        result = queryset.aggregate(
+            total=Count("pk"),
+            succeeded=Count("pk", filter=Q(status=OperationalRun.Status.SUCCEEDED)),
+            partial=Count("pk", filter=Q(status=OperationalRun.Status.PARTIAL)),
+            retrying=Count("pk", filter=Q(status=OperationalRun.Status.RETRYING)),
+            failed=Count("pk", filter=Q(status=OperationalRun.Status.FAILED)),
+            items=Sum("item_count"),
+            average_duration=Avg("duration_ms", filter=Q(finished_at__isnull=False)),
+        )
+        result["items"] = result["items"] or 0
+        result["average_duration"] = minutes(result["average_duration"] or 0)
+        result["failure_rate"] = round(100 * result["failed"] / result["total"]) if result["total"] else 0
+        return result
+
+    source_summaries = {}
+    source_names = runs.filter(kind=OperationalRun.Kind.INGESTION, source__gt="").values_list(
+        "source", flat=True
+    ).distinct()
+    for source in source_names:
+        source_runs = runs.filter(kind=OperationalRun.Kind.INGESTION, source=source)
+        summary = summarize(source_runs)
+        breakdown = source_runs.aggregate(
+            new_items=Sum("new_count"),
+            known_items=Sum("known_count"),
+            known_updated_items=Sum("known_updated_count"),
+            known_unchanged_items=Sum("known_unchanged_count"),
+            titles_received=Sum("listing_count"),
+            titles_kept=Sum("title_kept_count"),
+            titles_discarded=Sum("title_discarded_count"),
+            details_requested=Sum("details_requested_count"),
+            details_received=Sum("details_received_count"),
+            title_input_tokens=Sum("title_input_tokens"),
+        )
+        summary.update({
+            "source": source,
+            "classified_queries": source_runs.filter(new_count__isnull=False).count(),
+            **breakdown,
+            "last_success": source_runs.filter(status=OperationalRun.Status.SUCCEEDED).order_by(
+                "-started_at"
+            ).values_list("started_at", flat=True).first(),
+            "last_error": source_runs.filter(
+                status__in=(OperationalRun.Status.FAILED, OperationalRun.Status.RETRYING)
+            ).order_by("-started_at").values_list("error_summary", flat=True).first(),
+        })
+        source_summaries[source] = summary
+
+    refresh_progress = {
+        row["source"]: row
+        for row in RefreshWorkItem.objects.filter(
+            status__in=(RefreshWorkItem.Status.QUEUED, RefreshWorkItem.Status.RUNNING),
+        ).values("source").annotate(
+            queued=Count("pk", filter=Q(status=RefreshWorkItem.Status.QUEUED)),
+            running=Count("pk", filter=Q(status=RefreshWorkItem.Status.RUNNING)),
+            confirmed_listings=Sum("source_run__item_count"),
+        )
+    }
+    statuses_by_source = {status.source: status for status in JobSourceStatus.objects.order_by("source")}
+    source_rows = []
+    for source in sorted(set(statuses_by_source) | set(refresh_progress)):
+        source_rows.append({
+            "source": source,
+            "has_status": source in statuses_by_source,
+            "status": statuses_by_source.get(source),
+            "metrics": source_summaries.get(source.source, {
+                "total": 0, "failed": 0, "average_duration": 0, "last_error": "",
+                "classified_queries": 0,
+            }),
+            "progress": refresh_progress.get(source.source, {"queued": 0, "running": 0, "confirmed_listings": 0}),
+        })
+
+    pending = VacancyAnalysis.objects.filter(status=VacancyAnalysis.Status.PENDING)
+    oldest_pending = pending.order_by("created_at").values_list("created_at", flat=True).first()
+    latest_errors = runs.filter(
+        status__in=(OperationalRun.Status.FAILED, OperationalRun.Status.RETRYING),
+    ).exclude(error_summary="").order_by("-started_at")[:10]
+    coverage_start = OperationalRun.objects.order_by("started_at").values_list("started_at", flat=True).first()
+    admin_commands = list(AdminCommandRun.objects.select_related("requested_by").all()[:20])
+    for command in admin_commands:
+        command.duration_minutes = minutes(command.duration_ms)
+    ai_call_stages = []
+    for stage, label in AICallAttempt.Stage.choices:
+        metric = AICallAttempt.objects.filter(stage=stage, created_at__gte=since, created_at__lte=now).aggregate(
+            total=Count("pk"),
+            succeeded=Count("pk", filter=Q(outcome=AICallAttempt.Outcome.SUCCEEDED)),
+            retrying=Count("pk", filter=Q(outcome=AICallAttempt.Outcome.RETRYING)),
+            failed=Count("pk", filter=Q(outcome=AICallAttempt.Outcome.FAILED)),
+            average_duration=Avg("duration_ms"),
+            input_tokens=Sum("input_tokens"),
+            output_tokens=Sum("output_tokens"),
+        )
+        metric["average_duration"] = minutes(metric["average_duration"] or 0)
+        ai_call_stages.append({"label": label, **metric})
+
+    context = admin.site.each_context(request)
+    context.update({
+        "period": period,
+        "period_label": period_label,
+        "periods": PERIODS,
+        "since": since,
+        "now": now,
+        "coverage_start": coverage_start,
+        "source_query_page": source_query_page,
+        "ingestion": summarize(runs.filter(kind=OperationalRun.Kind.INGESTION)),
+        "analysis": summarize(runs.filter(kind=OperationalRun.Kind.ANALYSIS)),
+        "ai_call_stages": ai_call_stages,
+        "recovery": summarize(runs.filter(kind=OperationalRun.Kind.RECOVERY)),
+        "superseded_analyses": VacancyAnalysis.objects.filter(
+            status=VacancyAnalysis.Status.SUPERSEDED,
+            updated_at__gte=since,
+            updated_at__lte=now,
+        ).count(),
+        "source_rows": source_rows,
+        "pending_count": pending.count(),
+        "oldest_pending": oldest_pending,
+        "oldest_pending_age": now - oldest_pending if oldest_pending else None,
+        "latest_errors": latest_errors,
+        "admin_commands": admin_commands,
+        "allowed_commands": ALLOWED_COMMANDS,
+    })
+    return render(request, "operations/dashboard.html", context)

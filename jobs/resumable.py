@@ -1,1 +1,727 @@
-YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éí×]µñ:-jZ.¶›­–)Þ³V–×÷'BÆövv–æp¦–×÷'BF–ÖP¦–×÷'BWV–@¦g&öÒFFWF–ÖR–×÷'BF–ÖVFVÇF ¦g&öÒ6VÆW'’–×÷'B6†&VE÷F6°¦g&öÒF¦ævòæ6öæb–×÷'B6WGF–æw0¦g&öÒF¦ævòæF"–×÷'BG&ç67F–öà¦g&öÒF¦ævòçWF–Ç2–×÷'BF–ÖW¦öæP ¦g&öÒÖF6†–æræÖöFVÇ2–×÷'BÖF6†–æt6öæf–rÂ&öf–ÆUf6æ7”F—66÷fW'¦g&öÒÖF6†–ærç6W'f–6W2–×÷'BvWEö7F—fUöÖF6†–æuö6öæf–rÂvWE÷&öf–ÆU÷6V&6…÷FW&×0¦g&öÒ÷W&F–öç2æÖöFVÇ2–×÷'B€¢FÖ–ä6öÖÖæE'VâÀ¢÷W&F–öæÅ'VâÀ¢&Vg&W6„&F6‚À¢&Vg&W6„&F6…&öf–ÆRÀ¢&Vg&W6…v÷&´—FVÒÀ¢&Vg&W6…v÷&µ&öf–ÆRÀ¢¦g&öÒ÷W&F–öç2ç6W'f–6W2–×÷'B€¢&Vv–å÷'VâÀ¢6Æ–Õ÷&Vg&W6…öÆV6RÀ¢f–æ—6…÷'VâÀ¢&V6÷&EöFÖ–å÷&öf–ÆU÷&W7VÇBÀ¢&VÆV6U÷&Vg&W6…öÆV6RÀ¢&VæWu÷&Vg&W6…öÆV6RÀ¢¦g&öÒ&öf–ÆW2æÆö6F–öç2–×÷'BW‡æEöÆö6F–öç2Âf6æ7•öÆö6F–öåö—5öVÆ–v–&ÆP¦g&öÒ&öf–ÆW2æÖöFVÇ2–×÷'B&öf–ÆP¦g&öÒæÖöFVÇ2–×÷'B¦ö%6÷W&6U7FGW0 ¦g&öÒæ6öææV7F÷'2æ&6R–×÷'B¦ö$Æ—7F–ærÂ6÷W&6U'F–ÆÇ•Væf–Æ&ÆRÂ6÷W&6UVæf–Æ&ÆP¦g&öÒç&Vv—7G'’–×÷'B6öæf–wW&VEö6öææV7F÷'0¦g&öÒç6V&6…öw&÷W2–×÷'Bw&÷W÷6V&6…÷&WVW7G2Â6V&6…÷&WVW7Eö–FVçF—G¦g&öÒç6W'f–6W2–×÷'B6fUöÆ—7F–æw0 ¦ÆövvW"ÒÆövv–ærævWDÆövvW"…õöæÖUõò ¥tõ$µôÄT4Uõ4T4ôäE2Ò6WGF–æw2å$Te$U4…õtõ$µôÄT4Uõ4T4ôäE0¤DUD”Åô$D4…õ4•¤RÒ6WGF–æw2å$Te$U4…ôDUD”Åô$D4…õ4•¤P¤Äô4D”ôåô$D4…õ4•¤RÒ6WGF–æw2å$Te$U4…ôÄô4D”ôåô$D4…õ4•¤P  ¦FVböÆ—7F–æu÷Fõö§6öâ†Æ—7F–ær“ ¢&WGW&â°¢'6÷W&6R#¢Æ—7F–ærç6÷W&6RÀ¢&W‡FW&æÅö–B#¢Æ—7F–æræW‡FW&æÅö–B÷"""À¢'F—FÆR#¢Æ—7F–ærçF—FÆRÀ¢&6ö×ç’#¢Æ—7F–æræ6ö×ç’À¢&Æö6F–öâ#¢Æ—7F–æræÆö6F–öâÀ¢&FW67&—F–öâ#¢Æ—7F–æræFW67&—F–öâÀ¢&÷&–v–æÅ÷W&Â#¢Æ—7F–æræ÷&–v–æÅ÷W&ÂÀ¢'&uöFF#¢Æ—7F–ærç&uöFF÷"·ÒÀ¢'6Æ'’#¢Æ—7F–ærç6Æ'’À¢&6öçG&7E÷G—R#¢Æ—7F–æræ6öçG&7E÷G—RÀ¢Ð  ¦FVböÆ—7F–æuög&öÕö§6öâ‡fÇVR“ ¢&WGW&â¦ö$Æ—7F–ær‚¢§fÇVR  ¦FVböVçVWVU÷v÷&µö—FVÒ‡v÷&µö—FVÕö–B“ ¢æ÷rÒF–ÖW¦öæRææ÷r‚¢WFFVBÒ&Vg&W6…v÷&´—FVÒæö&¦V7G2æf–ÇFW"€¢³×v÷&µö—FVÕö–BÀ¢7FGW3Õ&Vg&W6…v÷&´—FVÒå7FGW2åTUTTBÀ¢’çWFFR†Æ7EöF—7F6†VEöCÖæ÷r¢–bWFFVC ¢&ö6W75÷&Vg&W6…÷v÷&µö—FVÒæFVÆ’‡v÷&µö—FVÕö–B  ¦FVböf–æ—6…ö&F6…÷&öf–ÆR†&F6…÷&öf–ÆUö–BÂ¢Âf–ÆVCÔfÇ6RÂ7FÆSÔfÇ6R“ ¢v—F‚G&ç67F–öâæFöÖ–2‚“ ¢&öf–ÆU÷'VâÒæöæP¢&F6…÷&öf–ÆRÒ&Vg&W6„&F6…&öf–ÆRæö&¦V7G2ç6VÆV7Eöf÷%÷WFFR‚’ç6VÆV7E÷&VÆFVB€¢&&F6‚"Â'&öf–ÆU÷'Vâ"Â'&öf–ÆR"À¢’æf–ÇFW"‡³Ö&F6…÷&öf–ÆUö–B’æf—'7B‚¢–b&F6…÷&öf–ÆR—2æöæR÷"&F6…÷&öf–ÆRæf–æ—6†VEöC ¢&WGW&âfÇ6P¢–bæ÷B&F6…÷&öf–ÆRç&W&VEöBæBæ÷B&F6…÷&öf–ÆRæ&F6‚çÆææVEöC ¢&WGW&âfÇ6P ¢Væf–æ—6†VBÒ&F6…÷&öf–ÆRçv÷&µöÆ–æ·2æW†6ÇVFR€¢v÷&µö—FVÕõ÷7FGW5õö–ãÒ€¢&Vg&W6…v÷&´—FVÒå7FGW2å5T44TTDTBÀ¢&Vg&W6…v÷&´—FVÒå7FGW2å%D”ÂÀ¢&Vg&W6…v÷&´—FVÒå7FGW2äd”ÄTBÀ¢’À¢’æW†—7G2‚¢–bVæf–æ—6†VC ¢&WGW&âfÇ6P ¢Æ–æ·2ÒÆ—7B†&F6…÷&öf–ÆRçv÷&µöÆ–æ·2ç6VÆV7E÷&VÆFVB‚'v÷&µö—FVÕõ÷6÷W&6U÷'Vâ"’¢v÷&µöf–ÆVBÒf–ÆVB÷"&F6…÷&öf–ÆRæf–ÆV@¢f÷"Æ–æ²–âÆ–æ·3 ¢—FVÒÒÆ–æ²çv÷&µö—FVÐ¢6÷W&6U÷&W7VÇG2ÒF–7B†&F6…÷&öf–ÆRç6÷W&6U÷&W7VÇG2÷"·Ò¢&W7VÇBÒ6÷W&6U÷&W7VÇG2ç6WFFVfVÇB†—FVÒç6÷W&6RÂ²'VW&–W2#¢Â&f–ÇW&W2#¢Â'f6æ7•ö–G2#¢µ×Ò¢&W7VÇE²'VW&–W2%Ò³Ò¢–b—FVÒç7FGW2–â…&Vg&W6…v÷&´—FVÒå7FGW2å%D”ÂÂ&Vg&W6…v÷&´—FVÒå7FGW2äd”ÄTB“ ¢&W7VÇE²&f–ÇW&W2%ÒÒ&W7VÇBævWB‚&f–ÇW&W2"Â’²¢v÷&µöf–ÆVBÒG'VP¢&F6…÷&öf–ÆRç6÷W&6U÷&W7VÇG2Ò6÷W&6U÷&W7VÇG0 ¢6÷W&6U÷&W7VÇG2ÒF–7B†&F6…÷&öf–ÆRç6÷W&6U÷&W7VÇG2÷"·Ò¢f÷VæEö–G2Ò6WB†&F6…÷&öf–ÆRæf÷VæE÷f6æ7•ö–G2÷"µÒ¢f÷"6÷W&6RÂ7VÖÖ'’–â6÷W&6U÷&W7VÇG2æ—FV×2‚“ ¢7VÖÖ'•²&6÷VçB%ÒÒÆVâ‡6WB‡7VÖÖ'’ç÷‚'f6æ7•ö–G2"ÂµÒ’’¢7VÖÖ'•²'6÷W&6R%ÒÒ6÷W&6P¢7VÖÖ'•²&f–Æ&ÆR%ÒÒæ÷B7VÖÖ'’ævWB‚&f–ÇW&W2"Â ¢&F6…÷&öf–ÆRæf–ÆVBÒv÷&µöf–ÆV@¢&F6…÷&öf–ÆRç7FÆRÒ&F6…÷&öf–ÆRç7FÆR÷"7FÆP¢&F6…÷&öf–ÆRç6÷W&6U÷&W7VÇG2Ò6÷W&6U÷&W7VÇG0¢&F6…÷&öf–ÆRæf–æ—6†VEöBÒF–ÖW¦öæRææ÷r‚¢&F6…÷&öf–ÆRç6fR‡WFFUöf–VÆG3Ò‚&f–ÆVB"Â'7FÆR"Â'6÷W&6U÷&W7VÇG2"Â&f–æ—6†VEöB"’ ¢&öf–ÆU÷'VâÒ&F6…÷&öf–ÆRç&öf–ÆU÷'Và¢'Vå÷7FGW2Ò÷W&F–öæÅ'Vâå7FGW2äd”ÄTB–bv÷&µöf–ÆVBæBæ÷Bf÷VæEö–G2VÇ6R€¢÷W&F–öæÅ'Vâå7FGW2å%D”Â–bv÷&µöf–ÆVB÷"&F6…÷&öf–ÆRç7FÆRVÇ6R÷W&F–öæÅ'Vâå7FGW2å5T44TTDT@¢¢f–æ—6…÷'Vâ€¢&öf–ÆU÷'VâÀ¢7FGW3×'Vå÷7FGW2À¢—FVÕö6÷VçCÖÆVâ†f÷VæEö–G2’À¢W'&÷%ö6FVv÷'“Ò'6÷W&6UöW'&÷""–bv÷&µöf–ÆVB÷"&F6…÷&öf–ÆRç7FÆRVÇ6R""À¢ ¢&F6‚Ò&F6…÷&öf–ÆRæ&F6€¢–bæ÷B&F6‚ç&öf–ÆW2æf–ÇFW"†f–æ—6†VEöEõö—6çVÆÃÕG'VR’æW†—7G2‚“ ¢&öf–ÆU÷7FFW2ÒÆ—7B†&F6‚ç&öf–ÆW2çfÇVW5öÆ—7B‚&f–ÆVB"Â'7FÆR"’¢–b&öf–ÆU÷7FFW2æBÆÂ†—5öf–ÆVBf÷"—5öf–ÆVBÂò–â&öf–ÆU÷7FFW2“ ¢&F6‚ç7FGW2Ò&Vg&W6„&F6‚å7FGW2äd”ÄT@¢VÆ–bç’†—5öf–ÆVB÷"—5÷7FÆRf÷"—5öf–ÆVBÂ—5÷7FÆR–â&öf–ÆU÷7FFW2“ ¢&F6‚ç7FGW2Ò&Vg&W6„&F6‚å7FGW2å%D”À¢VÇ6S ¢&F6‚ç7FGW2Ò&Vg&W6„&F6‚å7FGW2å5T44TTDT@¢&F6‚æf–æ—6†VEöBÒF–ÖW¦öæRææ÷r‚¢&F6‚æ†V'F&VEöBÒ&F6‚æf–æ—6†VEö@¢&F6‚ç6fR‡WFFUöf–VÆG3Ò‚'7FGW2"Â&f–æ—6†VEöB"Â&†V'F&VEöB"’ ¢&VÆV6U÷&Vg&W6…öÆV6R†b'&öf–ÆR×&Vg&W6ƒ§¶&F6…÷&öf–ÆRç&öf–ÆUö–GÒ"Â&F6…÷&öf–ÆRæÆV6U÷Fö¶Vâ¢–b&F6…÷&öf–ÆRæ&F6‚æ6öÖÖæEö–C ¢&V6÷&EöFÖ–å÷&öf–ÆU÷&W7VÇB€¢&F6…÷&öf–ÆRæ&F6‚æ6öÖÖæEö–BÀ¢&W7VÇG3ÖÆ—7B†&F6…÷&öf–ÆRç6÷W&6U÷&W7VÇG2çfÇVW2‚’’À¢f–ÆVCÖ&F6…÷&öf–ÆRæf–ÆVB÷"&F6…÷&öf–ÆRç7FÆRÀ¢¢&WGW&âG'VP  ¦FVb÷&V6÷&E÷v÷&µöf–ÇW&R†—FVÒÂ¢Â7FGW2ÂW'&÷%ö6FVv÷'’“ ¢æ÷rÒF–ÖW¦öæRææ÷r‚¢—FVÒÒ&Vg&W6…v÷&´—FVÒæö&¦V7G2ç6VÆV7E÷&VÆFVB‚'6÷W&6U÷'Vâ"’ævWB‡³Ö—FVÒç²¢—FVÒç7FGW2Ò7FGW0¢—FVÒç†6RÒ&Vg&W6…v÷&´—FVÒå†6Rä4ôÕÄUDP¢—FVÒæW'&÷%ö6FVv÷'’ÒW'&÷%ö6FVv÷'•³£ƒÐ¢—FVÒæf–æ—6†VEöBÒæ÷p¢—FVÒæ†V'F&VEöBÒæ÷p¢—FVÒæÆV6U÷Fö¶VâÒ" ¢—FVÒæÆV6UöW‡—&W5öBÒæöæP¢—FVÒç6fR‡WFFUöf–VÆG3Ò€¢'7FGW2"Â'†6R"Â&W'&÷%ö6FVv÷'’"Â&f–æ—6†VEöB"Â&†V'F&VEöB"Â&ÆV6U÷Fö¶Vâ"Â&ÆV6UöW‡—&W5öB"À¢’¢f–æ—6…÷'Vâ€¢—FVÒç6÷W&6U÷'VâÀ¢7FGW3Ô÷W&F–öæÅ'Vâå7FGW2å%D”Â–b7FGW2ÓÒ&Vg&W6…v÷&´—FVÒå7FGW2å%D”ÂVÇ6R÷W&F–öæÅ'Vâå7FGW2äd”ÄTBÀ¢—FVÕö6÷VçCÖ—FVÒç6÷W&6U÷'Vâæ—FVÕö6÷VçBÀ¢æWuö6÷VçCÖ—FVÒç6÷W&6U÷'VâææWuö6÷VçBÀ¢¶æ÷våö6÷VçCÖ—FVÒç6÷W&6U÷'Vâæ¶æ÷våö6÷VçBÀ¢¶æ÷vå÷WFFVEö6÷VçCÖ—FVÒç6÷W&6U÷'Vâæ¶æ÷vå÷WFFVEö6÷VçBÀ¢¶æ÷vå÷Væ6†ævVEö6÷VçCÖ—FVÒç6÷W&6U÷'Vâæ¶æ÷vå÷Væ6†ævVEö6÷VçBÀ¢Æ—7F–æuö6÷VçCÖ—FVÒæÆ—7F–æuö6÷VçBÀ¢F—FÆUö¶WEö6÷VçCÖ—FVÒçF—FÆUö¶WEö6÷VçBÀ¢F—FÆUöF—66&FVEö6÷VçCÖ—FVÒçF—FÆUöF—66&FVEö6÷VçBÀ¢FWF–Ç5÷&WVW7FVEö6÷VçCÖ—FVÒæFWF–Ç5÷&WVW7FVEö6÷VçBÀ¢FWF–Ç5÷&V6V—fVEö6÷VçCÖ—FVÒæFWF–Ç5÷&V6V—fVEö6÷VçBÀ¢F—FÆUö–çWE÷Fö¶Vç3Ö—FVÒçF—FÆUö–çWE÷Fö¶Vç2À¢W'&÷%ö6FVv÷'“ÖW'&÷%ö6FVv÷'’À¢¢¦ö%6÷W&6U7FGW2æö&¦V7G2çWFFUö÷%ö7&VFR€¢6÷W&6SÖ—FVÒç6÷W&6RÀ¢FVfVÇG3×°¢&f–Æ&ÆR#¢fÇ6RÀ¢'7FGW5öÖW76vR#¢$ÆgVVçFRFRV×ÆVòæò&W7öæFœ;2â"–bW'&÷%ö6FVv÷'’ÓÒ'6÷W&6U÷Væf–Æ&ÆR"VÇ6R$æògVR÷6–&ÆR6ö×ÆWF"Æ6öç7VÇFÆgVVçFRâ"À¢&Æ7Eö6†V6¶VEöB#¢æ÷rÀ¢ÒÀ¢¢&öf–ÆUö–G2ÒÆ—7B†—FVÒç&öf–ÆUöÆ–æ·2çfÇVW5öÆ—7B‚&&F6…÷&öf–ÆUö–B"ÂfÆCÕG'VR’¢f÷"&öf–ÆUö–B–â&öf–ÆUö–G3 ¢öf–æ—6…ö&F6…÷&öf–ÆR‡&öf–ÆUö–BÂf–ÆVCÕG'VR  ¦FVb÷&WG'•÷v÷&µö—FVÒ†—FVÕö–BÂFö¶VâÂW'&÷%ö6FVv÷'’“ ¢v—F‚G&ç67F–öâæFöÖ–2‚“ ¢—FVÒÒ&Vg&W6…v÷&´—FVÒæö&¦V7G2ç6VÆV7Eöf÷%÷WFFR‚’æf–ÇFW"€¢³Ö—FVÕö–BÀ¢7FGW3Õ&Vg&W6…v÷&´—FVÒå7FGW2å%Tää”ärÀ¢ÆV6U÷Fö¶Vã×Fö¶VâÀ¢’æf—'7B‚¢–b—FVÒ—2æöæS ¢&WGW&âfÇ6P¢—FVÒæGFV×G2³Ò¢–b—FVÒæGFV×G2ãÒC ¢—FVÒæW'&÷%ö6FVv÷'’ÒW'&÷%ö6FVv÷'•³£ƒÐ¢—FVÒç6fR‡WFFUöf–VÆG3Ò‚&GFV×G2"Â&W'&÷%ö6FVv÷'’"’¢FW&Ö–æÂÒG'VP¢VÇ6S ¢—FVÒç7FGW2Ò&Vg&W6…v÷&´—FVÒå7FGW2åTUTT@¢—FVÒæW'&÷%ö6FVv÷'’ÒW'&÷%ö6FVv÷'•³£ƒÐ¢—FVÒæÆV6U÷Fö¶VâÒ" ¢—FVÒæÆV6UöW‡—&W5öBÒæöæP¢—FVÒæ†V'F&VEöBÒF–ÖW¦öæRææ÷r‚¢—FVÒæÆ7EöF—7F6†VEöBÒ—FVÒæ†V'F&VEö@¢—FVÒç6fR‡WFFUöf–VÆG3Ò€¢&GFV×G2"Â'7FGW2"Â&W'&÷%ö6FVv÷'’"Â&ÆV6U÷Fö¶Vâ"Â&ÆV6UöW‡—&W5öB"À¢&†V'F&VEöB"Â&Æ7EöF—7F6†VEöB"À¢’¢FW&Ö–æÂÒfÇ6P¢–bFW&Ö–æÃ ¢÷&V6÷&E÷v÷&µöf–ÇW&R†—FVÒÂ7FGW3Õ&Vg&W6…v÷&´—FVÒå7FGW2äd”ÄTBÂW'&÷%ö6FVv÷'“ÖW'&÷%ö6FVv÷'’¢VÇ6S ¢&ö6W75÷&Vg&W6…÷v÷&µö—FVÒæÇ•ö7–æ2†&w3Ò†—FVÕö–BÂ’Â6÷VçFF÷vãÓ3¢—FVÒæGFV×G2¢&WGW&âG'VP  ¤6†&VE÷F6²†æÖSÒ&¦ö'2ç&W7VÖ&ÆRç&W&U÷&Vg&W6…ö&F6‚"¦FVb&W&U÷&Vg&W6…ö&F6‚‡&öf–ÆUöÆV6W2Â6öÖÖæE÷'Våö–CÔæöæRÂÆV6W5öÇ&VG•ö6Æ–ÖVCÔfÇ6R“ ¢g&öÒ¦ö'2çF6·2–×÷'B&Vg&W6…÷6÷W&6W0¢g&öÒ÷W&F–öç2ç&ÖWFW'2–×÷'B&ö6W76–æuö—5÷W6V@ ¢–bæ÷B&öf–ÆUöÆV6W3 ¢–b6öÖÖæE÷'Våö–C ¢6öÖÖæBÒFÖ–ä6öÖÖæE'Vâæö&¦V7G2æf–ÇFW"‡³Ö6öÖÖæE÷'Våö–B’æf—'7B‚¢–b6öÖÖæBæB6öÖÖæBç7FGW2ÓÒFÖ–ä6öÖÖæE'Vâå7FGW2å%Tää”äræB6öÖÖæBæ6ö×ÆWFVE÷&öf–ÆW2Â6öÖÖæBç&öf–ÆUö6÷VçC ¢f÷"ò–â&ævR†6öÖÖæBç&öf–ÆUö6÷VçBÒ6öÖÖæBæ6ö×ÆWFVE÷&öf–ÆW2“ ¢&V6÷&EöFÖ–å÷&öf–ÆU÷&W7VÇB†6öÖÖæE÷'Våö–BÂ&W7VÇG3ÕµÒ¢&WGW&â²'66†VGVÆVE÷&öf–ÆW2#¢Ð¢–b&ö6W76–æuö—5÷W6VB‚“ ¢f÷"&öf–ÆUö–BÂFö¶Vâ–â&öf–ÆUöÆV6W2æ—FV×2‚“ ¢&VÆV6U÷&Vg&W6…öÆV6R†b'&öf–ÆR×&Vg&W6ƒ§¶–çB‡&öf–ÆUö–B—Ò"ÂFö¶Vâ¢&Vg&W6…÷6÷W&6W2æÇ•ö7–æ2†·v&w3×²&6öÖÖæE÷'Våö–B#¢6öÖÖæE÷'Våö–GÒÂ6÷VçFF÷vãÓc¢&WGW&â²&FVfW'&VB#¢'&ö6W76–æu÷W6VB'Ð ¢6Æ–ÖVBÒ·Ð¢f÷"&öf–ÆUö–E÷fÇVRÂFö¶Vâ–â&öf–ÆUöÆV6W2æ—FV×2‚“ ¢&öf–ÆUö–BÒ–çB‡&öf–ÆUö–E÷fÇVR¢ÆV6Uö¶W’Òb'&öf–ÆR×&Vg&W6ƒ§·&öf–ÆUö–GÒ ¢ÆV6Uöö²Ò€¢&VæWu÷&Vg&W6…öÆV6R†ÆV6Uö¶W’ÂFö¶VâÂGFÅ÷6V6öæG3Ó#B¢c¢c¢–bÆV6W5öÇ&VG•ö6Æ–ÖV@¢VÇ6R6Æ–Õ÷&Vg&W6…öÆV6R†ÆV6Uö¶W’ÂFö¶Vâ¢¢–bÆV6Uöö³ ¢&VæWu÷&Vg&W6…öÆV6R†b'&öf–ÆR×&Vg&W6ƒ§·&öf–ÆUö–GÒ"ÂFö¶VâÂGFÅ÷6V6öæG3Ó#B¢c¢c¢6Æ–ÖVE·&öf–ÆUö–EÒÒFö¶Và¢VÆ–b6öÖÖæE÷'Våö–C ¢&V6÷&EöFÖ–å÷&öf–ÆU÷&W7VÇB†6öÖÖæE÷'Våö–BÂ&W7VÇG3ÕµÒ¢–bæ÷B6Æ–ÖVC ¢&WGW&â²'66†VGVÆVE÷&öf–ÆW2#¢Ð ¢&F6‚Ò&Vg&W6„&F6‚æö&¦V7G2æ7&VFR€¢6öÖÖæEö–CÖ6öÖÖæE÷'Våö–BÀ¢7FGW3Õ&Vg&W6„&F6‚å7FGW2å%Tää”ärÀ¢7F'FVEöC×F–ÖW¦öæRææ÷r‚’À¢¢66†VGVÆVBÒ ¢f÷"&öf–ÆUö–BÂFö¶Vâ–â6Æ–ÖVBæ—FV×2‚“ ¢&öf–ÆRÒ&öf–ÆRæö&¦V7G2ç6VÆV7E÷&VÆFVB‚&÷væW""’æf–ÇFW"€¢³×&öf–ÆUö–BÂ÷væW%õö—5ö7F—fSÕG'VRÂ7eöf–ÆUõöwCÒ""Â&Wf—6–öåöçVÖ&W%õöwCÓÀ¢’æf—'7B‚¢–b&öf–ÆR—2æöæS ¢&VÆV6U÷&Vg&W6…öÆV6R†b'&öf–ÆR×&Vg&W6ƒ§·&öf–ÆUö–GÒ"ÂFö¶Vâ¢–b6öÖÖæE÷'Våö–C ¢&V6÷&EöFÖ–å÷&öf–ÆU÷&W7VÇB†6öÖÖæE÷'Våö–BÂ&W7VÇG3ÕµÒÂf–ÆVCÕG'VR¢6öçF–çVP¢&Wf—6–öâÒ&öf–ÆRç&Wf—6–öç2æf–ÇFW"‡fW'6–öã×&öf–ÆRç&Wf—6–öåöçVÖ&W"’æf—'7B‚¢–b&Wf—6–öâ—2æöæS ¢&VÆV6U÷&Vg&W6…öÆV6R†b'&öf–ÆR×&Vg&W6ƒ§·&öf–ÆUö–GÒ"ÂFö¶Vâ¢–b6öÖÖæE÷'Våö–C ¢&V6÷&EöFÖ–å÷&öf–ÆU÷&W7VÇB†6öÖÖæE÷'Våö–BÂ&W7VÇG3ÕµÒÂf–ÆVCÕG'VR¢6öçF–çVP¢&öf–ÆU÷'VâÒ&Vv–å÷'Vâ†¶–æCÔ÷W&F–öæÅ'Vâä¶–æBä”ätU5D”ôâÂ÷W&F–öãÒ'&öf–ÆU÷&Vg&W6‚"¢&F6…÷&öf–ÆRÒ&Vg&W6„&F6…&öf–ÆRæö&¦V7G2æ7&VFR€¢&F6ƒÖ&F6‚À¢&öf–ÆS×&öf–ÆRÀ¢&öf–ÆU÷'Vã×&öf–ÆU÷'VâÀ¢ÆV6U÷Fýö×Ëh‘éì¶»§q«^u½™¥±”€ô±¥¹¬¹‰…Ñ¡}ÁÉ½™¥±”(€€€€€€€€€€€ÁÉ½™¥±”€ôAÉ½™¥±”¹½‰©•ÑÌ¹Í•±•Ñ}É•±…Ñ• ‰½Ý¹•Èˆ¤¹™¥±Ñ•È (€€€€€€€€€€€€€€€Á¬õ‰…Ñ¡}ÁÉ½™¥±”¹ÁÉ½™¥±•}¥°(€€€€€€€€€€€€€€€½Ý¹•É}}¥Í}…Ñ¥Ù”õQÉÕ”°(€€€€€€€€€€€€€€€Ù}™¥±•}}Ðôˆˆ°(€€€€€€€€€€€€¤¹™¥ÉÍÐ ¤(€€€€€€€€€€€É•Ù¥Í¥½¸€ôÁÉ½™¥±”¹É•Ù¥Í¥½¹Ì¹™¥±Ñ•È (€€€€€€€€€€€€€€€Á¬õ±¥¹¬¹É•Ù¥Í¥½¹}¥°(€€€€€€€€€€€€€€€Ù•ÉÍ¥½¸õÁÉ½™¥±”¹É•Ù¥Í¥½¹}¹Õµ‰•È°(€€€€€€€€€€€€¤¹™¥ÉÍÐ ¤¥˜ÁÉ½™¥±”•±Í”9½¹”(€€€€€€€€€€€¥˜É•Ù¥Í¥½¸¥Ì9½¹”½ÈÕÉÉ•¹Ñ}½¹™¥}¥€„ô¥Ñ•´¹Í•…É¡}É•ÅÕ•ÍÐ¹•Ð ‰µ…Ñ¡¥¹}½¹™¥}¥ˆ¤è(€€€€€€€€€€€€€€€‰…Ñ¡}ÁÉ½™¥±”¹ÍÑ…±”€ôQÉÕ”(€€€€€€€€€€€€€€€‰…Ñ¡}ÁÉ½™¥±”¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô ‰ÍÑ…±”ˆ°¤¤(€€€€€€€€€€€€€€€½¹Ñ¥¹Õ”(€€€€€€€€€€€Ù…±¥‘}±¥¹­Ì¹…ÁÁ•¹ ¡±¥¹¬°‰…Ñ¡}ÁÉ½™¥±”°ÁÉ½™¥±”°É•Ù¥Í¥½¸¤¤((€€€€€€€™½È±¥¹¬°‰…Ñ¡}ÁÉ½™¥±”°ÁÉ½™¥±”°É•Ù¥Í¥½¸¥¸Ù…±¥‘}±¥¹­Ìè(€€€€€€€€€€€™½ÈÙ……¹ä¥¸Í…Ù•¹Ù……¹¥•Ìè(€€€€€€€€€€€€€€€¥˜¹½ÐÙ……¹å}±½…Ñ¥½¹}¥Í}•±¥¥‰±”¡Ù……¹ä°É•Ù¥Í¥½¸¤è(€€€€€€€€€€€€€€€€€€€½¹Ñ¥¹Õ”(€€€€€€€€€€€€€€€AÉ½™¥±•Y……¹å¥Í½Ù•Éä¹½‰©•ÑÌ¹•Ñ}½É}É•…Ñ” (€€€€€€€€€€€€€€€€€€€ÁÉ½™¥±•}¥õÁÉ½™¥±”¹Á¬°(€€€€€€€€€€€€€€€€€€€Ù……¹å}¥õÙ……¹ä¹Á¬°(€€€€€€€€€€€€€€€€€€€‘•™…Õ±ÑÌõì‰…ÕÑ½}‘¥Í…É‘}Ñ¡É•Í¡½±ˆèÁÉ½™¥±”¹µ¥¹}Í½É”½È€Áô°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€Ñ…É•Ð€ôÑ…É•ÑÌ¹Í•Ñ‘•™…Õ±Ð¡Ù……¹ä¹Á¬°ì(€€€€€€€€€€€€€€€€€€€€‰Ù……¹äˆèÙ……¹ä°(€€€€€€€€€€€€€€€€€€€€‰ÁÉ½™¥±•}É•Ù¥Í¥½¹Ìˆèíô°(€€€€€€€€€€€€€€€€€€€€‰ÉÕ¹}¥‘Ìˆèíô°(€€€€€€€€€€€€€€€€€€€€‰µ…Ñ•É¥…±±å}¡…¹•ˆè…±Í”°(€€€€€€€€€€€€€€€ô¤(€€€€€€€€€€€€€€€Ñ…É•Ñl‰ÁÉ½™¥±•}É•Ù¥Í¥½¹Ì‰umÍÑÈ¡ÁÉ½™¥±”¹Á¬¥t€ô±¥¹¬¹É•Ù¥Í¥½¹}¥(€€€€€€€€€€€€€€€Ñ…É•Ñl‰ÉÕ¹}¥‘Ì‰t¹Í•Ñ‘•™…Õ±Ð¡ÍÑÈ¡ÁÉ½™¥±”¹Á¬¤°mt¤¹…ÁÁ•¹¡¥Ñ•´¹Í½ÕÉ•}ÉÕ¹}¥¤(€€€€€€€€€€€€€€€Ñ…É•Ñl‰µ…Ñ•É¥…±±å}¡…¹•‰t€ôÑ…É•Ñl‰µ…Ñ•É¥…±±å}¡…¹•‰t½È•Ñ…ÑÑÈ¡Ù……¹ä°€‰}µ…Ñ•É¥…±±å}¡…¹•ˆ°…±Í”¤(€€€€€€€€€€€€€€€¥‘Ì€ôÍ•Ð¡‰…Ñ¡}ÁÉ½™¥±”¹™½Õ¹‘}Ù……¹å}¥‘Ì½Èmt¤(€€€€€€€€€€€€€€€¥‘Ì¹…‘¡Ù……¹ä¹Á¬¤(€€€€€€€€€€€€€€€‰…Ñ¡}ÁÉ½™¥±”¹™½Õ¹‘}Ù……¹å}¥‘Ì€ôÍ½ÉÑ•¡¥‘Ì¤(€€€€€€€€€€€€€€€Í½ÕÉ•}É•ÍÕ±ÑÌ€ô‘¥Ð¡‰…Ñ¡}ÁÉ½™¥±”¹Í½ÕÉ•}É•ÍÕ±ÑÌ½Èíô¤(€€€€€€€€€€€€€€€É•ÍÕ±Ð€ôÍ½ÕÉ•}É•ÍÕ±ÑÌ¹Í•Ñ‘•™…Õ±Ð¡¥Ñ•´¹Í½ÕÉ”°ì‰ÅÕ•É¥•Ìˆè€À°€‰™…¥±ÕÉ•Ìˆè€À°€‰Ù……¹å}¥‘Ìˆèmuô¤(€€€€€€€€€€€€€€€É•ÍÕ±Ñl‰Ù……¹å}¥‘Ì‰t€ôÍ½ÉÑ•¡Í•Ð¡É•ÍÕ±Ñl‰Ù……¹å}¥‘Ì‰t¤ðíÙ……¹ä¹Á­ô¤(€€€€€€€€€€€€€€€‰…Ñ¡}ÁÉ½™¥±”¹Í½ÕÉ•}É•ÍÕ±ÑÌ€ôÍ½ÕÉ•}É•ÍÕ±ÑÌ(€€€€€€€€€€€€€€€‰…Ñ¡}ÁÉ½™¥±”¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô ‰™½Õ¹‘}Ù……¹å}¥‘Ìˆ°€‰Í½ÕÉ•}É•ÍÕ±ÑÌˆ¤¤((€€€€€€€™½ÈÑ…É•Ð¥¸Ñ…É•ÑÌ¹Ù…±Õ•Ì ¤è(€€€€€€€€€€€ÑÉ…¹Í…Ñ¥½¸¹½¹}½µµ¥Ð¡±…µ‰‘„Ñ…É•ÐõÑ…É•ÐèÍ¡•‘Õ±•}Ù……¹å}…¹…±åÍ¥Ì¹‘•±…ä (€€€€€€€€€€€€€€€Ñ…É•Ñl‰Ù……¹ä‰t¹Á¬°(€€€€€€€€€€€€€€€™½É•}É•…¹…±åÍ¥ÌõÑ…É•Ñl‰µ…Ñ•É¥…±±å}¡…¹•‰t°(€€€€€€€€€€€€€€€ÁÉ½™¥±•}¥‘Ìõm¥¹Ð¡ÁÉ½™¥±•}¥¤™½ÈÁÉ½™¥±•}¥¥¸Ñ…É•Ñl‰ÁÉ½™¥±•}É•Ù¥Í¥½¹Ì‰ut°(€€€€€€€€€€€€€€€•áÁ•Ñ•‘}É•Ù¥Í¥½¹}¥‘ÌõÑ…É•Ñl‰ÁÉ½™¥±•}É•Ù¥Í¥½¹Ì‰t°(€€€€€€€€€€€€€€€•áÁ•Ñ•‘}µ…Ñ¡¥¹}½¹™¥}¥õ¥Ñ•´¹Í•…É¡}É•ÅÕ•ÍÐ¹•Ð ‰µ…Ñ¡¥¹}½¹™¥}¥ˆ¤°(€€€€€€€€€€€€€€€Í½ÕÉ•}ÅÕ•Éå}ÉÕ¹}¥‘Í}‰å}ÁÉ½™¥±”õÑ…É•Ñl‰ÉÕ¹}¥‘Ì‰t°(€€€€€€€€€€€€¤¤((€€€€€€€¥Ñ•´¹ÕÉÍ½È€ôÍÑ…ÉÐ€¬±•¸¡±¥ÍÑ¥¹Ì¤(€€€€€€€¥Ñ•´¹…Ù…¥±…‰±”€ô¥Ñ•´¹…Ù…¥±…‰±”…¹…Ù…¥±…‰±”(€€€€€€€¥Ñ•´¹‘•Ñ…¥±Í}É••¥Ù•‘}½Õ¹Ð€¬ô±•¸¡Í…Ù•¹Ù……¹¥•Ì¤(€€€€€€€¥Ñ•´¹¡•…ÉÑ‰•…Ñ}…Ð€ôÑ¥µ•é½¹”¹¹½Ü ¤(€€€€€€€¥Ñ•´¹±•…Í•}•áÁ¥É•Í}…Ð€ô¥Ñ•´¹¡•…ÉÑ‰•…Ñ}…Ð€¬Ñ¥µ•‘•±Ñ„¡Í•½¹‘Ìõ]=I-}1M}M=9L¤(€€€€€€€¥Ñ•´¹‰…Ñ ¹¡•…ÉÑ‰•…Ñ}…Ð€ô¥Ñ•´¹¡•…ÉÑ‰•…Ñ}…Ð(€€€€€€€¥Ñ•´¹‰…Ñ ¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô ‰¡•…ÉÑ‰•…Ñ}…Ðˆ°¤¤(€€€€€€€}¥¹É•µ•¹Ñ}ÉÕ¹}µ•ÑÉ¥Ì¡¥Ñ•´°Í…Ù•°‘•Ñ…¥±}µÌõ‘•Ñ…¥±}µÌ¤(€€€€€€€¥Ñ•´¹…ÑÑ•µÁÑÌ€ô€À(€€€€€€€¥Ñ•´¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô ‰ÕÉÍ½Èˆ°€‰…Ù…¥±…‰±”ˆ°€‰‘•Ñ…¥±Í}É••¥Ù•‘}½Õ¹Ðˆ°€‰¡•…ÉÑ‰•…Ñ}…Ðˆ°€‰±•…Í•}•áÁ¥É•Í}…Ðˆ°€‰…ÑÑ•µÁÑÌˆ¤¤(€€€É•ÑÕÉ¸QÉÕ”(()‘•˜}™¥¹¥Í¡}Ý½É­}¥Ñ•´¡¥Ñ•µ}¥°Ñ½­•¸°€¨°ÍÑ…ÑÕÌ¤è(€€€Ý¥Ñ ÑÉ…¹Í…Ñ¥½¸¹…Ñ½µ¥Œ ¤è(€€€€€€€¥Ñ•´€ôI•™É•Í¡]½É­%Ñ•´¹½‰©•ÑÌ¹Í•±•Ñ}™½É}ÕÁ‘…Ñ” ¤¹Í•±•Ñ}É•±…Ñ• ‰Í½ÕÉ•}ÉÕ¸ˆ¤¹™¥±Ñ•È (€€€€€€€€€€€Á¬õ¥Ñ•µ}¥°ÍÑ…ÑÕÌõI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹IU99%9°±•…Í•}Ñ½­•¸õÑ½­•¸°(€€€€€€€€¤¹™¥ÉÍÐ ¤(€€€€€€€¥˜¥Ñ•´¥Ì9½¹”è(€€€€€€€€€€€É•ÑÕÉ¸(€€€€€€€¥Ñ•´¹ÍÑ…ÑÕÌ€ôÍÑ…ÑÕÌ(€€€€€€€¥Ñ•´¹Á¡…Í”€ôI•™É•Í¡]½É­%Ñ•´¹A¡…Í”¹=5A1Q(€€€€€€€¥Ñ•´¹™¥¹¥Í¡•‘}…Ð€ôÑ¥µ•é½¹”¹¹½Ü ¤(€€€€€€€¥Ñ•´¹¡•…ÉÑ‰•…Ñ}…Ð€ô¥Ñ•´¹™¥¹¥Í¡•‘}…Ð(€€€€€€€¥Ñ•´¹±•…Í•}Ñ½­•¸€ô€ˆˆ(€€€€€€€¥Ñ•´¹±•…Í•}•áÁ¥É•Í}…Ð€ô9½¹”(€€€€€€€¥Ñ•´¹±¥ÍÑ¥¹Ì€ômt(€€€€€€€¥Ñ•´¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô ‰ÍÑ…ÑÕÌˆ°€‰Á¡…Í”ˆ°€‰™¥¹¥Í¡•‘}…Ðˆ°€‰¡•…ÉÑ‰•…Ñ}…Ðˆ°€‰±•…Í•}Ñ½­•¸ˆ°€‰±•…Í•}•áÁ¥É•Í}…Ðˆ°€‰±¥ÍÑ¥¹Ìˆ¤¤(€€€€€€€ÉÕ¹}ÍÑ…ÑÕÌ€ô€ (€€€€€€€€€€€=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹MU¥˜ÍÑ…ÑÕÌ€ôôI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹MU(€€€€€€€€€€€•±Í”=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹AIQ%0¥˜ÍÑ…ÑÕÌ€ôôI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹AIQ%0(€€€€€€€€€€€•±Í”=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹%1(€€€€€€€€¤(€€€€€€€™¥¹¥Í¡}ÉÕ¸ (€€€€€€€€€€€¥Ñ•´¹Í½ÕÉ•}ÉÕ¸°(€€€€€€€€€€€ÍÑ…ÑÕÌõÉÕ¹}ÍÑ…ÑÕÌ°(€€€€€€€€€€€¥Ñ•µ}½Õ¹Ðõ¥Ñ•´¹Í½ÕÉ•}ÉÕ¸¹¥Ñ•µ}½Õ¹Ð°(€€€€€€€€€€€¹•Ý}½Õ¹Ðõ¥Ñ•´¹Í½ÕÉ•}ÉÕ¸¹¹•Ý}½Õ¹Ð°(€€€€€€€€€€€­¹½Ý¹}½Õ¹Ðõ¥Ñ•´¹Í½ÕÉ•}ÉÕ¸¹­¹½Ý¹}½Õ¹Ð°(€€€€€€€€€€€­¹½Ý¹}ÕÁ‘…Ñ•‘}½Õ¹Ðõ¥Ñ•´¹Í½ÕÉ•}ÉÕ¸¹­¹½Ý¹}ÕÁ‘…Ñ•‘}½Õ¹Ð°(€€€€€€€€€€€­¹½Ý¹}Õ¹¡…¹•‘}½Õ¹Ðõ¥Ñ•´¹Í½ÕÉ•}ÉÕ¸¹­¹½Ý¹}Õ¹¡…¹•‘}½Õ¹Ð°(€€€€€€€€€€€±¥ÍÑ¥¹}½Õ¹Ðõ¥Ñ•´¹±¥ÍÑ¥¹}½Õ¹Ð°(€€€€€€€€€€€Ñ¥Ñ±•}­•ÁÑ}½Õ¹Ðõ¥Ñ•´¹Ñ¥Ñ±•}­•ÁÑ}½Õ¹Ð°(€€€€€€€€€€€Ñ¥Ñ±•}‘¥Í…É‘•‘}½Õ¹Ðõ¥Ñ•´¹Ñ¥Ñ±•}‘¥Í…É‘•‘}½Õ¹Ð°(€€€€€€€€€€€‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•‘}½Õ¹Ðõ¥Ñ•´¹‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•‘}½Õ¹Ð°(€€€€€€€€€€€‘•Ñ…¥±Í}É••¥Ù•‘}½Õ¹Ðõ¥Ñ•´¹‘•Ñ…¥±Í}É••¥Ù•‘}½Õ¹Ð°(€€€€€€€€€€€Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹Ìõ¥Ñ•´¹Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹Ì°(€€€€€€€€€€€•ÉÉ½É}…Ñ•½Éäõ¥Ñ•´¹•ÉÉ½É}…Ñ•½Éä¥˜ÉÕ¹}ÍÑ…ÑÕÌ€„ô=Á•É…Ñ¥½¹…±IÕ¸¹MÑ…ÑÕÌ¹MU•±Í”€ˆˆ°(€€€€€€€€¤(€€€€€€€)½‰M½ÕÉ•MÑ…ÑÕÌ¹½‰©•ÑÌ¹ÕÁ‘…Ñ•}½É}É•…Ñ” (€€€€€€€€€€€Í½ÕÉ”õ¥Ñ•´¹Í½ÕÉ”°(€€€€€€€€€€€‘•™…Õ±ÑÌõì(€€€€€€€€€€€€€€€€‰…Ù…¥±…‰±”ˆè¥Ñ•´¹…Ù…¥±…‰±”…¹ÍÑ…ÑÕÌ€ôôI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹MU°(€€€€€€€€€€€€€€€€‰ÍÑ…ÑÕÍ}µ•ÍÍ…”ˆè€ˆˆ¥˜¥Ñ•´¹…Ù…¥±…‰±”•±Í”€‰1„½¹ÍÕ±Ñ„„±„™Õ•¹Ñ”™Õ”Á…É¥…°¸ˆ°(€€€€€€€€€€€€€€€€‰±…ÍÑ}¡•­•‘}…Ðˆè¥Ñ•´¹™¥¹¥Í¡•‘}…Ð°(€€€€€€€€€€€€€€€€‰±…ÍÑ}ÍÕ•ÍÍ}…Ðˆè¥Ñ•´¹™¥¹¥Í¡•‘}…Ð¥˜¥Ñ•´¹…Ù…¥±…‰±”•±Í”¥Ñ•´¹Í½ÕÉ•}ÉÕ¸¹™¥¹¥Í¡•‘}…Ð°(€€€€€€€€€€€€€€€€‰±…ÍÑ}Ù……¹å}½Õ¹Ðˆè¥Ñ•´¹Í½ÕÉ•}ÉÕ¸¹¥Ñ•µ}½Õ¹Ð°(€€€€€€€€€€€ô°(€€€€€€€€¤(€€€™½ÈÁÉ½™¥±•}¥¥¸¥Ñ•´¹ÁÉ½™¥±•}±¥¹­Ì¹Ù…±Õ•Í}±¥ÍÐ ‰‰…Ñ¡}ÁÉ½™¥±•}¥ˆ°™±…ÐõQÉÕ”¤è(€€€€€€€}™¥¹¥Í¡}‰…Ñ¡}ÁÉ½™¥±”¡ÁÉ½™¥±•}¥°™…¥±•õÍÑ…ÑÕÌ€„ôI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹MU¤(()Í¡…É•‘}Ñ…Í¬¡¹…µ”ô‰©½‰Ì¹É•ÍÕµ…‰±”¹ÁÉ½•ÍÍ}É•™É•Í¡}Ý½É­}¥Ñ•´ˆ¤)‘•˜ÁÉ½•ÍÍ}É•™É•Í¡}Ý½É­}¥Ñ•´¡Ý½É­}¥Ñ•µ}¥¤è(€€€™É½´½Á•É…Ñ¥½¹Ì¹Á…É…µ•Ñ•ÉÌ¥µÁ½ÉÐÁÉ½•ÍÍ¥¹}¥Í}Á…ÕÍ•((€€€¥˜ÁÉ½•ÍÍ¥¹}¥Í}Á…ÕÍ• ¤è(€€€€€€€I•™É•Í¡]½É­%Ñ•´¹½‰©•ÑÌ¹™¥±Ñ•È¡Á¬õÝ½É­}¥Ñ•µ}¥°ÍÑ…ÑÕÌõI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹EUU¤¹ÕÁ‘…Ñ” (€€€€€€€€€€€±…ÍÑ}‘¥ÍÁ…Ñ¡•‘}…ÐõÑ¥µ•é½¹”¹¹½Ü ¤€´Ñ¥µ•‘•±Ñ„¡µ¥¹ÕÑ•ÌôÔ¤°(€€€€€€€€¤(€€€€€€€ÁÉ½•ÍÍ}É•™É•Í¡}Ý½É­}¥Ñ•´¹…ÁÁ±å}…Íå¹Œ¡…ÉÌô¡Ý½É­}¥Ñ•µ}¥°¤°½Õ¹Ñ‘½Ý¸ôØÀ¤(€€€€€€€É•ÑÕÉ¸ì‰‘•™•ÉÉ•ˆè€‰ÁÉ½•ÍÍ¥¹}Á…ÕÍ•‰ô(€€€±…¥´€ô}±…¥µ}Ý½É­}¥Ñ•´¡Ý½É­}¥Ñ•µ}¥¤(€€€¥˜±…¥´¥Ì9½¹”è(€€€€€€€É•ÑÕÉ¸ì‰Í­¥ÁÁ•ˆè€‰…±É•…‘å}±…¥µ•‘}½É}™¥¹¥Í¡•‰ô(€€€¥Ñ•´°Ñ½­•¸€ô±…¥´(€€€½¹¹•Ñ½È€ô¹•áÐ ¡¥Ñ•µ}ÑåÁ”™½È¥Ñ•µ}ÑåÁ”¥¸½¹™¥ÕÉ•‘}½¹¹•Ñ½ÉÌ ¤¥˜¥Ñ•µ}ÑåÁ”¹Í½ÕÉ”€ôô¥Ñ•´¹Í½ÕÉ”¤°9½¹”¤(€€€¥˜½¹¹•Ñ½È¥Ì9½¹”è(€€€€€€€}É•½É‘}Ý½É­}™…¥±ÕÉ”¡¥Ñ•´°ÍÑ…ÑÕÌõI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹%1°•ÉÉ½É}…Ñ•½Éäô‰Í½ÕÉ•}•ÉÉ½Èˆ¤(€€€€€€€É•ÑÕÉ¸ì‰™…¥±•ˆè€‰½¹¹•Ñ½É}µ¥ÍÍ¥¹œ‰ô((€€€ÑÉäè(€€€€€€€¥˜¥Ñ•´¹Á¡…Í”€ôôI•™É•Í¡]½É­%Ñ•´¹A¡…Í”¹Q%Q1Lè(€€€€€€€€€€€±¥ÍÑ¥¹}ÍÑ…ÉÑ•€ôÑ¥µ”¹Á•É™}½Õ¹Ñ•È ¤(€€€€€€€€€€€ÑÉäè(€€€€€€€€€€€€€€€Ñ¥Ñ±•Ì€ô½¹¹•Ñ½È¹™•Ñ¡}Ñ¥Ñ±•Ì (€€€€€€€€€€€€€€€€€€€¥Ñ•´¹Í•…É¡}É•ÅÕ•ÍÐ¹•Ð ‰­•åÝ½É‘Ìˆ°mt¤°(€€€€€€€€€€€€€€€€€€€±½…Ñ¥½¹Ìõ¥Ñ•´¹Í•…É¡}É•ÅÕ•ÍÐ¹•Ð ‰±½…Ñ¥½¹Ìˆ°mt¤°(€€€€€€€€€€€€€€€€€€€É•µ½Ñ•}½¬õ¥Ñ•´¹Í•…É¡}É•ÅÕ•ÍÐ¹•Ð ‰É•µ½Ñ•}½¬ˆ°…±Í”¤°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€…Ù…¥±…‰±”€ôQÉÕ”(€€€€€€€€€€€•á•ÁÐM½ÕÉ•A…ÉÑ¥…±±åU¹…Ù…¥±…‰±”…Ì•áŒè(€€€€€€€€€€€€€€€Ñ¥Ñ±•Ì€ô•áŒ¹±¥ÍÑ¥¹Ì(€€€€€€€€€€€€€€€…Ù…¥±…‰±”€ô…±Í”(€€€€€€€€€€€±¥ÍÑ¥¹}µÌ€ôµ…à À°¥¹Ð ¡Ñ¥µ”¹Á•É™}½Õ¹Ñ•È ¤€´±¥ÍÑ¥¹}ÍÑ…ÉÑ•¤€¨€ÄÀÀÀ¤¤(€€€€€€€€€€€ÁÉ•Í•±•Ñ¥½¹}ÍÑ…ÉÑ•€ôÑ¥µ”¹Á•É™}½Õ¹Ñ•È ¤(€€€€€€€€€€€™É½´µ…Ñ¡¥¹œ¹Í•ÉÙ¥•Ì¥µÁ½ÉÐÁÉ•Í•±•Ñ}±¥ÍÑ¥¹}Ñ¥Ñ±•Ì(€€€€€€€€€€€ÁÉ•Í•±•Ñ•€ôÁÉ•Í•±•Ñ}±¥ÍÑ¥¹}Ñ¥Ñ±•Ì¡Ñ¥Ñ±•Ì°¥Ñ•´¹Í•…É¡}É•ÅÕ•ÍÐ¹•Ð ‰­•åÝ½É‘Ìˆ°mt¤¤(€€€€€€€€€€€ÁÉ•Í•±•Ñ¥½¹}µÌ€ôµ…à À°¥¹Ð ¡Ñ¥µ”¹Á•É™}½Õ¹Ñ•È ¤€´ÁÉ•Í•±•Ñ¥½¹}ÍÑ…ÉÑ•¤€¨€ÄÀÀÀ¤¤(€€€€€€€€€€€ÉÕ¸€ô=Á•É…Ñ¥½¹…±IÕ¸¹½‰©•ÑÌ¹•Ð¡Á¬õ¥Ñ•´¹Í½ÕÉ•}ÉÕ¹}¥¤(€€€€€€€€€€€ÉÕ¸¹±¥ÍÑ¥¹}½Õ¹Ð€ô±•¸¡Ñ¥Ñ±•Ì¤(€€€€€€€€€€€ÉÕ¸¹Ñ¥Ñ±•}­•ÁÑ}½Õ¹Ð€ô±•¸¡ÁÉ•Í•±•Ñ•¹±¥ÍÑ¥¹Ì¤(€€€€€€€€€€€ÉÕ¸¹Ñ¥Ñ±•}‘¥Í…É‘•‘}½Õ¹Ð€ôÁÉ•Í•±•Ñ•¹‘¥Í…É‘•‘}½Õ¹Ð(€€€€€€€€€€€ÉÕ¸¹‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•‘}½Õ¹Ð€ô±•¸¡ÁÉ•Í•±•Ñ•¹±¥ÍÑ¥¹Ì¤(€€€€€€€€€€€ÉÕ¸¹Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹Ì€ôÁÉ•Í•±•Ñ•¹¥¹ÁÕÑ}Ñ½­•¹Ì(€€€€€€€€€€€ÉÕ¸¹±¥ÍÑ¥¹}™•Ñ¡}‘ÕÉ…Ñ¥½¹}µÌ€ô±¥ÍÑ¥¹}µÌ(€€€€€€€€€€€ÉÕ¸¹Ñ¥Ñ±•}ÁÉ•Í•±•Ñ¥½¹}‘ÕÉ…Ñ¥½¹}µÌ€ôÁÉ•Í•±•Ñ¥½¹}µÌ(€€€€€€€€€€€ÉÕ¸¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô (€€€€€€€€€€€€€€€€‰±¥ÍÑ¥¹}½Õ¹Ðˆ°€‰Ñ¥Ñ±•}­•ÁÑ}½Õ¹Ðˆ°€‰Ñ¥Ñ±•}‘¥Í…É‘•‘}½Õ¹Ðˆ°€‰‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•‘}½Õ¹Ðˆ°(€€€€€€€€€€€€€€€€‰Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹Ìˆ°€‰±¥ÍÑ¥¹}™•Ñ¡}‘ÕÉ…Ñ¥½¹}µÌˆ°€‰Ñ¥Ñ±•}ÁÉ•Í•±•Ñ¥½¹}‘ÕÉ…Ñ¥½¹}µÌˆ°(€€€€€€€€€€€€¤¤(€€€€€€€€€€€¥Ñ•´¹±¥ÍÑ¥¹Ì€ôm}±¥ÍÑ¥¹}Ñ½}©Í½¸¡±¥ÍÑ¥¹œ¤™½È±¥ÍÑ¥¹œ¥¸ÁÉ•Í•±•Ñ•¹±¥ÍÑ¥¹Ít(€€€€€€€€€€€¥Ñ•´¹±¥ÍÑ¥¹}½Õ¹Ð€ô±•¸¡Ñ¥Ñ±•Ì¤(€€€€€€€€€€€¥Ñ•´¹Ñ¥Ñ±•}­•ÁÑ}½Õ¹Ð€ô±•¸¡ÁÉ•Í•±•Ñ•¹±¥ÍÑ¥¹Ì¤(€€€€€€€€€€€¥Ñ•´¹Ñ¥Ñ±•}‘¥Í…É‘•‘}½Õ¹Ð€ôÁÉ•Í•±•Ñ•¹‘¥Í…É‘•‘}½Õ¹Ð(€€€€€€€€€€€¥Ñ•´¹‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•‘}½Õ¹Ð€ô±•¸¡ÁÉ•Í•±•Ñ•¹±¥ÍÑ¥¹Ì¤(€€€€€€€€€€€¥Ñ•´¹Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹Ì€ôÁÉ•Í•±•Ñ•¹¥¹ÁÕÑ}Ñ½­•¹Ì(€€€€€€€€€€€¥Ñ•´¹…Ù…¥±…‰±”€ô…Ù…¥±…‰±”(€€€€€€€€€€€¥Ñ•´¹Á¡…Í”€ôI•™É•Í¡]½É­%Ñ•´¹A¡…Í”¹Q%1L(€€€€€€€€€€€¥Ñ•´¹ÕÉÍ½È€ô€À(€€€€€€€€€€€¥Ñ•´¹¡•…ÉÑ‰•…Ñ}…Ð€ôÑ¥µ•é½¹”¹¹½Ü ¤(€€€€€€€€€€€¥Ñ•´¹±•…Í•}•áÁ¥É•Í}…Ð€ô¥Ñ•´¹¡•…ÉÑ‰•…Ñ}…Ð€¬Ñ¥µ•‘•±Ñ„¡Í•½¹‘Ìõ]=I-}1M}M=9L¤(€€€€€€€€€€€¥Ñ•´¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô (€€€€€€€€€€€€€€€€‰±¥ÍÑ¥¹Ìˆ°€‰±¥ÍÑ¥¹}½Õ¹Ðˆ°€‰Ñ¥Ñ±•}­•ÁÑ}½Õ¹Ðˆ°€‰Ñ¥Ñ±•}‘¥Í…É‘•‘}½Õ¹Ðˆ°(€€€€€€€€€€€€€€€€‰‘•Ñ…¥±Í}É•ÅÕ•ÍÑ•‘}½Õ¹Ðˆ°€‰Ñ¥Ñ±•}¥¹ÁÕÑ}Ñ½­•¹Ìˆ°€‰…Ù…¥±…‰±”ˆ°€‰Á¡…Í”ˆ°€‰ÕÉÍ½Èˆ°(€€€€€€€€€€€€€€€€‰¡•…ÉÑ‰•…Ñ}…Ðˆ°€‰±•…Í•}•áÁ¥É•Í}…Ðˆ°(€€€€€€€€€€€€¤¤(€€€€€€€€€€€¥˜¹½Ð¥Ñ•´¹±¥ÍÑ¥¹Ìè(€€€€€€€€€€€€€€€}™¥¹¥Í¡}Ý½É­}¥Ñ•´ (€€€€€€€€€€€€€€€€€€€¥Ñ•´¹Á¬°Ñ½­•¸°(€€€€€€€€€€€€€€€€€€€ÍÑ…ÑÕÌõI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹MU¥˜…Ù…¥±…‰±”•±Í”I•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹AIQ%0°(€€€€€€€€€€€€€€€€¤(€€€€€€€€€€€€€€€É•ÑÕÉ¸ì‰½µÁ±•Ñ•ˆèQÉÕ”°€‰±¥ÍÑ¥¹Ìˆè€Áô((€€€€€€€¥Ñ•´¹É•™É•Í¡}™É½µ}‘ˆ ¤(€€€€€€€‰…Ñ €ô¥Ñ•´¹±¥ÍÑ¥¹Ím¥Ñ•´¹ÕÉÍ½Èé¥Ñ•´¹ÕÉÍ½È€¬Q%1}	Q!}M%it(€€€€€€€±¥ÍÑ¥¹Ì€ôm}±¥ÍÑ¥¹}™É½µ}©Í½¸¡Ù…±Õ”¤™½ÈÙ…±Õ”¥¸‰…Ñ¡t(€€€€€€€‘•Ñ…¥±}ÍÑ…ÉÑ•€ôÑ¥µ”¹Á•É™}½Õ¹Ñ•È ¤(€€€€€€€ÑÉäè(€€€€€€€€€€€‘•Ñ…¥±•€ô½¹¹•Ñ½È¹™•Ñ¡}‘•Ñ…¥±Ì¡±¥ÍÑ¥¹Ì¤¥˜¥Ñ•´¹…Ù…¥±…‰±”•±Í”±¥ÍÑ¥¹Ì(€€€€€€€€€€€‘•Ñ…¥±}…Ù…¥±…‰±”€ô¥Ñ•´¹…Ù…¥±…‰±”(€€€€€€€•á•ÁÐM½ÕÉ•A…ÉÑ¥…±±åU¹…Ù…¥±…‰±”…Ì•áŒè(€€€€€€€€€€€‘•Ñ…¥±•€ô•áŒ¹±¥ÍÑ¥¹Ì(€€€€€€€€€€€‘•Ñ…¥±}…Ù…¥±…‰±”€ô…±Í”(€€€€€€€‘•Ñ…¥±}µÌ€ôµ…à À°¥¹Ð ¡Ñ¥µ”¹Á•É™}½Õ¹Ñ•È ¤€´‘•Ñ…¥±}ÍÑ…ÉÑ•¤€¨€ÄÀÀÀ¤¤(€€€€€€€}Á•ÉÍ¥ÍÑ}±¥ÍÑ¥¹}¡Õ¹¬¡¥Ñ•´¹Á¬°Ñ½­•¸°¥Ñ•´¹ÕÉÍ½È°‘•Ñ…¥±•°‘•Ñ…¥±}µÌõ‘•Ñ…¥±}µÌ°…Ù…¥±…‰±”õ‘•Ñ…¥±}…Ù…¥±…‰±”¤((€€€€€€€¥Ñ•´¹É•™É•Í¡}™É½µ}‘ˆ ¤(€€€€€€€¥˜¥Ñ•´¹ÕÉÍ½È€ð±•¸¡¥Ñ•´¹±¥ÍÑ¥¹Ì¤è(€€€€€€€€€€€¥Ñ•´¹ÍÑ…ÑÕÌ€ôI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹EUU(€€€€€€€€€€€¥Ñ•´¹±•…Í•}Ñ½­•¸€ô€ˆˆ(€€€€€€€€€€€¥Ñ•´¹±•…Í•}•áÁ¥É•Í}…Ð€ô9½¹”(€€€€€€€€€€€¥Ñ•´¹±…ÍÑ}‘¥ÍÁ…Ñ¡•‘}…Ð€ôÑ¥µ•é½¹”¹¹½Ü ¤(€€€€€€€€€€€¥Ñ•´¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô ‰ÍÑ…ÑÕÌˆ°€‰±•…Í•}Ñ½­•¸ˆ°€‰±•…Í•}•áÁ¥É•Í}…Ðˆ°€‰±…ÍÑ}‘¥ÍÁ…Ñ¡•‘}…Ðˆ¤¤(€€€€€€€€€€€ÁÉ½•ÍÍ}É•™É•Í¡}Ý½É­}¥Ñ•´¹…ÁÁ±å}…Íå¹Œ¡…ÉÌô¡¥Ñ•´¹Á¬°¤¤(€€€€€€€€€€€É•ÑÕÉ¸ì‰½¹Ñ¥¹Õ•ˆèQÉÕ”°€‰ÕÉÍ½Èˆè¥Ñ•´¹ÕÉÍ½È°€‰Ñ½Ñ…°ˆè±•¸¡¥Ñ•´¹±¥ÍÑ¥¹Ì¥ô((€€€€€€€ÍÑ…ÑÕÌ€ôI•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹MU¥˜¥Ñ•´¹…Ù…¥±…‰±”•±Í”I•™É•Í¡]½É­%Ñ•´¹MÑ…ÑÕÌ¹AIQ%0(€€€€€€€¥Ñ•´¹•ÉÉ½É}…Ñ•½Éä€ô€ˆˆ¥˜¥Ñ•´¹…Ù…¥±…‰±”•±Í”€‰Í½ÕÉ•}Á…ÉÑ¥…±±å}Õ¹…Ù…¥±…‰±”ˆ(€€€€€€€¥Ñ•´¹Í…Ù”¡ÕÁ‘…Ñ•}™¥•±‘Ìô ‰•ÉÉ½É}…Ñ•½Éäˆ°¤¤(€€€€€€€}™¥¹¥Í¡}Ý½É­}¥Ñ•´¡¥Ñ•´¹Á¬°Ñ½­•¸°ÍÑ…ÑÕÌõÍÑ…ÑÕÌ¤(€€€€€€€É•ÑÕÉ¸ì‰½µÁ±•Ñ•ˆèQÉÕ”°€‰ÕÉÍ½Èˆè¥Ñ•´¹ÕÉÍ½Éô(€€€•á•ÁÐM½ÕÉ•U¹…Ù…¥±…‰±”è(€€€€€€€}É•ÑÉå}Ý½É­}¥Ñ•´¡¥Ñ•´¹Á¬°Ñ½­•¸°€‰Í½ÕÉ•}Õ¹…Ù…¥±…‰±”ˆ¤(€€€€€€€±½•È¹¥¹™¼ ‰É•™É•Í¡}Ý½É­}Í½ÕÉ•}Õ¹…Ù…¥±…‰±”Í½ÕÉ”ô•Ìˆ°¥Ñ•´¹Í½ÕÉ”¤(€€€€€€€É•ÑÕÉ¸ì‰É•ÑÉå¥¹œˆè€‰Í½ÕÉ•}Õ¹…Ù…¥±…‰±”‰ô(€€€•á•ÁÐá•ÁÑ¥½¸…Ì•áŒè(€€€€€€€}É•ÑÉå}Ý½É­}¥Ñ•´¡¥Ñ•´¹Á¬°Ñ½­•¸°€‰Í½ÕÉ•}•ÉÉ½Èˆ¤(€€€€€€€±½•È¹•ÉÉ½È ‰É•™É•Í¡}Ý½É­}™…¥±•Í½ÕÉ”ô•Ì•á•ÁÑ¥½¹}ÑåÁ”ô•Ìˆ°¥Ñ•´¹Í½ÕÉ”°ÑåÁ”¡•áŒ¤¹}}¹…µ•}|¤(€€€€€€€É•ÑÕÉ¸ì‰É•ÑÉå¥¹œˆè€‰Í½ÕÉ•}•ÉÉ½È‰ô((
+import logging
+import time
+import uuid
+from datetime import timedelta
+
+from celery import shared_task
+from django.conf import settings
+from django.db import transaction
+from django.utils import timezone
+
+from matching.models import MatchingConfig, ProfileVacancyDiscovery
+from matching.services import get_active_matching_config, get_profile_search_terms
+from operations.models import (
+    AdminCommandRun,
+    OperationalRun,
+    RefreshBatch,
+    RefreshBatchProfile,
+    RefreshWorkItem,
+    RefreshWorkProfile,
+)
+from operations.services import (
+    begin_run,
+    claim_refresh_lease,
+    finish_run,
+    record_admin_profile_result,
+    release_refresh_lease,
+    renew_refresh_lease,
+)
+from profiles.locations import expand_locations, vacancy_location_is_eligible
+from profiles.models import Profile
+from .models import JobSourceStatus
+
+from .connectors.base import JobListing, SourcePartiallyUnavailable, SourceUnavailable
+from .registry import configured_connectors
+from .search_groups import group_search_requests, search_request_identity
+from .services import save_listings
+
+logger = logging.getLogger(__name__)
+
+WORK_LEASE_SECONDS = settings.REFRESH_WORK_LEASE_SECONDS
+DETAIL_BATCH_SIZE = settings.REFRESH_DETAIL_BATCH_SIZE
+LOCATION_BATCH_SIZE = settings.REFRESH_LOCATION_BATCH_SIZE
+
+
+def _listing_to_json(listing):
+    return {
+        "source": listing.source,
+        "external_id": listing.external_id or "",
+        "title": listing.title,
+        "company": listing.company,
+        "location": listing.location,
+        "description": listing.description,
+        "original_url": listing.original_url,
+        "raw_data": listing.raw_data or {},
+        "salary": listing.salary,
+        "contract_type": listing.contract_type,
+    }
+
+
+def _listing_from_json(value):
+    return JobListing(**value)
+
+
+def _enqueue_work_item(work_item_id):
+    now = timezone.now()
+    updated = RefreshWorkItem.objects.filter(
+        pk=work_item_id,
+        status=RefreshWorkItem.Status.QUEUED,
+    ).update(last_dispatched_at=now)
+    if updated:
+        process_refresh_work_item.delay(work_item_id)
+
+
+def _finish_batch_profile(batch_profile_id, *, failed=False, stale=False):
+    with transaction.atomic():
+        profile_run = None
+        batch_profile = RefreshBatchProfile.objects.select_for_update().select_related(
+            "batch", "profile_run", "profile",
+        ).filter(pk=batch_profile_id).first()
+        if batch_profile is None or batch_profile.finished_at:
+            return False
+        if not batch_profile.prepared_at and not batch_profile.batch.planned_at:
+            return False
+
+        unfinished = batch_profile.work_links.exclude(
+            work_item__status__in=(
+                RefreshWorkItem.Status.SUCCEEDED,
+                RefreshWorkItem.Status.PARTIAL,
+                RefreshWorkItem.Status.FAILED,
+            ),
+        ).exists()
+        if unfinished:
+            return False
+
+        links = list(batch_profile.work_links.select_related("work_item__source_run"))
+        work_failed = failed or batch_profile.failed
+        for link in links:
+            item = link.work_item
+            source_results = dict(batch_profile.source_results or {})
+            result = source_results.setdefault(item.source, {"queries": 0, "failures": 0, "vacancy_ids": []})
+            result["queries"] += 1
+            if item.status in (RefreshWorkItem.Status.PARTIAL, RefreshWorkItem.Status.FAILED):
+                result["failures"] = result.get("failures", 0) + 1
+                work_failed = True
+            batch_profile.source_results = source_results
+
+        source_results = dict(batch_profile.source_results or {})
+        found_ids = set(batch_profile.found_vacancy_ids or [])
+        for source, summary in source_results.items():
+            summary["count"] = len(set(summary.pop("vacancy_ids", [])))
+            summary["source"] = source
+            summary["available"] = not summary.get("failures", 0)
+
+        batch_profile.failed = work_failed
+        batch_profile.stale = batch_profile.stale or stale
+        batch_profile.source_results = source_results
+        batch_profile.finished_at = timezone.now()
+        batch_profile.save(update_fields=("failed", "stale", "source_results", "finished_at"))
+
+        profile_run = batch_profile.profile_run
+        run_status = OperationalRun.Status.FAILED if work_failed and not found_ids else (
+            OperationalRun.Status.PARTIAL if work_failed or batch_profile.stale else OperationalRun.Status.SUCCEEDED
+        )
+        finish_run(
+            profile_run,
+            status=run_status,
+            item_count=len(found_ids),
+            error_category="source_error" if work_failed or batch_profile.stale else "",
+        )
+
+        batch = batch_profile.batch
+        if not batch.profiles.filter(finished_at__isnull=True).exists():
+            profile_states = list(batch.profiles.values_list("failed", "stale"))
+            if profile_states and all(is_failed for is_failed, _ in profile_states):
+                batch.status = RefreshBatch.Status.FAILED
+            elif any(is_failed or is_stale for is_failed, is_stale in profile_states):
+                batch.status = RefreshBatch.Status.PARTIAL
+            else:
+                batch.status = RefreshBatch.Status.SUCCEEDED
+            batch.finished_at = timezone.now()
+            batch.heartbeat_at = batch.finished_at
+            batch.save(update_fields=("status", "finished_at", "heartbeat_at"))
+
+    release_refresh_lease(f"profile-refresh:{batch_profile.profile_id}", batch_profile.lease_token)
+    if batch_profile.batch.command_id:
+        record_admin_profile_result(
+            batch_profile.batch.command_id,
+            results=list(batch_profile.source_results.values()),
+            failed=batch_profile.failed or batch_profile.stale,
+        )
+    return True
+
+
+def _record_work_failure(item, *, status, error_category):
+    now = timezone.now()
+    item = RefreshWorkItem.objects.select_related("source_run").get(pk=item.pk)
+    item.status = status
+    item.phase = RefreshWorkItem.Phase.COMPLETE
+    item.error_category = error_category[:80]
+    item.finished_at = now
+    item.heartbeat_at = now
+    item.lease_token = ""
+    item.lease_expires_at = None
+    item.save(update_fields=(
+        "status", "phase", "error_category", "finished_at", "heartbeat_at", "lease_token", "lease_expires_at",
+    ))
+    finish_run(
+        item.source_run,
+        status=OperationalRun.Status.PARTIAL if status == RefreshWorkItem.Status.PARTIAL else OperationalRun.Status.FAILED,
+        item_count=item.source_run.item_count,
+        new_count=item.source_run.new_count,
+        known_count=item.source_run.known_count,
+        known_updated_count=item.source_run.known_updated_count,
+        known_unchanged_count=item.source_run.known_unchanged_count,
+        listing_count=item.listing_count,
+        title_kept_count=item.title_kept_count,
+        title_discarded_count=item.title_discarded_count,
+        details_requested_count=item.details_requested_count,
+        details_received_count=item.details_received_count,
+        title_input_tokens=item.title_input_tokens,
+        error_category=error_category,
+    )
+    JobSourceStatus.objects.update_or_create(
+        source=item.source,
+        defaults={
+            "available": False,
+            "status_message": "La fuente de empleo no respondiÃ³." if error_category == "source_unavailable" else "No fue posible completar la consulta a la fuente.",
+            "last_checked_at": now,
+        },
+    )
+    profile_ids = list(item.profile_links.values_list("batch_profile_id", flat=True))
+    for profile_id in profile_ids:
+        _finish_batch_profile(profile_id, failed=True)
+
+
+def _retry_work_item(item_id, token, error_category):
+    with transaction.atomic():
+        item = RefreshWorkItem.objects.select_for_update().filter(
+            pk=item_id,
+            status=RefreshWorkItem.Status.RUNNING,
+            lease_token=token,
+        ).first()
+        if item is None:
+            return False
+        item.attempts += 1
+        if item.attempts >= 4:
+            item.error_category = error_category[:80]
+            item.save(update_fields=("attempts", "error_category"))
+            terminal = True
+        else:
+            item.status = RefreshWorkItem.Status.QUEUED
+            item.error_category = error_category[:80]
+            item.lease_token = ""
+            item.lease_expires_at = None
+            item.heartbeat_at = timezone.now()
+            item.last_dispatched_at = item.heartbeat_at
+            item.save(update_fields=(
+                "attempts", "status", "error_category", "lease_token", "lease_expires_at",
+                "heartbeat_at", "last_dispatched_at",
+            ))
+            terminal = False
+    if terminal:
+        _record_work_failure(item, status=RefreshWorkItem.Status.FAILED, error_category=error_category)
+    else:
+        process_refresh_work_item.apply_async(args=(item_id,), countdown=30 * item.attempts)
+    return True
+
+
+@shared_task(name="jobs.resumable.prepare_refresh_batch")
+def prepare_refresh_batch(profile_leases, command_run_id=None, leases_already_claimed=False):
+    from jobs.tasks import refresh_sources
+    from operations.parameters import processing_is_paused
+
+    if not profile_leases:
+        if command_run_id:
+            command = AdminCommandRun.objects.filter(pk=command_run_id).first()
+            if command and command.status == AdminCommandRun.Status.RUNNING and command.completed_profiles < command.profile_count:
+                for _ in range(command.profile_count - command.completed_profiles):
+                    record_admin_profile_result(command_run_id, results=[])
+        return {"scheduled_profiles": 0}
+    if processing_is_paused():
+        for profile_id, token in profile_leases.items():
+            release_refresh_lease(f"profile-refresh:{int(profile_id)}", token)
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        return {"deferred": "processing_paused"}
+
+    claimed = {}
+    for profile_id_value, token in profile_leases.items():
+        profile_id = int(profile_id_value)
+        lease_key = f"profile-refresh:{profile_id}"
+        lease_ok = (
+            renew_refresh_lease(lease_key, token, ttl_seconds=24 * 60 * 60)
+            if leases_already_claimed
+            else claim_refresh_lease(lease_key, token)
+        )
+        if lease_ok:
+            renew_refresh_lease(f"profile-refresh:{profile_id}", token, ttl_seconds=24 * 60 * 60)
+            claimed[profile_id] = token
+        elif command_run_id:
+            record_admin_profile_result(command_run_id, results=[])
+    if not claimed:
+        return {"scheduled_profiles": 0}
+
+    batch = RefreshBatch.objects.create(
+        command_id=command_run_id,
+        status=RefreshBatch.Status.RUNNING,
+        started_at=timezone.now(),
+    )
+    scheduled = 0
+    for profile_id, token in claimed.items():
+        profile = Profile.objects.select_related("owner").filter(
+            pk=profile_id, owner__is_active=True, cv_file__gt="", revision_number__gt=0,
+        ).first()
+        if profile is None:
+            release_refresh_lease(f"profile-refresh:{profile_id}", token)
+            if command_run_id:
+                record_admin_profile_result(command_run_id, results=[], failed=True)
+            continue
+        revision = profile.revisions.filter(version=profile.revision_number).first()
+        if revision is None:
+            release_refresh_lease(f"profile-refresh:{profile_id}", token)
+            if command_run_id:
+                record_admin_profile_result(command_run_id, results=[], failed=True)
+            continue
+        profile_run = begin_run(kind=OperationalRun.Kind.INGESTION, operation="profile_refresh")
+        batch_profile = RefreshBatchProfile.objects.create(
+            batch=batch,
+            profile=profile,
+            profile_run=profile_run,
+            lease_token=token,
+        )
+        prepare_refresh_profile.delay(batch_profile.pk)
+        scheduled += 1
+
+    if not scheduled:
+        plan_refresh_batch.delay(batch.pk)
+    return {"scheduled_profiles": scheduled}
+
+
+@shared_task(bind=True, name="jobs.resumable.prepare_refresh_profile", max_retries=3)
+def prepare_refresh_profile(self, batch_profile_id):
+    from matching.client import OmniRouteError
+    from operations.parameters import processing_is_paused
+
+    batch_profile = RefreshBatchProfile.objects.select_related("batch", "profile").filter(
+        pk=batch_profile_id,
+    ).first()
+    if batch_profile is None or batch_profile.prepared_at:
+        return {"skipped": "already_prepared"}
+    if processing_is_paused():
+        RefreshBatch.objects.filter(pk=batch_profile.batch_id).update(heartbeat_at=timezone.now())
+        renew_refresh_lease(
+            f"profile-refresh:{batch_profile.profile_id}",
+            batch_profile.lease_token,
+            ttl_seconds=24 * 60 * 60,
+        )
+        prepare_refresh_profile.apply_async(args=(batch_profile_id,), countdown=60)
+        return {"deferred": "processing_paused"}
+
+    profile = Profile.objects.select_related("owner").filter(
+        pk=batch_profile.profile_id,
+        owner__is_active=True,
+        cv_file__gt="",
+        revision_number__gt=0,
+    ).first()
+    revision = profile.revisions.filter(version=profile.revision_number).first() if profile else None
+    if revision is None:
+        batch_profile.failed = True
+        batch_profile.prepared_at = timezone.now()
+        batch_profile.save(update_fields=("failed", "prepared_at"))
+        plan_refresh_batch.delay(batch_profile.batch_id)
+        return {"failed": "profile_revision_missing"}
+
+    config = get_active_matching_config()
+    try:
+        terms = get_profile_search_terms(revision, config)
+    except OmniRouteError as exc:
+        if self.request.retries < self.max_retries:
+            raise self.retry(exc=exc, countdown=60)
+        logger.warning("profile_search_terms_failed category=%s", exc.category)
+        batch_profile.failed = True
+        batch_profile.prepared_at = timezone.now()
+        batch_profile.save(update_fields=("failed", "prepared_at"))
+        plan_refresh_batch.delay(batch_profile.batch_id)
+        return {"failed": exc.category}
+    except Exception as exc:
+        logger.error("profile_search_terms_failed exception_type=%s", type(exc).__name__)
+        batch_profile.failed = True
+        batch_profile.prepared_at = timezone.now()
+        batch_profile.save(update_fields=("failed", "prepared_at"))
+        plan_refresh_batch.delay(batch_profile.batch_id)
+        return {"failed": "search_terms_error"}
+
+    batch_profile.search_request = {
+        "profile_id": profile.pk,
+        "revision_id": revision.pk,
+        "matching_config_id": config.pk,
+        "keywords": list(terms.keywords),
+        "locations": expand_locations(revision.locations),
+        "remote_ok": revision.remote_ok,
+    }
+    batch_profile.prepared_at = timezone.now()
+    batch_profile.save(update_fields=("search_request", "prepared_at"))
+    plan_refresh_batch.delay(batch_profile.batch_id)
+    return {"prepared": True}
+
+
+@shared_task(name="jobs.resumable.plan_refresh_batch")
+def plan_refresh_batch(batch_id):
+    item_ids = []
+    with transaction.atomic():
+        batch = RefreshBatch.objects.select_for_update().filter(pk=batch_id).first()
+        if batch is None or batch.planned_at:
+            return {"skipped": "already_planned"}
+        profiles = list(batch.profiles.select_related("profile").order_by("pk"))
+        if any(not batch_profile.prepared_at for batch_profile in profiles):
+            return {"waiting": True}
+        requests = []
+        batch_profiles = {bp.profile_id: bp for bp in profiles}
+        for batch_profile in profiles:
+            request = batch_profile.search_request
+            locations = request.get("locations", [])
+            location_chunks = [
+                locations[index:index + LOCATION_BATCH_SIZE]
+                for index in range(0, len(locations), LOCATION_BATCH_SIZE)
+            ] or [[]]
+            for keyword in request.get("keywords", []):
+                for chunk_index, location_chunk in enumerate(location_chunks):
+                    requests.append({
+                        "profile_id": batch_profile.profile_id,
+                        "revision_id": request.get("revision_id"),
+                        "matching_config_id": request.get("matching_config_id"),
+                        "keywords": [keyword],
+                        "locations": location_chunk,
+                        "remote_ok": request.get("remote_ok", False) and chunk_index == 0,
+                    })
+
+        for connector in configured_connectors():
+            for group in group_search_requests(connector, requests):
+                request = group["request"]
+                identity = search_request_identity(connector, request)
+                source_run = begin_run(
+                    kind=OperationalRun.Kind.INGESTION,
+                    operation="source_query",
+                    source=connector.source,
+                )
+                item = RefreshWorkItem.objects.create(
+                    batch=batch,
+                    source_run=source_run,
+                    source=connector.source,
+                    identity=identity,
+                    search_request={
+                        "keywords": request["keywords"],
+                        "locations": request["locations"],
+                        "remote_ok": request["remote_ok"],
+                        "matching_config_id": request["matching_config_id"],
+                    },
+                )
+                links = [
+                    RefreshWorkProfile(
+                        work_item=item,
+                        batch_profile=batch_profiles[member["profile_id"]],
+                        revision_id=member["revision_id"],
+                    )
+                    for member in group["members"]
+                    if member["profile_id"] in batch_profiles
+                ]
+                RefreshWorkProfile.objects.bulk_create(links, ignore_conflicts=True)
+                item_ids.append(item.pk)
+        batch.planned_at = timezone.now()
+        batch.heartbeat_at = batch.planned_at
+        batch.save(update_fields=("planned_at", "heartbeat_at"))
+
+    for batch_profile in profiles:
+        _finish_batch_profile(batch_profile.pk, failed=batch_profile.failed)
+    for item_id in item_ids:
+        _enqueue_work_item(item_id)
+    if not profiles:
+        RefreshBatch.objects.filter(pk=batch_id).update(
+            status=RefreshBatch.Status.FAILED,
+            finished_at=timezone.now(),
+        )
+    return {"scheduled_units": len(item_ids), "profiles": len(profiles)}
+
+def _claim_work_item(work_item_id):
+    now = timezone.now()
+    token = uuid.uuid4().hex
+    with transaction.atomic():
+        item = RefreshWorkItem.objects.select_for_update().filter(pk=work_item_id).first()
+        if item is None or item.status in (
+            RefreshWorkItem.Status.SUCCEEDED,
+            RefreshWorkItem.Status.PARTIAL,
+            RefreshWorkItem.Status.FAILED,
+        ):
+            return None
+        if item.status == RefreshWorkItem.Status.RUNNING and item.lease_expires_at and item.lease_expires_at > now:
+            return None
+        item.status = RefreshWorkItem.Status.RUNNING
+        item.lease_token = token
+        item.lease_expires_at = now + timedelta(seconds=WORK_LEASE_SECONDS)
+        item.heartbeat_at = now
+        item.save(update_fields=("status", "attempts", "lease_token", "lease_expires_at", "heartbeat_at"))
+        for link in item.profile_links.select_related("batch_profile"):
+            batch_profile = link.batch_profile
+            renew_refresh_lease(
+                f"profile-refresh:{batch_profile.profile_id}",
+                batch_profile.lease_token,
+                ttl_seconds=24 * 60 * 60,
+            )
+        return item, token
+
+
+def _increment_run_metrics(item, saved, detail_ms=0):
+    run = OperationalRun.objects.select_for_update().get(pk=item.source_run_id)
+    run.item_count += len(saved.vacancies)
+    run.new_count = (run.new_count or 0) + saved.new_count
+    run.known_count = (run.known_count or 0) + saved.known_count
+    run.known_updated_count = (run.known_updated_count or 0) + saved.known_updated_count
+    run.known_unchanged_count = (run.known_unchanged_count or 0) + saved.known_unchanged_count
+    run.details_received_count = (run.details_received_count or 0) + len(saved.vacancies)
+    run.detail_fetch_duration_ms = (run.detail_fetch_duration_ms or 0) + max(0, int(detail_ms))
+    run.save(update_fields=(
+        "item_count", "new_count", "known_count", "known_updated_count", "known_unchanged_count",
+        "details_received_count", "detail_fetch_duration_ms",
+    ))
+
+
+def _persist_listing_chunk(item_id, token, start, listings, *, detail_ms=0, available=True):
+    from matching.tasks import schedule_vacancy_analysis
+
+    with transaction.atomic():
+        item = RefreshWorkItem.objects.select_for_update().filter(
+            pk=item_id, status=RefreshWorkItem.Status.RUNNING, lease_token=token,
+        ).first()
+        if item is None or item.cursor != start:
+            return False
+        saved = save_listings(listings)
+        links = list(item.profile_links.select_related("batch_profile__profile"))
+        current_config_id = MatchingConfig.objects.filter(is_active=True).order_by("-version").values_list("pk", flat=True).first()
+        targets = {}
+        valid_links = []
+        for link in links:
+            batch_profile = link.batch_profile
+            profile = Profile.objects.select_related("owner").filter(
+                pk=batch_profile.profile_id,
+                owner__is_active=True,
+                cv_file__gt="",
+            ).first()
+            revision = profile.revisions.filter(
+                pk=link.revision_id,
+                version=profile.revision_number,
+            ).first() if profile else None
+            if revision is None or current_config_id != item.search_request.get("matching_config_id"):
+                batch_profile.stale = True
+                batch_profile.save(update_fields=("stale",))
+                continue
+            valid_links.append((link, batch_profile, profile, revision))
+
+        for link, batch_profile, profile, revision in valid_links:
+            for vacancy in saved.vacancies:
+                if not vacancy_location_is_eligible(vacancy, revision):
+                    continue
+                ProfileVacancyDiscovery.objects.get_or_create(
+                    profile_id=profile.pk,
+                    vacancy_id=vacancy.pk,
+                    defaults={"auto_discard_threshold": profile.min_score or 0},
+                )
+                target = targets.setdefault(vacancy.pk, {
+                    "vacancy": vacancy,
+                    "profile_revisions": {},
+                    "run_ids": {},
+                    "materially_changed": False,
+                })
+                target["profile_revisions"][str(profile.pk)] = link.revision_id
+                target["run_ids"].setdefault(str(profile.pk), []).append(item.source_run_id)
+                target["materially_changed"] = target["materially_changed"] or getattr(vacancy, "_materially_changed", False)
+                ids = set(batch_profile.found_vacancy_ids or [])
+                ids.add(vacancy.pk)
+                batch_profile.found_vacancy_ids = sorted(ids)
+                source_results = dict(batch_profile.source_results or {})
+                result = source_results.setdefault(item.source, {"queries": 0, "failures": 0, "vacancy_ids": []})
+                result["vacancy_ids"] = sorted(set(result["vacancy_ids"]) | {vacancy.pk})
+                batch_profile.source_results = source_results
+                batch_profile.save(update_fields=("found_vacancy_ids", "source_results"))
+
+        for target in targets.values():
+            transaction.on_commit(lambda target=target: schedule_vacancy_analysis.delay(
+                target["vacancy"].pk,
+                force_reanalysis=target["materially_changed"],
+                profile_ids=[int(profile_id) for profile_id in target["profile_revisions"]],
+                expected_revision_ids=target["profile_revisions"],
+                expected_matching_config_id=item.search_request.get("matching_config_id"),
+                source_query_run_ids_by_profile=target["run_ids"],
+            ))
+
+        item.cursor = start + len(listings)
+        item.available = item.available and available
+        item.details_received_count += len(saved.vacancies)
+        item.heartbeat_at = timezone.now()
+        item.lease_expires_at = item.heartbeat_at + timedelta(seconds=WORK_LEASE_SECONDS)
+        item.batch.heartbeat_at = item.heartbeat_at
+        item.batch.save(update_fields=("heartbeat_at",))
+        _increment_run_metrics(item, saved, detail_ms=detail_ms)
+        item.attempts = 0
+        item.save(update_fields=("cursor", "available", "details_received_count", "heartbeat_at", "lease_expires_at", "attempts"))
+    return True
+
+
+def _finish_work_item(item_id, token, *, status):
+    with transaction.atomic():
+        item = RefreshWorkItem.objects.select_for_update().select_related("source_run").filter(
+            pk=item_id, status=RefreshWorkItem.Status.RUNNING, lease_token=token,
+        ).first()
+        if item is None:
+            return
+        item.status = status
+        item.phase = RefreshWorkItem.Phase.COMPLETE
+        item.finished_at = timezone.now()
+        item.heartbeat_at = item.finished_at
+        item.lease_token = ""
+        item.lease_expires_at = None
+        item.listings = []
+        item.save(update_fields=("status", "phase", "finished_at", "heartbeat_at", "lease_token", "lease_expires_at", "listings"))
+        run_status = (
+            OperationalRun.Status.SUCCEEDED if status == RefreshWorkItem.Status.SUCCEEDED
+            else OperationalRun.Status.PARTIAL if status == RefreshWorkItem.Status.PARTIAL
+            else OperationalRun.Status.FAILED
+        )
+        finish_run(
+            item.source_run,
+            status=run_status,
+            item_count=item.source_run.item_count,
+            new_count=item.source_run.new_count,
+            known_count=item.source_run.known_count,
+            known_updated_count=item.source_run.known_updated_count,
+            known_unchanged_count=item.source_run.known_unchanged_count,
+            listing_count=item.listing_count,
+            title_kept_count=item.title_kept_count,
+            title_discarded_count=item.title_discarded_count,
+            details_requested_count=item.details_requested_count,
+            details_received_count=item.details_received_count,
+            title_input_tokens=item.title_input_tokens,
+            error_category=item.error_category if run_status != OperationalRun.Status.SUCCEEDED else "",
+        )
+        JobSourceStatus.objects.update_or_create(
+            source=item.source,
+            defaults={
+                "available": item.available and status == RefreshWorkItem.Status.SUCCEEDED,
+                "status_message": "" if item.available else "La consulta a la fuente fue parcial.",
+                "last_checked_at": item.finished_at,
+                "last_success_at": item.finished_at if item.available else item.source_run.finished_at,
+                "last_vacancy_count": item.source_run.item_count,
+            },
+        )
+    for profile_id in item.profile_links.values_list("batch_profile_id", flat=True):
+        _finish_batch_profile(profile_id, failed=status != RefreshWorkItem.Status.SUCCEEDED)
+
+
+@shared_task(name="jobs.resumable.process_refresh_work_item")
+def process_refresh_work_item(work_item_id):
+    from operations.parameters import processing_is_paused
+
+    if processing_is_paused():
+        RefreshWorkItem.objects.filter(pk=work_item_id, status=RefreshWorkItem.Status.QUEUED).update(
+            last_dispatched_at=timezone.now() - timedelta(minutes=5),
+        )
+        process_refresh_work_item.apply_async(args=(work_item_id,), countdown=60)
+        return {"deferred": "processing_paused"}
+    claim = _claim_work_item(work_item_id)
+    if claim is None:
+        return {"skipped": "already_claimed_or_finished"}
+    item, token = claim
+    connector = next((item_type for item_type in configured_connectors() if item_type.source == item.source), None)
+    if connector is None:
+        _record_work_failure(item, status=RefreshWorkItem.Status.FAILED, error_category="source_error")
+        return {"failed": "connector_missing"}
+
+    try:
+        if item.phase == RefreshWorkItem.Phase.TITLES:
+            listing_started = time.perf_counter()
+            try:
+                titles = connector.fetch_titles(
+                    item.search_request.get("keywords", []),
+                    locations=item.search_request.get("locations", []),
+                    remote_ok=item.search_request.get("remote_ok", False),
+                )
+                available = True
+            except SourcePartiallyUnavailable as exc:
+                titles = exc.listings
+                available = False
+            listing_ms = max(0, int((time.perf_counter() - listing_started) * 1000))
+            preselection_started = time.perf_counter()
+            from matching.services import preselect_listing_titles
+            preselected = preselect_listing_titles(titles, item.search_request.get("keywords", []))
+            preselection_ms = max(0, int((time.perf_counter() - preselection_started) * 1000))
+            run = OperationalRun.objects.get(pk=item.source_run_id)
+            run.listing_count = len(titles)
+            run.title_kept_count = len(preselected.listings)
+            run.title_discarded_count = preselected.discarded_count
+            run.details_requested_count = len(preselected.listings)
+            run.title_input_tokens = preselected.input_tokens
+            run.listing_fetch_duration_ms = listing_ms
+            run.title_preselection_duration_ms = preselection_ms
+            run.save(update_fields=(
+                "listing_count", "title_kept_count", "title_discarded_count", "details_requested_count",
+                "title_input_tokens", "listing_fetch_duration_ms", "title_preselection_duration_ms",
+            ))
+            item.listings = [_listing_to_json(listing) for listing in preselected.listings]
+            item.listing_count = len(titles)
+            item.title_kept_count = len(preselected.listings)
+            item.title_discarded_count = preselected.discarded_count
+            item.details_requested_count = len(preselected.listings)
+            item.title_input_tokens = preselected.input_tokens
+            item.available = available
+            item.phase = RefreshWorkItem.Phase.DETAILS
+            item.cursor = 0
+            item.heartbeat_at = timezone.now()
+            item.lease_expires_at = item.heartbeat_at + timedelta(seconds=WORK_LEASE_SECONDS)
+            item.save(update_fields=(
+                "listings", "listing_count", "title_kept_count", "title_discarded_count",
+                "details_requested_count", "title_input_tokens", "available", "phase", "cursor",
+                "heartbeat_at", "lease_expires_at",
+            ))
+            if not item.listings:
+                _finish_work_item(
+                    item.pk, token,
+                    status=RefreshWorkItem.Status.SUCCEEDED if available else RefreshWorkItem.Status.PARTIAL,
+                )
+                return {"completed": True, "listings": 0}
+
+        item.refresh_from_db()
+        batch = item.listings[item.cursor:item.cursor + DETAIL_BATCH_SIZE]
+        listings = [_listing_from_json(value) for value in batch]
+        detail_started = time.perf_counter()
+        try:
+            detailed = connector.fetch_details(listings) if item.available else listings
+            detail_available = item.available
+        except SourcePartiallyUnavailable as exc:
+            detailed = exc.listings
+            detail_available = False
+        detail_ms = max(0, int((time.perf_counter() - detail_started) * 1000))
+        _persist_listing_chunk(item.pk, token, item.cursor, detailed, detail_ms=detail_ms, available=detail_available)
+
+        item.refresh_from_db()
+        if item.cursor < len(item.listings):
+            item.status = RefreshWorkItem.Status.QUEUED
+            item.lease_token = ""
+            item.lease_expires_at = None
+            item.last_dispatched_at = timezone.now()
+            item.save(update_fields=("status", "lease_token", "lease_expires_at", "last_dispatched_at"))
+            process_refresh_work_item.apply_async(args=(item.pk,))
+            return {"continued": True, "cursor": item.cursor, "total": len(item.listings)}
+
+        status = RefreshWorkItem.Status.SUCCEEDED if item.available else RefreshWorkItem.Status.PARTIAL
+        item.error_category = "" if item.available else "source_partially_unavailable"
+        item.save(update_fields=("error_category",))
+        _finish_work_item(item.pk, token, status=status)
+        return {"completed": True, "cursor": item.cursor}
+    except SourceUnavailable:
+        _retry_work_item(item.pk, token, "source_unavailable")
+        logger.info("refresh_work_source_unavailable source=%s", item.source)
+        return {"retrying": "source_unavailable"}
+    except Exception as exc:
+        _retry_work_item(item.pk, token, "source_error")
+        logger.error("refresh_work_failed source=%s exception_type=%s", item.source, type(exc).__name__)
+        return {"retrying": "source_error"}
+

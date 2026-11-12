@@ -33,6 +33,10 @@ El panel SHALL mostrar por fuente el volumen de ejecuciones, resultados, vacante
 - **WHEN** quedan unidades de búsqueda activas o en cola para una fuente
 - **THEN** el panel muestra su estado y los conteos agregados confirmados hasta el momento
 
+#### Scenario: Consultar el estado real de una búsqueda por lotes
+- **WHEN** una búsqueda tiene una unidad durable en cola, en ejecución o terminada
+- **THEN** el historial muestra el estado de esa unidad y no presenta como ejecutándose una unidad que sigue en cola; las ejecuciones históricas sin unidad durable conservan su estado registrado
+
 ### Requirement: Cerrar ejecuciones interrumpidas
 La reconciliación periódica SHALL marcar como fallidas o parciales las ejecuciones de ingesta y sus comandos administrativos que permanezcan sin trabajo activo, en cola o con progreso confirmado por más de 20 minutos. SHALL usar una categoría segura de interrupción, conservar el historial y liberar los leases asociados.
 

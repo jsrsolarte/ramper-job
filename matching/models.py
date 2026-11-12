@@ -6,7 +6,7 @@ from jobs.models import Vacancy
 from profiles.models import Profile, ProfileRevision
 
 RUBRIC_VERSION = 2
-PROMPT_VERSION = 4
+PROMPT_VERSION = 5
 CRITICAL_REQUIREMENT_DEDUCTION = "2.0"
 RUBRIC_CRITERIA = {
     "skills": {

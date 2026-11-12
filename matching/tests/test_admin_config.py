@@ -69,6 +69,9 @@ class VersionedConfigAdminTests(TestCase):
         self.assertEqual(historical.score, 7)
         self.assertEqual(current.prompt_version, PROMPT_VERSION)
         self.assertIn(CRITICAL_COMPLETENESS_INSTRUCTION, current.analysis_prompt)
+        self.assertIn("requirement de máximo 180 caracteres", current.analysis_prompt)
+        self.assertIn("evidence de máximo 240 caracteres", current.analysis_prompt)
+        self.assertIn("cumple, sin_evidencia o contradicho", current.analysis_prompt)
         self.assertIn(EVIDENCE_STATUS_INSTRUCTION, current.analysis_prompt)
         self.assertEqual(current.parameters["rubric"]["critical_requirement_deduction"], "1.5")
 

@@ -3,7 +3,6 @@ from datetime import timedelta
 from celery import shared_task
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from django.db.models import F
 from django.utils import timezone
 
 from .models import (
@@ -51,30 +50,65 @@ def reconcile_refresh_work():
     now = timezone.now()
     stale_cutoff = now - timedelta(minutes=20)
     dispatch_cutoff = now - timedelta(minutes=5)
-    from jobs.resumable import _finish_batch_profile, _record_work_failure, _enqueue_work_item
+    from jobs.resumable import (
+        MAX_WORK_ATTEMPTS,
+        _enqueue_work_item,
+        _finish_batch_profile,
+        _record_work_failure,
+    )
 
     recovered = 0
-    stale_items = RefreshWorkItem.objects.filter(
+    stale_item_ids = list(RefreshWorkItem.objects.filter(
         status=RefreshWorkItem.Status.RUNNING,
         heartbeat_at__lt=stale_cutoff,
-    ).filter(models_q_lease_expired(now))
-    for item in stale_items.iterator():
-        if item.attempts >= 3:
+    ).filter(models_q_lease_expired(now)).values_list("pk", flat=True))
+    for item_id in stale_item_ids:
+        exhausted_item = None
+        with transaction.atomic():
+            item = RefreshWorkItem.objects.select_for_update().filter(
+                pk=item_id,
+                status=RefreshWorkItem.Status.RUNNING,
+            ).first()
+            # Recheck under the row lock: a worker may have renewed its lease or
+            # heartbeat after the initial stale-item query.
+            if (
+                item is None
+                or item.heartbeat_at is None
+                or item.heartbeat_at >= stale_cutoff
+                or (item.lease_expires_at is not None and item.lease_expires_at > now)
+            ):
+                continue
+            if item.attempts >= MAX_WORK_ATTEMPTS - 1:
+                item.status = RefreshWorkItem.Status.FAILED
+                item.phase = RefreshWorkItem.Phase.COMPLETE
+                item.finished_at = now
+                item.heartbeat_at = now
+                item.lease_token = ""
+                item.lease_expires_at = None
+                item.error_category = "execution_interrupted"
+                item.save(update_fields=(
+                    "status", "phase", "finished_at", "heartbeat_at", "lease_token",
+                    "lease_expires_at", "error_category",
+                ))
+                exhausted_item = item
+            else:
+                item.status = RefreshWorkItem.Status.QUEUED
+                item.attempts += 1
+                item.lease_token = ""
+                item.lease_expires_at = None
+                item.last_dispatched_at = None
+                item.error_category = "execution_interrupted"
+                item.save(update_fields=(
+                    "status", "attempts", "lease_token", "lease_expires_at",
+                    "last_dispatched_at", "error_category",
+                ))
+                recovered += 1
+        if exhausted_item is not None:
             _record_work_failure(
-                item,
+                exhausted_item,
                 status=RefreshWorkItem.Status.FAILED,
                 error_category="execution_interrupted",
             )
-        else:
-            RefreshWorkItem.objects.filter(pk=item.pk, status=RefreshWorkItem.Status.RUNNING).update(
-                status=RefreshWorkItem.Status.QUEUED,
-                attempts=F("attempts") + 1,
-                lease_token="",
-                lease_expires_at=None,
-                last_dispatched_at=None,
-                error_category="execution_interrupted",
-            )
-            recovered += 1
 
     queued = RefreshWorkItem.objects.filter(status=RefreshWorkItem.Status.QUEUED).filter(
         models_q_dispatch_due(dispatch_cutoff),

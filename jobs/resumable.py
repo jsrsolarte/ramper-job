@@ -39,6 +39,7 @@ logger = logging.getLogger(__name__)
 WORK_LEASE_SECONDS = settings.REFRESH_WORK_LEASE_SECONDS
 DETAIL_BATCH_SIZE = settings.REFRESH_DETAIL_BATCH_SIZE
 LOCATION_BATCH_SIZE = settings.REFRESH_LOCATION_BATCH_SIZE
+MAX_WORK_ATTEMPTS = 4
 
 
 def _configured_connectors():
@@ -209,7 +210,7 @@ def _retry_work_item(item_id, token, error_category):
         if item is None:
             return False
         item.attempts += 1
-        if item.attempts >= 4:
+        if item.attempts >= MAX_WORK_ATTEMPTS:
             item.error_category = error_category[:80]
             item.save(update_fields=("attempts", "error_category"))
             terminal = True

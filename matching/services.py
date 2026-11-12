@@ -41,7 +41,10 @@ CONCISE_ORGANIZATION_INSTRUCTION = (
 )
 CRITICAL_COMPLETENESS_INSTRUCTION = (
     "Enumera en critical_requirements cada requisito explícito obligatorio, incluso los que se cumplen; "
-    "no omitas ninguno por brevedad. Incluye evidencia breve para cada uno."
+    "no omitas ninguno por brevedad. Para cada elemento usa requirement de máximo 180 caracteres, "
+    "evidence de máximo 240 caracteres y status exactamente uno de: cumple, sin_evidencia o contradicho. "
+    "Incluye evidencia breve para cada uno; si status es contradicho, la evidencia debe mostrar una "
+    "incompatibilidad explícita."
 )
 EVIDENCE_STATUS_INSTRUCTION = (
     "La falta de experiencia o una trayectoria en otro sector no contradice un requisito: usa sin_evidencia. "

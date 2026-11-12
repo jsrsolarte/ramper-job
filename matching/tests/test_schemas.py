@@ -162,6 +162,60 @@ class AnalysisSchemaTests(TestCase):
         self.assertEqual(result["score"], Decimal("10.0"))
         self.assertEqual(result["deductions"], [])
 
+    def test_critical_requirement_boundaries_and_statuses_match_the_prompt(self):
+        base = {
+            "rubric_version": RUBRIC_VERSION,
+            "critical_requirements": [],
+            "score_breakdown": {
+                "skills": {"score": 4, "status": "cumple", "evidence": "x"},
+                "experience": {"score": 2, "status": "cumple", "evidence": "x"},
+                "alignment": {"score": 2, "status": "cumple", "evidence": "x"},
+                "education": {"score": 1, "status": "cumple", "evidence": "x"},
+                "profile_criteria": {"score": 1, "status": "cumple", "evidence": "x"},
+            },
+            "reasons": [],
+            "gaps": [],
+        }
+        valid = {**base, "critical_requirements": [
+            {"requirement": "r" * 180, "status": "sin_evidencia", "evidence": "e" * 240},
+        ]}
+        self.assertEqual(len(validate_analysis(valid)["critical_requirements"][0]["requirement"]), 180)
+
+        invalid_requirements = [
+            {"requirement": "r" * 181, "status": "cumple", "evidence": "e"},
+            {"requirement": "r", "status": "cumple", "evidence": "e" * 241},
+            {"requirement": "r", "status": "parcial", "evidence": "e"},
+        ]
+        for critical_requirement in invalid_requirements:
+            with self.subTest(critical_requirement=critical_requirement), self.assertRaises(InvalidAnalysisError):
+                validate_analysis({**base, "critical_requirements": [critical_requirement]})
+
+    def test_invalid_critical_requirement_is_not_saved_as_partial_analysis(self):
+        payload = {
+            "rubric_version": RUBRIC_VERSION,
+            "critical_requirements": [
+                {"requirement": "r" * 181, "status": "cumple", "evidence": "e"},
+            ],
+            "score_breakdown": {
+                "skills": {"score": 4, "status": "cumple", "evidence": "x"},
+                "experience": {"score": 2, "status": "cumple", "evidence": "x"},
+                "alignment": {"score": 2, "status": "cumple", "evidence": "x"},
+                "education": {"score": 1, "status": "cumple", "evidence": "x"},
+                "profile_criteria": {"score": 1, "status": "cumple", "evidence": "x"},
+            },
+            "reasons": ["No debe persistirse"],
+            "gaps": [],
+        }
+
+        with self.assertRaises(InvalidAnalysisError) as caught:
+            save_validated_analysis(self.analysis, payload)
+
+        self.assertEqual(caught.exception.code, "analysis.rubric.critical_requirement.text_invalid")
+        self.analysis.refresh_from_db()
+        self.assertEqual(self.analysis.status, VacancyAnalysis.Status.PENDING)
+        self.assertIsNone(self.analysis.score)
+        self.assertEqual(self.analysis.reasons, [])
+
     def test_rubric_excludes_personal_attributes_and_distinguishes_missing_evidence(self):
         self.assertIn("discapacidad", RUBRIC_PROMPT)
         self.assertIn("La falta de información no es contradicción", RUBRIC_PROMPT)

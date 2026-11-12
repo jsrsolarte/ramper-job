@@ -6,6 +6,7 @@ resources:
   - ingress.yaml
 patches:
   - path: probes.patch.yaml
+  - path: worker-scale.patch.yaml
   - target:
       kind: ConfigMap
       name: ramper-job-config

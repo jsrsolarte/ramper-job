@@ -686,11 +686,11 @@ def dashboard(request):
             "source": source,
             "has_status": source in statuses_by_source,
             "status": statuses_by_source.get(source),
-            "metrics": source_summaries.get(source.source, {
+            "metrics": source_summaries.get(source, {
                 "total": 0, "failed": 0, "average_duration": 0, "last_error": "",
                 "classified_queries": 0,
             }),
-            "progress": refresh_progress.get(source.source, {"queued": 0, "running": 0, "confirmed_listings": 0}),
+            "progress": refresh_progress.get(source, {"queued": 0, "running": 0, "confirmed_listings": 0}),
         })
 
     pending = VacancyAnalysis.objects.filter(status=VacancyAnalysis.Status.PENDING)

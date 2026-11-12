@@ -4,6 +4,7 @@ from celery import shared_task
 from django.utils import timezone
 
 from .connectors.base import JobListing
+from .registry import configured_connectors  # compatibility for callers patching the task module
 from .models import ManualVacancySubmission
 from profiles.models import Profile
 from operations.models import AdminCommandRun
@@ -85,9 +86,7 @@ def refresh_sources(command_run_id=None):
         profile_leases[str(profile_id)] = lease_token
     if profile_leases:
         try:
-            from .resumable import prepare_refresh_batch
-
-            prepare_refresh_batch.delay(profile_leases, command_run_id=command_run_id)
+            refresh_shared_sources.delay(profile_leases, command_run_id=command_run_id)
         except Exception:
             for profile_id, lease_token in profile_leases.items():
                 release_refresh_lease(f"profile-refresh:{profile_id}", lease_token)

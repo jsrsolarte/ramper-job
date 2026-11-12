@@ -31,7 +31,6 @@ from profiles.models import Profile
 from .models import JobSourceStatus
 
 from .connectors.base import JobListing, SourcePartiallyUnavailable, SourceUnavailable
-from .registry import configured_connectors
 from .search_groups import group_search_requests, search_request_identity
 from .services import save_listings
 
@@ -40,6 +39,13 @@ logger = logging.getLogger(__name__)
 WORK_LEASE_SECONDS = settings.REFRESH_WORK_LEASE_SECONDS
 DETAIL_BATCH_SIZE = settings.REFRESH_DETAIL_BATCH_SIZE
 LOCATION_BATCH_SIZE = settings.REFRESH_LOCATION_BATCH_SIZE
+
+
+def _configured_connectors():
+    # Keep the historical jobs.tasks injection point usable by existing integrations.
+    from jobs.tasks import configured_connectors
+
+    return configured_connectors()
 
 
 def _listing_to_json(listing):
@@ -395,7 +401,7 @@ def plan_refresh_batch(batch_id):
                         "remote_ok": request.get("remote_ok", False) and chunk_index == 0,
                     })
 
-        for connector in configured_connectors():
+        for connector in _configured_connectors():
             for group in group_search_requests(connector, requests):
                 request = group["request"]
                 identity = search_request_identity(connector, request)
@@ -630,7 +636,7 @@ def process_refresh_work_item(work_item_id):
     if claim is None:
         return {"skipped": "already_claimed_or_finished"}
     item, token = claim
-    connector = next((item_type for item_type in configured_connectors() if item_type.source == item.source), None)
+    connector = next((item_type for item_type in _configured_connectors() if item_type.source == item.source), None)
     if connector is None:
         _record_work_failure(item, status=RefreshWorkItem.Status.FAILED, error_category="source_error")
         return {"failed": "connector_missing"}

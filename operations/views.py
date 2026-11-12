@@ -36,6 +36,7 @@ from .models import (
     AdminCommandRun,
     OperationalParameterChange,
     OperationalRun,
+    RefreshWorkItem,
     UserInvitation,
 )
 from .parameters import (
@@ -59,6 +60,7 @@ from .parameters import (
     save_refresh_interval,
 )
 from .platform_statistics import build_platform_statistics
+from .scheduling import next_periodic_refresh_schedule
 
 PERIODS = {"24h": ("24 horas", timedelta(hours=24)), "7d": ("7 días", timedelta(days=7)), "30d": ("30 días", timedelta(days=30))}
 ALLOWED_COMMANDS = {"refresh_sources": "Actualizar fuentes ahora"}
@@ -86,6 +88,7 @@ def admin_center(request):
     return render(request, "operations/admin_center.html", {
         "applicant_count": get_user_model().objects.filter(is_superuser=False, is_staff=False).count(),
         "processing_paused": processing_is_paused(),
+        "automatic_refresh_schedule": next_periodic_refresh_schedule(),
     })
 
 
@@ -545,6 +548,13 @@ def dashboard(request):
     ).order_by("-started_at", "-pk")
     source_query_page = Paginator(source_query_runs, 50).get_page(request.GET.get("run_page"))
     query_run_ids = [run.pk for run in source_query_page]
+    work_items_by_run = {
+        source_run_id: {"status": status, "batch_id": batch_id}
+        for source_run_id, status, batch_id in RefreshWorkItem.objects.filter(
+            source_run_id__in=query_run_ids,
+        ).values_list("source_run_id", "status", "batch_id")
+    } if query_run_ids else {}
+    work_status_labels = dict(RefreshWorkItem.Status.choices)
 
     def minutes(milliseconds):
         return round(milliseconds / 60000, 1) if milliseconds is not None else None
@@ -589,8 +599,29 @@ def dashboard(request):
                 output_tokens=Sum("output_tokens"),
             )
         }
+    stale_run_threshold = timedelta(minutes=20)
+    stale_run_cutoff = now - stale_run_threshold
     for run in source_query_page:
-        run.duration_minutes = minutes(run.duration_ms)
+        work_item = work_items_by_run.get(run.pk, {})
+        work_status = work_item.get("status")
+        duration_ms = run.duration_ms
+        if work_status is not None:
+            run.display_status = work_status_labels.get(work_status, run.get_status_display())
+        elif run.status == OperationalRun.Status.RUNNING and run.started_at < stale_run_cutoff:
+            # A legacy run without a durable unit cannot still be active after the
+            # same 20-minute threshold used by operational reconciliation.
+            run.display_status = "Interrumpida"
+            duration_ms = duration_ms or int(stale_run_threshold.total_seconds() * 1000)
+        else:
+            run.display_status = run.get_status_display()
+        if work_status == RefreshWorkItem.Status.QUEUED:
+            duration_ms = None
+        elif duration_ms is None and (
+            work_status == RefreshWorkItem.Status.RUNNING
+            or (work_status is None and run.status == OperationalRun.Status.RUNNING)
+        ):
+            duration_ms = max(0, int((now - run.started_at).total_seconds() * 1000))
+        run.duration_minutes = minutes(duration_ms)
         run.listing_fetch_minutes = minutes(run.listing_fetch_duration_ms)
         run.title_preselection_minutes = minutes(run.title_preselection_duration_ms)
         run.detail_fetch_minutes = minutes(run.detail_fetch_duration_ms)
@@ -617,6 +648,36 @@ def dashboard(request):
             "input_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("input_tokens"),
             "output_tokens": analysis_token_metrics_by_query.get(run.pk, {}).get("output_tokens"),
         }
+
+    source_query_groups_by_key = {}
+    for run in source_query_page:
+        work_item = work_items_by_run.get(run.pk, {})
+        batch_id = work_item.get("batch_id")
+        group_key = ("batch", batch_id) if batch_id else ("run", run.pk)
+        group = source_query_groups_by_key.setdefault(group_key, {
+            "started_at": run.started_at,
+            "runs": [],
+            "sources": set(),
+        })
+        group["started_at"] = min(group["started_at"], run.started_at)
+        group["runs"].append(run)
+        if run.source:
+            group["sources"].add(run.source)
+
+    source_query_groups = []
+    for group in source_query_groups_by_key.values():
+        statuses = {run.display_status for run in group["runs"]}
+        if "En curso" in statuses:
+            group["display_status"] = "En curso"
+        elif "En cola" in statuses:
+            group["display_status"] = "En cola"
+        elif len(statuses) > 1:
+            group["display_status"] = "Parcial"
+        else:
+            group["display_status"] = next(iter(statuses), "—")
+        group["query_count"] = len(group["runs"])
+        group["sources"] = sorted(group["sources"])
+        source_query_groups.append(group)
 
     def summarize(queryset):
         result = queryset.aggregate(
@@ -665,14 +726,28 @@ def dashboard(request):
         })
         source_summaries[source] = summary
 
+    refresh_progress = {
+        row["source"]: row
+        for row in RefreshWorkItem.objects.filter(
+            status__in=(RefreshWorkItem.Status.QUEUED, RefreshWorkItem.Status.RUNNING),
+        ).values("source").annotate(
+            queued=Count("pk", filter=Q(status=RefreshWorkItem.Status.QUEUED)),
+            running=Count("pk", filter=Q(status=RefreshWorkItem.Status.RUNNING)),
+            confirmed_listings=Sum("source_run__item_count"),
+        )
+    }
+    statuses_by_source = {status.source: status for status in JobSourceStatus.objects.order_by("source")}
     source_rows = []
-    for source in JobSourceStatus.objects.order_by("source"):
+    for source in sorted(set(statuses_by_source) | set(refresh_progress)):
         source_rows.append({
-            "status": source,
-            "metrics": source_summaries.get(source.source, {
+            "source": source,
+            "has_status": source in statuses_by_source,
+            "status": statuses_by_source.get(source),
+            "metrics": source_summaries.get(source, {
                 "total": 0, "failed": 0, "average_duration": 0, "last_error": "",
                 "classified_queries": 0,
             }),
+            "progress": refresh_progress.get(source, {"queued": 0, "running": 0, "confirmed_listings": 0}),
         })
 
     pending = VacancyAnalysis.objects.filter(status=VacancyAnalysis.Status.PENDING)
@@ -707,6 +782,7 @@ def dashboard(request):
         "now": now,
         "coverage_start": coverage_start,
         "source_query_page": source_query_page,
+        "source_query_groups": source_query_groups,
         "ingestion": summarize(runs.filter(kind=OperationalRun.Kind.INGESTION)),
         "analysis": summarize(runs.filter(kind=OperationalRun.Kind.ANALYSIS)),
         "ai_call_stages": ai_call_stages,

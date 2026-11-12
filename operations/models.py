@@ -3,6 +3,12 @@ from django.db import models
 from django.utils import timezone
 
 
+class PeriodicRefreshState(models.Model):
+    """Timestamp of the latest global automatic source-refresh cycle."""
+
+    last_started_at = models.DateTimeField()
+
+
 class OperationalRun(models.Model):
     class Kind(models.TextChoices):
         INGESTION = "ingestion", "Consulta de fuentes"
@@ -96,6 +102,103 @@ class RefreshLease(models.Model):
     token = models.CharField(max_length=120)
     claimed = models.BooleanField(default=False)
     expires_at = models.DateTimeField()
+
+
+class RefreshBatch(models.Model):
+    class Status(models.TextChoices):
+        QUEUED = "queued", "En cola"
+        RUNNING = "running", "En curso"
+        SUCCEEDED = "succeeded", "Completada"
+        PARTIAL = "partial", "Parcial"
+        FAILED = "failed", "Fallida"
+
+    command = models.ForeignKey(
+        AdminCommandRun, null=True, blank=True, on_delete=models.SET_NULL, related_name="refresh_batches",
+    )
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.QUEUED)
+    created_at = models.DateTimeField(default=timezone.now)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    heartbeat_at = models.DateTimeField(default=timezone.now, db_index=True)
+    planned_at = models.DateTimeField(null=True, blank=True)
+
+
+class RefreshBatchProfile(models.Model):
+    batch = models.ForeignKey(RefreshBatch, on_delete=models.CASCADE, related_name="profiles")
+    profile = models.ForeignKey("profiles.Profile", on_delete=models.CASCADE)
+    profile_run = models.ForeignKey(OperationalRun, on_delete=models.CASCADE, related_name="refresh_profiles")
+    lease_token = models.CharField(max_length=120)
+    source_results = models.JSONField(default=dict, blank=True)
+    found_vacancy_ids = models.JSONField(default=list, blank=True)
+    search_request = models.JSONField(default=dict, blank=True)
+    failed = models.BooleanField(default=False)
+    stale = models.BooleanField(default=False)
+    prepared_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["batch", "profile"], name="ops_refresh_batch_profile_uniq"),
+        ]
+
+
+class RefreshWorkItem(models.Model):
+    class Status(models.TextChoices):
+        QUEUED = "queued", "En cola"
+        RUNNING = "running", "En curso"
+        SUCCEEDED = "succeeded", "Completada"
+        PARTIAL = "partial", "Parcial"
+        FAILED = "failed", "Fallida"
+
+    class Phase(models.TextChoices):
+        TITLES = "titles", "Búsqueda"
+        DETAILS = "details", "Fichas"
+        COMPLETE = "complete", "Completada"
+
+    batch = models.ForeignKey(RefreshBatch, on_delete=models.CASCADE, related_name="work_items")
+    source_run = models.ForeignKey(OperationalRun, on_delete=models.CASCADE, related_name="refresh_work_items")
+    source = models.CharField(max_length=80, db_index=True)
+    identity = models.CharField(max_length=64)
+    search_request = models.JSONField(default=dict, blank=True)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.QUEUED, db_index=True)
+    phase = models.CharField(max_length=12, choices=Phase.choices, default=Phase.TITLES)
+    cursor = models.PositiveIntegerField(default=0)
+    listings = models.JSONField(default=list, blank=True)
+    listing_count = models.PositiveIntegerField(default=0)
+    title_kept_count = models.PositiveIntegerField(default=0)
+    title_discarded_count = models.PositiveIntegerField(default=0)
+    details_requested_count = models.PositiveIntegerField(default=0)
+    details_received_count = models.PositiveIntegerField(default=0)
+    title_input_tokens = models.PositiveIntegerField(null=True, blank=True)
+    available = models.BooleanField(default=True)
+    error_category = models.CharField(max_length=80, blank=True)
+    attempts = models.PositiveSmallIntegerField(default=0)
+    lease_token = models.CharField(max_length=120, blank=True)
+    lease_expires_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    heartbeat_at = models.DateTimeField(default=timezone.now, db_index=True)
+    last_dispatched_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["batch", "source", "identity"], name="ops_refresh_work_identity_uniq"),
+        ]
+        indexes = [
+            models.Index(fields=["status", "lease_expires_at"], name="ops_refresh_work_lease_idx"),
+            models.Index(fields=["batch", "status"], name="ops_ref_work_batch_state_idx"),
+        ]
+
+
+class RefreshWorkProfile(models.Model):
+    work_item = models.ForeignKey(RefreshWorkItem, on_delete=models.CASCADE, related_name="profile_links")
+    batch_profile = models.ForeignKey(RefreshBatchProfile, on_delete=models.CASCADE, related_name="work_links")
+    revision_id = models.PositiveBigIntegerField()
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["work_item", "batch_profile"], name="ops_refresh_work_profile_uniq"),
+        ]
 
 
 class OperationalParameter(models.Model):

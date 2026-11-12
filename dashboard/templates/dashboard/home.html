@@ -13,6 +13,17 @@
   </div>
 </section>
 
+<section class="notice" aria-label="Horario de búsqueda automática">
+  {% if automatic_refresh_schedule.status == "paused" %}
+    <strong>Las búsquedas automáticas están pausadas.</strong>
+  {% elif automatic_refresh_schedule.next_at %}
+    Próxima búsqueda automática estimada: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).
+  {% else %}
+    El horario de la próxima búsqueda automática todavía no está disponible.
+  {% endif %}
+  <span>Una actualización manual o un cambio en un perfil puede iniciar una búsqueda antes.</span>
+</section>
+
 {% include "dashboard/_tabs.html" %}
 
 {% for source in unavailable_sources %}

@@ -6,6 +6,14 @@ from .models import Profile
 
 
 class ProfileForm(forms.ModelForm):
+    search_enabled = forms.BooleanField(
+        required=False,
+        label="Incluir este perfil en búsquedas automáticas",
+        help_text=(
+            "Desactiva esta opción para pausar solo la búsqueda automática de este perfil. "
+            "Tus vacantes y análisis seguirán disponibles. Al reanudar, participarás en el siguiente ciclo normal."
+        ),
+    )
     min_score = forms.IntegerField(
         required=False,
         min_value=0,
@@ -32,9 +40,10 @@ class ProfileForm(forms.ModelForm):
 
     class Meta:
         model = Profile
-        fields = ["search_phrases", "locations", "remote_ok", "min_score", "cv_file"]
+        fields = ["search_phrases", "locations", "remote_ok", "search_enabled", "min_score", "cv_file"]
         labels = {
             "remote_ok": "También me interesan vacantes remotas",
+            "search_enabled": "Incluir este perfil en búsquedas automáticas",
             "cv_file": "Hoja de vida (PDF o DOCX)",
         }
         help_texts = {
@@ -58,6 +67,11 @@ class ProfileForm(forms.ModelForm):
         if "min_score" not in self.data:
             return self.instance.min_score or 0
         return self.cleaned_data["min_score"]
+
+    def clean_search_enabled(self):
+        if "search_enabled_submitted" not in self.data:
+            return self.instance.search_enabled
+        return self.cleaned_data.get("search_enabled", False)
 
     def clean_locations(self):
         return self._clean_list_field(self.cleaned_data.get("locations", ""), "ubicación", 120)

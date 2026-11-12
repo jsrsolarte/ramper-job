@@ -17,6 +17,7 @@ from jobs.models import JobSourceStatus
 from matching.models import AICallAttempt, RUBRIC_CRITERIA, RUBRIC_VERSION, VacancyAnalysis
 from profiles.models import Profile
 from profiles.locations import vacancy_location_is_eligible
+from operations.scheduling import next_periodic_refresh_schedule
 
 
 def _current_score_analyses(profile):
@@ -321,6 +322,7 @@ def home(request):
         "dashboard/home.html",
         {
             "profile": profile,
+            "automatic_refresh_schedule": next_periodic_refresh_schedule(),
             "analyses": page,
             "page_navigation": page_navigation,
             "previous_page_query": previous_page_query,

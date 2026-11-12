@@ -119,6 +119,9 @@ CELERY_BROKER_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 CELERY_TIMEZONE = TIME_ZONE
 JOB_REFRESH_MINUTES = int(os.getenv("JOB_REFRESH_MINUTES", "120"))
+REFRESH_LOCATION_BATCH_SIZE = min(6, max(1, int(os.getenv("REFRESH_LOCATION_BATCH_SIZE", "6"))))
+REFRESH_DETAIL_BATCH_SIZE = min(5, max(1, int(os.getenv("REFRESH_DETAIL_BATCH_SIZE", "5"))))
+REFRESH_WORK_LEASE_SECONDS = max(12 * 60, int(os.getenv("REFRESH_WORK_LEASE_SECONDS", "720")))
 from operations.schedules import DatabaseRefreshInterval
 from celery.schedules import crontab
 
@@ -127,6 +130,7 @@ CELERY_TASK_ROUTES = {
     "dashboard.tasks.archive_inactive_follow_ups": {"queue": "matching_v2"},
     "jobs.tasks.refresh_profile_sources": {"queue": "matching_v2"},
     "jobs.tasks.refresh_sources": {"queue": "matching_v2"},
+    "jobs.tasks.refresh_periodic_sources": {"queue": "matching_v2"},
     "operations.tasks.cleanup_operational_history": {"queue": "matching_v2"},
     "operations.tasks.deactivate_inactive_applicants": {"queue": "matching_v2"},
     "matching.tasks.analyze_vacancy_for_profile": {"queue": "matching_v2"},
@@ -149,7 +153,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=3, minute=30),
     },
     "refresh-job-sources": {
-        "task": "jobs.tasks.refresh_sources",
+        "task": "jobs.tasks.refresh_periodic_sources",
         "schedule": DatabaseRefreshInterval(),
     },
     "reprocess-legacy-matching-analyses": {
@@ -172,6 +176,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "operations.tasks.cleanup_operational_history",
         "schedule": 24 * 60 * 60,
     },
+    "reconcile-refresh-work": {
+        "task": "operations.tasks.reconcile_refresh_work",
+        "schedule": 5 * 60,
+    },
     "deactivate-inactive-applicants": {
         "task": "operations.tasks.deactivate_inactive_applicants",
         "schedule": crontab(hour=3, minute=45),
@@ -185,6 +193,10 @@ ANALYSIS_RECOVERY_LEASE_SECONDS = int(os.getenv("ANALYSIS_RECOVERY_LEASE_SECONDS
 ANALYSIS_RECOVERY_BATCH_SIZE = int(os.getenv("ANALYSIS_RECOVERY_BATCH_SIZE", "50"))
 
 ELEMPLEO_SEARCH_URL = os.getenv("ELEMPLEO_SEARCH_URL", "https://www.elempleo.com/co/ofertas-empleo")
+COMPUTRABAJO_USER_AGENT = os.getenv(
+    "COMPUTRABAJO_USER_AGENT",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
+)
 OMNIROUTE_BASE_URL = os.getenv("OMNIROUTE_BASE_URL", "")
 OMNIROUTE_API_KEY = os.getenv("OMNIROUTE_API_KEY", "")
 OMNIROUTE_MODEL = os.getenv("OMNIROUTE_MODEL", "")

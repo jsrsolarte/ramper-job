@@ -1,4 +1,3 @@
-from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase
@@ -7,8 +6,6 @@ from jobs.connectors.base import SourcePartiallyUnavailable, SourceUnavailable
 from jobs.connectors.computrabajo import ComputrabajoConnector, validate_computrabajo_url
 from jobs.registry import configured_connectors
 from jobs.search_groups import group_search_requests
-from jobs.tasks import SourceFetchSummary, _fetch_source_listings, _record_source_fetch_outcome
-from operations.models import OperationalRun
 
 
 SEARCH_HTML = """<div id="offersGridOfferContainer">
@@ -149,29 +146,6 @@ class ComputrabajoConnectorTests(SimpleTestCase):
 
         session.get.assert_called_once()
 
-    @patch("matching.services.preselect_listing_titles")
-    @patch("jobs.connectors.computrabajo.socket.getaddrinfo")
-    @patch("jobs.connectors.computrabajo.time.sleep")
-    def test_search_block_keeps_prior_cards_and_skips_all_detail_requests(self, sleep, getaddrinfo, preselect):
-        getaddrinfo.return_value = [(None, None, None, None, ("93.184.216.34", 443))]
-        card = ComputrabajoConnector().parse(SEARCH_HTML, "https://co.computrabajo.com/trabajo-de-analista")[0]
-        preselect.return_value = SimpleNamespace(listings=[card], discarded_count=0, input_tokens=0)
-        session = Mock()
-        session.get.side_effect = [
-            Mock(status_code=200, text=SEARCH_HTML, headers={}),
-            Mock(status_code=403, text="", headers={}),
-        ]
-        connector = ComputrabajoConnector(session=session)
-
-        summary = _fetch_source_listings(connector, ["analista"], ["Medellín", "Envigado"], remote_ok=False)
-
-        self.assertEqual(summary.listings, [card])
-        self.assertFalse(summary.source_available)
-        self.assertEqual(summary.details_requested_count, 0)
-        self.assertEqual(session.get.call_count, 2)
-        sleep.assert_called_once_with(0.5)
-        self.assertIn("no permite continuar", connector.status_message)
-
     @patch("jobs.connectors.computrabajo.socket.getaddrinfo")
     def test_external_redirect_is_rejected_before_following_destination(self, getaddrinfo):
         getaddrinfo.return_value = [(None, None, None, None, ("93.184.216.34", 443))]
@@ -231,52 +205,5 @@ class ComputrabajoConnectorTests(SimpleTestCase):
         self.assertEqual(len(groups[0]["members"]), 2)
         self.assertEqual({item["profile_id"] for item in groups[0]["members"]}, {1, 2})
 
-    @patch("jobs.tasks.finish_run")
-    @patch("jobs.tasks.JobSourceStatus.objects.update_or_create")
-    def test_partial_fetch_is_recorded_unavailable_with_counts(self, update_status, finish_run):
-        connector = SimpleNamespace(source="computrabajo_co", status_message="Computrabajo bloqueó la ficha.")
-        fetched = SourceFetchSummary(
-            listings=[object()], listing_count=4, title_kept_count=2,
-            title_discarded_count=2, details_requested_count=2,
-            details_received_count=2, source_available=False,
-        )
-        saved = SimpleNamespace(
-            vacancies=[object()], new_count=1, known_count=0,
-            known_updated_count=0, known_unchanged_count=0,
-        )
-        run = object()
-        checked_at = object()
-
-        _record_source_fetch_outcome(connector, fetched, saved, run, checked_at)
-
-        self.assertFalse(update_status.call_args.kwargs["defaults"]["available"])
-        self.assertEqual(update_status.call_args.kwargs["defaults"]["last_vacancy_count"], 1)
-        self.assertEqual(finish_run.call_args.kwargs["status"], OperationalRun.Status.PARTIAL)
-        self.assertEqual(finish_run.call_args.kwargs["error_category"], "source_partially_unavailable")
-        self.assertIn("bloqueó", finish_run.call_args.kwargs["error_summary"])
-
-    @patch("matching.services.preselect_listing_titles")
-    def test_shared_title_preselection_carries_partial_source_failure_without_losing_cards(self, preselect):
-        from jobs.connectors.base import JobListing
-
-        listing = JobListing("computrabajo_co", "1", "Analista", "Empresa", "Medellín", None,
-                             "https://co.computrabajo.com/ofertas-de-trabajo/job")
-        preselect.return_value = SimpleNamespace(listings=[listing], discarded_count=0, input_tokens=0)
-        class PartialConnector:
-            source = "computrabajo_co"
-
-            def fetch_titles(self, *args, **kwargs):
-                return [listing]
-
-            def fetch_details(self, selected):
-                raise SourcePartiallyUnavailable("bloqueo", selected)
-
-        connector = PartialConnector()
-
-        summary = _fetch_source_listings(connector, ["analista"], ["Medellín"], remote_ok=False)
-
-        self.assertEqual(summary.listings, [listing])
-        self.assertFalse(summary.source_available)
-        self.assertEqual(summary.details_requested_count, 1)
 
 

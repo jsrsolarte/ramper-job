@@ -203,6 +203,8 @@ class MatchingProcessingTests(TestCase):
 
     @patch("matching.tasks.analyze_vacancy_for_profile.delay")
     def test_profile_scheduling_creates_one_analysis_per_vacancy(self, queue):
+        self.profile.search_enabled = False
+        self.profile.save(update_fields=("search_enabled",))
         with self.captureOnCommitCallbacks(execute=True):
             result = schedule_profile_analyses.run(self.profile.pk)
 

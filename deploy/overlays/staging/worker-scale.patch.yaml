@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ramper-job-worker
+spec:
+  replicas: 3
+  template:
+    spec:
+      initContainers:
+        - name: wait-for-database-migrations
+          resources:
+            requests:
+              cpu: 100m
+              memory: 192Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+      containers:
+        - name: worker
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 250m
+              memory: 288Mi
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  read -r name < /proc/1/comm
+                  [ "$name" = celery ] && grep -Eiq ' [0-9a-f]{8}:18eb 01 ' /proc/net/tcp /proc/net/tcp6
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  read -r name < /proc/1/comm
+                  [ "$name" = celery ] && grep -Eiq ' [0-9a-f]{8}:18eb 01 ' /proc/net/tcp /proc/net/tcp6
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  read -r name < /proc/1/comm
+                  [ "$name" = celery ]
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3

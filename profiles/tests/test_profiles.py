@@ -52,6 +52,81 @@ class ProfileRevisionTests(TestCase):
         schedule_analysis.assert_called_once_with(profile.pk)
         refresh_search.assert_called_once_with(profile.pk)
 
+    @patch("jobs.tasks.refresh_profile_sources.delay")
+    @patch("matching.tasks.schedule_profile_analyses.delay")
+    def test_pausing_search_only_saves_preference_without_revision_or_work(
+        self, schedule_analysis, refresh_search,
+    ):
+        with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            profile = Profile.objects.create(
+                owner=self.first_user,
+                revision_number=1,
+                search_phrases=["Analista"],
+                locations=["Cali"],
+            )
+            profile.cv_file.save("resume.pdf", SimpleUploadedFile("resume.pdf", b"cv"), save=True)
+            ProfileRevision.objects.create(
+                profile=profile,
+                version=1,
+                search_phrases=profile.search_phrases,
+                locations=profile.locations,
+                cv_file_path=profile.cv_file.name,
+            )
+            self.client.force_login(self.first_user)
+
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    reverse("profiles:edit"),
+                    {
+                        "search_enabled_submitted": "1",
+                        "search_phrases": "Analista",
+                        "locations": "Cali",
+                    },
+                )
+
+        self.assertRedirects(response, reverse("profiles:edit"))
+        profile.refresh_from_db()
+        self.assertFalse(profile.search_enabled)
+        self.assertEqual(profile.revision_number, 1)
+        self.assertEqual(profile.revisions.count(), 1)
+        schedule_analysis.assert_not_called()
+        refresh_search.assert_not_called()
+
+    def test_search_control_is_accessible_and_explains_pause_behavior(self):
+        self.client.force_login(self.first_user)
+        response = self.client.get(reverse("profiles:edit"))
+
+        self.assertContains(response, 'type="checkbox" name="search_enabled"')
+        self.assertContains(response, 'name="search_enabled_submitted" value="1"')
+        self.assertContains(response, "Incluir este perfil en búsquedas automáticas")
+        self.assertContains(response, "siguiente ciclo normal")
+
+    @patch("jobs.tasks.refresh_profile_sources.delay")
+    @patch("matching.tasks.schedule_profile_analyses.delay")
+    def test_reenabling_search_only_waits_for_normal_cycle(self, schedule_analysis, refresh_search):
+        with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
+            profile = Profile.objects.create(owner=self.first_user, search_enabled=False)
+            profile.cv_file.save("resume.pdf", SimpleUploadedFile("resume.pdf", b"cv"), save=True)
+            self.client.force_login(self.first_user)
+
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    reverse("profiles:edit"),
+                    {
+                        "search_enabled_submitted": "1",
+                        "search_enabled": "on",
+                        "search_phrases": "",
+                        "locations": "",
+                    },
+                )
+
+        self.assertRedirects(response, reverse("profiles:edit"))
+        profile.refresh_from_db()
+        self.assertTrue(profile.search_enabled)
+        self.assertEqual(profile.revision_number, 0)
+        schedule_analysis.assert_not_called()
+        refresh_search.assert_not_called()
+
     def test_cv_download_is_private_to_its_owner(self):
         with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root):
             self.client.force_login(self.first_user)

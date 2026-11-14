@@ -85,7 +85,7 @@ def _finish_batch_profile(batch_profile_id, *, failed=False, stale=False):
         ).filter(pk=batch_profile_id).first()
         if batch_profile is None or batch_profile.finished_at:
             return False
-        if not batch_profile.prepared_at and not batch_profile.batch.planned_at:
+        if not batch_profile.prepared_at or not batch_profile.batch.planned_at:
             return False
 
         unfinished = batch_profile.work_links.exclude(

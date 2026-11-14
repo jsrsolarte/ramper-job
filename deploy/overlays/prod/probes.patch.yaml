@@ -59,5 +59,34 @@ spec:
     spec:
       containers:
         - name: worker
+          startupProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  read -r name < /proc/1/comm
+                  [ "$name" = celery ] && grep -Eiq ' [0-9a-f]{8}:18eb 01 ' /proc/net/tcp /proc/net/tcp6
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            exec:
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  read -r name < /proc/1/comm
+                  [ "$name" = celery ] && grep -Eiq ' [0-9a-f]{8}:18eb 01 ' /proc/net/tcp /proc/net/tcp6
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
           livenessProbe:
-            timeoutSeconds: 15
+            exec:
+              command:
+                - python
+                - -c
+                - import socket; from config.celery import app; raise SystemExit(0 if app.control.ping(destination=['celery@' + socket.gethostname()], timeout=5) else 1)
+            periodSeconds: 60
+            timeoutSeconds: 30
+            failureThreshold: 3

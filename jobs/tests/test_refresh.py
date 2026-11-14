@@ -106,6 +106,55 @@ class RefreshTasksTests(TestCase):
             original_url="https://jobs.example.test/vacancy/123",
         )
 
+    def test_prepared_profile_waits_for_batch_planning_before_completion(self):
+        from jobs.resumable import _finish_batch_profile
+        from operations.services import acquire_refresh_lease, claim_refresh_lease
+
+        key = f"profile-refresh:{self.profile.pk}"
+        token = acquire_refresh_lease(key)
+        self.assertTrue(claim_refresh_lease(key, token))
+        batch = RefreshBatch.objects.create(status=RefreshBatch.Status.RUNNING)
+        run = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="profile_refresh",
+            status=OperationalRun.Status.RUNNING,
+        )
+        batch_profile = RefreshBatchProfile.objects.create(
+            batch=batch,
+            profile=self.profile,
+            profile_run=run,
+            lease_token=token,
+            prepared_at=timezone.now(),
+        )
+
+        self.assertFalse(_finish_batch_profile(batch_profile.pk))
+        batch_profile.refresh_from_db()
+        batch.refresh_from_db()
+        run.refresh_from_db()
+        self.assertIsNone(batch_profile.finished_at)
+        self.assertIsNone(batch.finished_at)
+        self.assertEqual(run.status, OperationalRun.Status.RUNNING)
+        self.assertTrue(RefreshLease.objects.filter(key=key, token=token).exists())
+
+        batch.planned_at = timezone.now()
+        batch.save(update_fields=("planned_at",))
+        self.assertTrue(_finish_batch_profile(batch_profile.pk))
+        batch_profile.refresh_from_db()
+        self.assertIsNotNone(batch_profile.finished_at)
+        self.assertFalse(RefreshLease.objects.filter(key=key).exists())
+
+    @patch("jobs.resumable.prepare_refresh_batch.delay")
+    def test_profile_dispatch_failure_releases_lease_and_allows_retry(self, prepare_batch):
+        prepare_batch.side_effect = RuntimeError("broker unavailable")
+        with self.assertRaisesRegex(RuntimeError, "broker unavailable"):
+            refresh_profile_sources.run(self.profile.pk)
+
+        key = f"profile-refresh:{self.profile.pk}"
+        self.assertFalse(RefreshLease.objects.filter(key=key).exists())
+
+        prepare_batch.side_effect = None
+        self.assertEqual(refresh_profile_sources.run(self.profile.pk), {"scheduled_profiles": 1})
+
     def _advance_batch_to_work_item(self, profile_leases, command_id=None):
         from jobs.resumable import prepare_refresh_batch, prepare_refresh_profile, plan_refresh_batch
 

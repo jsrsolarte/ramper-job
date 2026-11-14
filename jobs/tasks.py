@@ -54,11 +54,15 @@ def refresh_profile_sources(profile_id, command_run_id=None, lease_token=None):
     if not lease_token or not claim_refresh_lease(lease_key, lease_token):
         return {"skipped": "already_running"}
     renew_refresh_lease(lease_key, lease_token, ttl_seconds=24 * 60 * 60)
-    prepare_refresh_batch.delay(
-        {str(profile_id): lease_token},
-        command_run_id=command_run_id,
-        leases_already_claimed=True,
-    )
+    try:
+        prepare_refresh_batch.delay(
+            {str(profile_id): lease_token},
+            command_run_id=command_run_id,
+            leases_already_claimed=True,
+        )
+    except Exception:
+        release_refresh_lease(lease_key, lease_token)
+        raise
     return {"scheduled_profiles": 1}
 
 

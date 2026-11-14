@@ -49,11 +49,9 @@ spec:
           livenessProbe:
             exec:
               command:
-                - /bin/sh
+                - python
                 - -c
-                - |
-                  read -r name < /proc/1/comm
-                  [ "$name" = celery ]
-            periodSeconds: 20
-            timeoutSeconds: 5
+                - import socket; from config.celery import app; raise SystemExit(0 if app.control.ping(destination=['celery@' + socket.gethostname()], timeout=5) else 1)
+            periodSeconds: 60
+            timeoutSeconds: 30
             failureThreshold: 3

@@ -50,3 +50,15 @@ spec:
     metadata:
       annotations:
         ops.ramper.lat/rollout-reason: quota-retry-2026-11-07
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ramper-job-worker
+spec:
+  template:
+    spec:
+      containers:
+        - name: worker
+          livenessProbe:
+            timeoutSeconds: 15

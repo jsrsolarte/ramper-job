@@ -6,6 +6,14 @@ class SourceUnavailable(Exception):
     """The public source cannot currently be queried."""
 
 
+class SourcePartiallyUnavailable(SourceUnavailable):
+    """A source became unavailable after returning usable listing data."""
+
+    def __init__(self, message, listings):
+        super().__init__(message)
+        self.listings = list(listings)
+
+
 @dataclass(frozen=True)
 class JobListing:
     source: str

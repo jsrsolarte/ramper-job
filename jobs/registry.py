@@ -1,6 +1,10 @@
 from .connectors.elempleo import ElempleoConnector
+from .connectors.computrabajo import ComputrabajoConnector
 
-_CONNECTOR_TYPES = {ElempleoConnector.source: ElempleoConnector}
+_CONNECTOR_TYPES = {
+    ElempleoConnector.source: ElempleoConnector,
+    ComputrabajoConnector.source: ComputrabajoConnector,
+}
 
 
 def register_connector(connector_class):

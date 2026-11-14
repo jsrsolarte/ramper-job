@@ -6,6 +6,7 @@ resources:
   - ingress.yaml
 patches:
   - path: probes.patch.yaml
+  - path: worker-scale.patch.yaml
   - target:
       kind: ConfigMap
       name: ramper-job-config
@@ -42,4 +43,4 @@ patches:
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job
-    newTag: 31640b808beffa7a8137c917211799601f9eca56
+    newTag: 8902fd2936697cf5c6ba06165ca0d84ee66d6a1b

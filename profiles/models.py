@@ -18,6 +18,7 @@ class Profile(models.Model):
     )
     search_phrases = models.JSONField(default=list, blank=True)
     locations = models.JSONField(default=list, blank=True)
+    search_enabled = models.BooleanField(default=True)
     remote_ok = models.BooleanField(default=False)
     min_score = models.PositiveSmallIntegerField(
         default=0,

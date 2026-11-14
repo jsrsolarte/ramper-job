@@ -57,6 +57,7 @@ def finish_run(
     listing_fetch_duration_ms=None,
     title_preselection_duration_ms=None,
     detail_fetch_duration_ms=None,
+    error_summary="",
 ):
     finished_at = timezone.now()
     run.status = status
@@ -77,7 +78,9 @@ def finish_run(
     run.listing_fetch_duration_ms = listing_fetch_duration_ms
     run.title_preselection_duration_ms = title_preselection_duration_ms
     run.detail_fetch_duration_ms = detail_fetch_duration_ms
-    if error_category.startswith("omniroute.http_"):
+    if error_summary:
+        summary = error_summary[:240]
+    elif error_category.startswith("omniroute.http_"):
         status_code = error_category.rsplit("_", 1)[-1]
         summary = f"OmniRoute respondió HTTP {status_code}." if status_code.isdigit() else "OmniRoute rechazó la solicitud."
     else:
@@ -137,6 +140,13 @@ def claim_refresh_lease(key, token, *, ttl_seconds=1200):
     ).update(claimed=True, expires_at=now + timedelta(seconds=ttl_seconds)))
 
 
+def renew_refresh_lease(key, token, *, ttl_seconds=1200):
+    now = timezone.now()
+    return bool(RefreshLease.objects.filter(
+        key=key, token=token, claimed=True, expires_at__gt=now,
+    ).update(expires_at=now + timedelta(seconds=ttl_seconds)))
+
+
 def release_refresh_lease_for_retry(key, token):
     RefreshLease.objects.filter(key=key, token=token).update(claimed=False)
 
@@ -162,10 +172,13 @@ def record_admin_profile_result(command_id, *, results=None, failed=False):
         for result in results or []:
             source = str(result.get("source", "unknown"))[:80]
             current = source_results.setdefault(source, {"queries": 0, "vacancies": 0, "failures": 0})
-            current["queries"] += 1
+            current["queries"] += max(1, int(result.get("queries", 1) or 1))
             current["vacancies"] += max(0, int(result.get("count", 0) or 0))
-            if not result.get("available", False):
-                current["failures"] += 1
+            current["failures"] += max(
+                0,
+                int(result.get("failures", 0) or 0),
+                0 if result.get("available", False) else 1,
+            )
         command.source_results = source_results
         command.completed_profiles += 1
         if failed:

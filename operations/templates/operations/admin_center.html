@@ -42,6 +42,18 @@
     <form method="post">{% csrf_token %}<input type="hidden" name="processing_action" value="pause"><button class="button button-secondary" type="submit">Pausar procesamiento</button></form>
     {% endif %}
   </article>
+  <article class="admin-tool" aria-label="Horario de búsqueda automática">
+    <p class="eyebrow">Búsqueda automática</p>
+    <h2>Próximo ciclo</h2>
+    {% if automatic_refresh_schedule.status == "paused" %}
+    <p><strong>Las búsquedas están pausadas.</strong></p>
+    {% elif automatic_refresh_schedule.next_at %}
+    <p>Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).</p>
+    {% else %}
+    <p>El horario todavía no está disponible.</p>
+    {% endif %}
+    <p>Una actualización manual o un cambio en un perfil puede iniciar una búsqueda antes.</p>
+  </article>
   <article class="admin-tool">
     <p class="eyebrow">Configuración</p>
     <h2>Parámetros operativos</h2>

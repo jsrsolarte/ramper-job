@@ -1,3 +1,4 @@
+{% load l10n %}
 <section class="score-distribution-panel panel" aria-labelledby="score-distribution-title">
   <div class="score-distribution-heading">
     <div>
@@ -18,9 +19,9 @@
     </div>
     {% if score_recommended_min != None %}
       <div class="score-recommendation">
-        <p>La mediana de los {{ score_distribution_sample_size }} puntajes es {{ score_recommended_min }} de 10. Con ese mínimo quedarían {{ score_recommended_count }} vacante{{ score_recommended_count|pluralize:"s" }}.</p>
-        <p class="field-help">Puedes usarlo como filtro temporal del listado; no cambia el umbral de descarte ni los estados.</p>
-        <a class="button button-secondary" href="{% url 'dashboard:home' %}?score_min={{ score_recommended_min }}">Aplicar sugerencia al filtro</a>
+        <p>La mediana de los {{ score_distribution_sample_size }} puntajes es {{ score_recommended_min }} estrellas. Con ese puntaje exacto hay {{ score_recommended_count }} vacante{{ score_recommended_count|pluralize:"s" }}.</p>
+        <p class="field-help">Puedes usarlo como filtro temporal del estado actual; no cambia el umbral de descarte ni los estados.</p>
+        <a class="button button-secondary" href="{% url 'dashboard:home' %}?score_min={% localize off %}{{ score_recommended_min }}{% endlocalize %}">Aplicar sugerencia al filtro</a>
       </div>
     {% else %}
       <p class="field-help">Necesitas al menos cinco análisis vigentes para recibir una sugerencia de puntaje.</p>

@@ -59,12 +59,10 @@ def edit_profile(request):
     else:
         form = ProfileForm(instance=profile)
     try:
-        min_score_value = int(form["min_score"].value() or 0)
+        min_score_value = int(form["min_score"].value() or 0) if form.is_bound else (profile.min_score_stars or 0) * 2
     except (TypeError, ValueError):
-        min_score_value = profile.min_score or 0
+        min_score_value = (profile.min_score_stars or 0) * 2
     score_values = list(range(0, 11, 2))
-    if 0 <= min_score_value <= 10 and min_score_value not in score_values:
-        score_values.append(min_score_value)
     min_score_options = []
     for score_value in sorted(score_values):
         threshold_label = score_star_threshold_label(score_value)
@@ -75,7 +73,7 @@ def edit_profile(request):
             "aria_label": (
                 "No descartar vacantes por puntaje"
                 if score_value == 0
-                else f"Descartar automáticamente vacantes nuevas con menos de {score_value} de 10 puntos, {threshold_label}"
+                else f"Descartar automáticamente vacantes nuevas con menos de {score_value // 2} estrellas"
             ),
             "selected": score_value == min_score_value,
         })

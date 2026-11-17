@@ -167,6 +167,14 @@ class ProfileRevisionTests(TestCase):
         self.assertContains(response, 'type="radio" id="min-score-0" name="min_score" value="0"')
         self.assertContains(response, 'type="radio" id="min-score-10" name="min_score" value="10"')
         self.assertContains(response, 'aria-label="No descartar vacantes por puntaje"')
-        self.assertContains(response, 'aria-label="Descartar automáticamente vacantes nuevas con menos de 10 de 10 puntos, 5 estrellas"')
+        self.assertContains(response, 'aria-label="Descartar automáticamente vacantes nuevas con menos de 5 estrellas"')
         self.assertContains(response, 'score-stars')
         self.assertNotContains(response, 'type="range"')
+
+    def test_minimum_accepts_only_whole_star_options(self):
+        self.client.force_login(self.first_user)
+        response = self.client.post(reverse("profiles:edit"), {
+            "search_phrases": "", "locations": "", "min_score": "3",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Elige un mínimo entero entre 0 y 5 estrellas.")

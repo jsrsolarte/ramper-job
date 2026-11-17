@@ -42,9 +42,10 @@ class MatchingConfigAdmin(admin.ModelAdmin):
             try:
                 deduction = Decimal(str(deduction))
             except (InvalidOperation, ValueError):
-                deduction = Decimal("2.0")
-            if not deduction.is_finite() or deduction < 0 or deduction > 10 or deduction != deduction.quantize(Decimal("0.1")):
-                deduction = Decimal("2.0")
+                deduction = Decimal(default_matching_parameters()["rubric"]["critical_requirement_deduction"])
+            if (not deduction.is_finite() or deduction < 0 or deduction > 5
+                    or deduction % Decimal("0.05") != 0):
+                deduction = Decimal(default_matching_parameters()["rubric"]["critical_requirement_deduction"])
             obj.parameters["rubric"] = default_matching_parameters()["rubric"]
             obj.parameters["rubric"]["critical_requirement_deduction"] = str(deduction)
             obj.is_active = True

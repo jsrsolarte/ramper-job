@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Count, F, Max, OuterRef, Subquery
+from decimal import Decimal, InvalidOperation
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -14,10 +15,10 @@ from dashboard.score_display import score_star_label, score_star_percent, score_
 from dashboard.services import discard_follow_up
 from dashboard.time_format import publication_age, relative_age
 from jobs.models import JobSourceStatus
-from matching.models import AICallAttempt, RUBRIC_CRITERIA, RUBRIC_VERSION, VacancyAnalysis
+from matching.models import AICallAttempt, RUBRIC_CRITERIA, RUBRIC_CRITERIA_V2, VacancyAnalysis
+from operations.scheduling import next_periodic_refresh_schedule
 from profiles.models import Profile
 from profiles.locations import vacancy_location_is_eligible
-from operations.scheduling import next_periodic_refresh_schedule
 
 
 def _current_score_analyses(profile):
@@ -30,22 +31,19 @@ def _current_score_analyses(profile):
         vacancy=OuterRef("vacancy"),
         status=VacancyAnalysis.Status.COMPLETED,
         profile_revision__version=F("profile__revision_number"),
-        matching_config__rubric_version=RUBRIC_VERSION,
     ).order_by("-created_at", "-pk").values("pk")[:1]
     analyses = list(
         VacancyAnalysis.objects.filter(
             profile=profile,
             status=VacancyAnalysis.Status.COMPLETED,
             profile_revision__version=profile.revision_number,
-            matching_config__rubric_version=RUBRIC_VERSION,
-            score__gte=0,
-            score__lte=10,
+            score_stars__isnull=False,
         )
         .exclude(score_breakdown={})
         .annotate(latest_result_id=Subquery(latest_result))
         .filter(pk=F("latest_result_id"))
         .select_related("vacancy", "organization")
-        .order_by("-score", "-created_at")
+        .order_by("-score_stars", "-created_at")
     )
     archived_vacancy_ids = set(
         VacancyFollowUp.objects.filter(profile=profile, archived_at__isnull=False)
@@ -64,7 +62,7 @@ def _current_score_analyses(profile):
 def home(request):
     profile = Profile.objects.filter(owner=request.user).first()
     if profile:
-        profile.min_score_star_threshold_label = score_star_threshold_label(profile.min_score)
+        profile.min_score_star_threshold_label = score_star_threshold_label((profile.min_score_stars or 0) * 2)
     analyses = VacancyAnalysis.objects.none()
     score_summary = build_score_summary([])
     score_filter = None
@@ -83,45 +81,20 @@ def home(request):
     if profile:
         requested_score_filter = request.GET.get("score_min", "")
         try:
-            requested_score_filter = int(requested_score_filter)
-        except (TypeError, ValueError):
+            requested_value = request.GET.get("score_min", "all")
+            requested_score_filter = None if requested_value in {"", "all"} else Decimal(requested_value)
+            if requested_score_filter is not None and not Decimal("0") <= requested_score_filter <= Decimal("5"):
+                requested_score_filter = None
+        except (InvalidOperation, TypeError, ValueError):
             requested_score_filter = None
-        if requested_score_filter is not None and 0 <= requested_score_filter <= 10:
-            score_filter = requested_score_filter
-        if follow_up_status != VacancyFollowUp.Status.PENDING:
-            score_filter = None
-        score_filter_value = score_filter if score_filter is not None else 0
+        score_filter = requested_score_filter
         score_filter_options = []
-        if follow_up_status == VacancyFollowUp.Status.PENDING:
-            thresholds = list(range(0, 11, 2))
-            for threshold in thresholds:
-                label = score_star_threshold_label(threshold)
-                score_filter_options.append({
-                    "value": threshold,
-                    "label": "Todas" if threshold == 0 else label,
-                    "percent": score_star_percent(threshold),
-                    "selected": threshold == score_filter_value,
-                })
-        effective_min_score = score_filter_value if follow_up_status == VacancyFollowUp.Status.PENDING else 0
         analyses, revision, archived_vacancy_ids = _current_score_analyses(profile)
         follow_up_rows = VacancyFollowUp.objects.filter(profile=profile)
         score_summary = build_score_summary(
-            (analysis.score for analysis in analyses),
-            minimum_score=profile.min_score,
+            (analysis.score_stars for analysis in analyses),
+            minimum_score=profile.min_score_stars or 0,
         )
-        suggested_score = score_summary["suggested_score"]
-        if (
-            follow_up_status == VacancyFollowUp.Status.PENDING
-            and suggested_score is not None
-            and all(option["value"] != suggested_score for option in score_filter_options)
-        ):
-            score_filter_options.append({
-                "value": suggested_score,
-                "label": score_star_threshold_label(suggested_score),
-                "percent": score_star_percent(suggested_score),
-                "selected": suggested_score == score_filter_value,
-            })
-            score_filter_options.sort(key=lambda option: option["value"])
         follow_ups = {
             follow_up.vacancy_id: follow_up
             for follow_up in follow_up_rows.filter(
@@ -172,11 +145,21 @@ def home(request):
             }
             analysis.follow_up_actions = next_statuses[analysis.follow_up_status]
             analysis.can_discard = analysis.follow_up_status != VacancyFollowUp.Status.DISCARDED
-        analyses = [
-            analysis for analysis in analyses
-            if analysis.follow_up_status == follow_up_status
-            and (follow_up_status != VacancyFollowUp.Status.PENDING or analysis.score >= effective_min_score)
-        ]
+        state_analyses = [analysis for analysis in analyses if analysis.follow_up_status == follow_up_status]
+        available_scores = sorted({analysis.score_stars for analysis in state_analyses if analysis.score_stars is not None})
+        if score_filter not in available_scores:
+            score_filter = None
+        score_filter_options = [{
+            "value": "all", "label": "Todas", "percent": 0,
+            "selected": score_filter is None,
+        }]
+        score_filter_options.extend({
+            "value": format(score, "f").rstrip("0").rstrip(".") if "." in format(score, "f") else format(score, "f"),
+            "label": score_star_label(Decimal(score) * 2),
+            "percent": int(Decimal(score) * 20),
+            "selected": score == score_filter,
+        } for score in available_scores)
+        analyses = [analysis for analysis in state_analyses if score_filter is None or analysis.score_stars == score_filter]
         if follow_up_status == VacancyFollowUp.Status.PENDING:
             analyses.sort(key=lambda analysis: (analysis.score, analysis.created_at, analysis.pk), reverse=True)
         else:
@@ -259,15 +242,19 @@ def home(request):
                 "no_aplica": "No aplica",
             }
             breakdown = analysis.score_breakdown or {}
+            rubric_criteria = RUBRIC_CRITERIA if analysis.matching_config.rubric_version == 3 else RUBRIC_CRITERIA_V2
             analysis.rubric_details = [
                 {
                     "label": definition["label"],
                     "score": breakdown.get(key, {}).get("score", 0),
-                    "max_score": definition["max_score"],
+                    "max_score": breakdown.get(key, {}).get(
+                        "max_score",
+                        Decimal(str(definition["max_score"])) / (2 if analysis.matching_config.rubric_version == 3 else 1),
+                    ),
                     "status": status_labels.get(breakdown.get(key, {}).get("status"), "Sin información"),
                     "evidence": breakdown.get(key, {}).get("evidence", ""),
                 }
-                for key, definition in RUBRIC_CRITERIA.items()
+                for key, definition in rubric_criteria.items()
             ]
             analysis.critical_requirements = breakdown.get("critical_requirements", [])
             analysis.score_deductions = breakdown.get("deductions", [])
@@ -276,11 +263,10 @@ def home(request):
         current_revision = profile.revisions.filter(version=profile.revision_number).first()
         latest_analysis = VacancyAnalysis.objects.filter(
             profile=OuterRef("profile"), profile_revision=OuterRef("profile_revision"),
-            vacancy=OuterRef("vacancy"), matching_config__rubric_version=RUBRIC_VERSION,
+            vacancy=OuterRef("vacancy"),
         ).order_by("-created_at", "-pk").values("pk")[:1]
         pending = VacancyAnalysis.objects.filter(
             profile=profile, status__in=[VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED],
-            matching_config__rubric_version=RUBRIC_VERSION,
         ).annotate(latest_id=Subquery(latest_analysis)).filter(pk=F("latest_id")).select_related("vacancy", "profile_revision")
         if current_revision:
             pending_count = len({
@@ -322,7 +308,6 @@ def home(request):
         "dashboard/home.html",
         {
             "profile": profile,
-            "automatic_refresh_schedule": next_periodic_refresh_schedule(),
             "analyses": page,
             "page_navigation": page_navigation,
             "previous_page_query": previous_page_query,
@@ -335,15 +320,15 @@ def home(request):
             "score_recommended_count": score_summary["suggested_count"],
             "score_recommendation_below_profile": score_summary["suggestion_below_profile"],
             "unavailable_sources": unavailable_sources,
+            "automatic_refresh_schedule": next_periodic_refresh_schedule(),
         "score_filter": score_filter,
-        "score_filter_value": score_filter if score_filter is not None else 0,
+        "score_filter_value": score_filter if score_filter is not None else "all",
         "score_filter_options": score_filter_options if profile else [],
-            "score_filter_star_percent": (score_filter if score_filter is not None else 0) * 10,
-            "score_filter_star_label": score_star_threshold_label(
-                score_filter if score_filter is not None else 0
-            ),
+            "score_filter_star_percent": int((score_filter if score_filter is not None else 0) * 20),
+            "score_filter_star_label": score_star_threshold_label((score_filter or 0) * 2),
             "follow_up_choices": VacancyFollowUp.Status.choices,
             "follow_up_status": follow_up_status,
+        "follow_up_state_name": state_names[follow_up_status],
             "active_tab": (
                 "recommendations"
                 if follow_up_status == VacancyFollowUp.Status.PENDING
@@ -359,11 +344,11 @@ def home(request):
 def analysis(request):
     profile = Profile.objects.filter(owner=request.user).first()
     if profile:
-        profile.min_score_star_threshold_label = score_star_threshold_label(profile.min_score)
+        profile.min_score_star_threshold_label = score_star_threshold_label((profile.min_score_stars or 0) * 2)
     score_analyses, _revision, _archived_vacancy_ids = _current_score_analyses(profile)
     score_summary = build_score_summary(
-        (analysis.score for analysis in score_analyses),
-        minimum_score=profile.min_score if profile else 0,
+        (analysis.score_stars for analysis in score_analyses),
+        minimum_score=(profile.min_score_stars or 0) if profile else 0,
     )
     return render(
         request,
@@ -393,14 +378,12 @@ def pending(request):
                 vacancy=OuterRef("vacancy"),
                 status=VacancyAnalysis.Status.COMPLETED,
                 profile_revision__version=F("profile__revision_number"),
-                matching_config__rubric_version=RUBRIC_VERSION,
             ).order_by("-created_at", "-pk").values("pk")[:1]
             completed = VacancyAnalysis.objects.filter(
                 profile=profile,
                 status=VacancyAnalysis.Status.COMPLETED,
                 profile_revision=revision,
-                matching_config__rubric_version=RUBRIC_VERSION,
-                score__lte=10,
+                score_stars__isnull=False,
             ).exclude(score_breakdown={}).annotate(latest_result_id=Subquery(latest_result))
             completed = completed.filter(pk=F("latest_result_id")).select_related("vacancy")
             follow_up_statuses = {
@@ -427,13 +410,11 @@ def pending(request):
                 profile=OuterRef("profile"),
                 profile_revision=OuterRef("profile_revision"),
                 vacancy=OuterRef("vacancy"),
-                matching_config__rubric_version=RUBRIC_VERSION,
             ).order_by("-created_at", "-pk").values("pk")[:1]
             candidates = VacancyAnalysis.objects.filter(
                 profile=profile,
                 profile_revision=revision,
                 status__in=[VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED],
-                matching_config__rubric_version=RUBRIC_VERSION,
             ).annotate(latest_pending_id=Subquery(latest_pending))
             candidates = candidates.filter(pk=F("latest_pending_id")).select_related("vacancy")
             analyses = [
@@ -502,8 +483,7 @@ def update_follow_up(request, vacancy_id):
             profile=profile,
             status=VacancyAnalysis.Status.COMPLETED,
             profile_revision__version=profile.revision_number,
-            matching_config__rubric_version=RUBRIC_VERSION,
-            score__lte=10,
+            score_stars__isnull=False,
         )
         .exclude(score_breakdown={})
         .filter(
@@ -513,7 +493,6 @@ def update_follow_up(request, vacancy_id):
                     vacancy=OuterRef("vacancy"),
                     status=VacancyAnalysis.Status.COMPLETED,
                     profile_revision__version=F("profile__revision_number"),
-                    matching_config__rubric_version=RUBRIC_VERSION,
                 ).order_by("-created_at", "-pk").values("pk")[:1]
             )
         )

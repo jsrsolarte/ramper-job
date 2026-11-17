@@ -66,7 +66,10 @@ class ProfileForm(forms.ModelForm):
     def clean_min_score(self):
         if "min_score" not in self.data:
             return self.instance.min_score or 0
-        return self.cleaned_data["min_score"]
+        value = self.cleaned_data["min_score"]
+        if value % 2:
+            raise forms.ValidationError("Elige un mínimo entero entre 0 y 5 estrellas.")
+        return value
 
     def clean_search_enabled(self):
         if "search_enabled_submitted" not in self.data:

@@ -1,5 +1,6 @@
 from copy import deepcopy
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 import logging
 
 from django.db import transaction
@@ -41,7 +42,10 @@ CONCISE_ORGANIZATION_INSTRUCTION = (
 )
 CRITICAL_COMPLETENESS_INSTRUCTION = (
     "Enumera en critical_requirements cada requisito explícito obligatorio, incluso los que se cumplen; "
-    "no omitas ninguno por brevedad. Incluye evidencia breve para cada uno."
+    "no omitas ninguno por brevedad. Para cada elemento usa requirement de máximo 180 caracteres, "
+    "evidence de máximo 240 caracteres y status exactamente uno de: cumple, sin_evidencia o contradicho. "
+    "Incluye evidencia breve para cada uno; si status es contradicho, la evidencia debe mostrar una "
+    "incompatibilidad explícita."
 )
 EVIDENCE_STATUS_INSTRUCTION = (
     "La falta de experiencia o una trayectoria en otro sector no contradice un requisito: usa sin_evidencia. "
@@ -59,8 +63,8 @@ DEFAULT_ORGANIZATION_PROMPT = (
     f"Incluye solo datos respaldados por el texto y no añadas hechos. {CONCISE_ORGANIZATION_INSTRUCTION}"
 )
 
-RUBRIC_PROMPT = f"""
-Evalúa usando exclusivamente esta rúbrica común, versión {RUBRIC_VERSION}. No otorgues puntos por ubicación ni modalidad: la elegibilidad geográfica ya se verificó antes del análisis. No devuelvas un puntaje total; la aplicación lo suma y aplica las deducciones.
+RUBRIC_PROMPT_V2 = """
+Evalúa usando exclusivamente esta rúbrica común, versión 2. No otorgues puntos por ubicación ni modalidad: la elegibilidad geográfica ya se verificó antes del análisis. No devuelvas un puntaje total; la aplicación lo suma y aplica las deducciones.
 
 Criterios y máximos:
 - skills (0–4): 0 sin evidencia o contradicción; 1 evidencia débil o transferible; 2 evidencia parcial y directa; 3 evidencia directa para la mayoría de requisitos; 4 evidencia sólida para las competencias centrales.
@@ -73,8 +77,22 @@ Para cada criterio devuelve score (número de 0 a su máximo con hasta una cifra
 
 En evidence, reasons y gaps incluye solo la evidencia o razón principal que sustenta el resultado. Evita repetir una idea y omite contexto que no cambie el puntaje. Conserva todos los campos requeridos y la evidencia necesaria para justificar cada puntaje y deducción.
 
-Enumera aparte critical_requirements solo cuando la vacante contenga requisitos explícitos y obligatorios. Para cada uno usa requirement, status (cumple, sin_evidencia o contradicho) y evidence. La aplicación resta {CRITICAL_REQUIREMENT_DEDUCTION} puntos por cada requisito obligatorio contradicho; no marques contradicho sin evidencia explícita de incompatibilidad. La falta de información no es contradicción y no genera deducción. No uses discapacidad, edad, sexo, género, origen, religión, situación familiar ni otros atributos personales para puntuar o deducir. Devuelve rubric_version={RUBRIC_VERSION}.
+Enumera aparte critical_requirements solo cuando la vacante contenga requisitos explícitos y obligatorios. Para cada uno usa requirement, status (cumple, sin_evidencia o contradicho) y evidence. La aplicación resta 2.0 puntos por cada requisito obligatorio contradicho; no marques contradicho sin evidencia explícita de incompatibilidad. La falta de información no es contradicción y no genera deducción. No uses discapacidad, edad, sexo, género, origen, religión, situación familiar ni otros atributos personales para puntuar o deducir. Devuelve rubric_version=2.
 """.strip()
+
+RUBRIC_PROMPT = """
+Evalúa usando exclusivamente esta rúbrica común, versión 3, en escala de 0 a 5. No otorgues puntos por ubicación ni modalidad. No devuelvas un puntaje total; la aplicación suma los criterios y aplica las deducciones.
+
+Criterios y máximos: skills 2,0; experience 1,0; alignment 1,0; education 0,5; profile_criteria 0,5. Evalúa la misma evidencia laboral de cada criterio proporcionalmente a esos máximos. En education y profile_criteria, si no hay requisito explícito, asigna el máximo con no_aplica.
+
+Para cada criterio devuelve score con precisión de 0,05 como máximo, status y evidence breve (hasta 240 caracteres). Estados: cumple, parcial, sin_evidencia, contradicho, no_aplica. Usa cumple solo para el máximo; parcial solo para puntajes intermedios; sin_evidencia y contradicho reciben 0; contradicho requiere evidencia. No uses no_aplica salvo para education o profile_criteria, que reciben su máximo.
+
+Enumera aparte critical_requirements solo para requisitos explícitos y obligatorios. Usa requirement, status (cumple, sin_evidencia o contradicho) y evidence. La aplicación resta 1,0 punto por cada requisito obligatorio contradicho. La falta de información no es contradicción y no genera deducción. No uses discapacidad, edad, sexo, género, origen, religión, situación familiar ni otros atributos personales para puntuar o deducir. Devuelve rubric_version=3.
+""".strip()
+
+
+def rubric_prompt(version):
+    return RUBRIC_PROMPT_V2 if version == 2 else RUBRIC_PROMPT
 
 
 @transaction.atomic
@@ -85,8 +103,22 @@ def get_active_matching_config():
     latest_version = MatchingConfig.objects.order_by("-version").values_list("version", flat=True).first() or 0
     parameters = deepcopy(config.parameters) if config else default_matching_parameters()
     if not config or config.rubric_version < RUBRIC_VERSION:
+        previous_deduction = (
+            (parameters.get("rubric") or {}).get("critical_requirement_deduction", "2.0")
+            if config and config.rubric_version < 3 else "1.0"
+        )
+        if config and config.rubric_version < 3 and (parameters.get("rubric") or {}).get("version") == 3:
+            previous_deduction = "2.0"
+        try:
+            migrated_deduction = (
+                Decimal(str(previous_deduction)) / Decimal("2")
+                if config and config.rubric_version < 3 else Decimal("1.0")
+            )
+        except (InvalidOperation, ValueError):
+            migrated_deduction = Decimal("1.0")
         parameters.pop("weights", None)
         parameters["rubric"] = default_matching_parameters()["rubric"]
+        parameters["rubric"]["critical_requirement_deduction"] = str(migrated_deduction)
     if config:
         config.is_active = False
         config.save(update_fields=["is_active"])

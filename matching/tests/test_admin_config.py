@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 from jobs.models import Vacancy
 from matching.admin import MatchingConfigAdmin, VacancyAnalysisAdmin, reprocess_selected_analyses
-from matching.models import DEFAULT_SEARCH_PROMPT, PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, VacancyAnalysis
+from matching.models import DEFAULT_SEARCH_PROMPT, PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, VacancyAnalysis, default_matching_parameters
 from matching.services import CRITICAL_COMPLETENESS_INSTRUCTION, EVIDENCE_STATUS_INSTRUCTION, get_active_matching_config
 from matching.tasks import create_analysis
 from profiles.models import Profile, ProfileRevision
@@ -43,7 +43,10 @@ class VersionedConfigAdminTests(TestCase):
         self.assertEqual(active.search_prompt, "Prompt ajustado")
         self.assertEqual(active.analysis_prompt, "Análisis ajustado")
         self.assertEqual(active.rubric_version, RUBRIC_VERSION)
-        self.assertEqual(active.parameters["rubric"]["critical_requirement_deduction"], "2.0")
+        self.assertEqual(
+            active.parameters["rubric"]["critical_requirement_deduction"],
+            default_matching_parameters()["rubric"]["critical_requirement_deduction"],
+        )
 
     def test_prompt_upgrade_preserves_parameters_and_historical_analysis(self):
         old = MatchingConfig.objects.create(
@@ -69,6 +72,9 @@ class VersionedConfigAdminTests(TestCase):
         self.assertEqual(historical.score, 7)
         self.assertEqual(current.prompt_version, PROMPT_VERSION)
         self.assertIn(CRITICAL_COMPLETENESS_INSTRUCTION, current.analysis_prompt)
+        self.assertIn("requirement de máximo 180 caracteres", current.analysis_prompt)
+        self.assertIn("evidence de máximo 240 caracteres", current.analysis_prompt)
+        self.assertIn("cumple, sin_evidencia o contradicho", current.analysis_prompt)
         self.assertIn(EVIDENCE_STATUS_INSTRUCTION, current.analysis_prompt)
         self.assertEqual(current.parameters["rubric"]["critical_requirement_deduction"], "1.5")
 

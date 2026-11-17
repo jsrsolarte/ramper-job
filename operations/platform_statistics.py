@@ -95,21 +95,18 @@ def _score_distribution(grouped_rows):
     scores_by_rubric = defaultdict(dict)
     for row in grouped_rows:
         version = row["matching_config__rubric_version"]
-        scores_by_rubric[version][row["score"]] = row["count"]
+        score = row.get("score_stars", row.get("score"))
+        scores_by_rubric[version][score] = row["count"]
 
     distributions = []
     for version in sorted(scores_by_rubric, key=lambda value: (value is None, value or 0)):
         score_counts = scores_by_rubric[version]
         sample_size = sum(score_counts.values())
         bands = []
-        for lower in range(10):
-            upper = lower + 1
-            if upper == 10:
-                count = sum(n for score, n in score_counts.items() if Decimal(lower) <= score <= Decimal("10"))
-                label = f"{lower / 2:g}–5"
-            else:
-                count = sum(n for score, n in score_counts.items() if Decimal(lower) <= score < Decimal(upper))
-                label = f"{lower / 2:g}–<{upper / 2:g}"
+        for half_star in range(11):
+            score = Decimal(half_star) / Decimal("2")
+            count = score_counts.get(score, 0)
+            label = f"{score:g}"
             bands.append({
                 "label": label.replace(".", ","),
                 "count": count,
@@ -121,7 +118,7 @@ def _score_distribution(grouped_rows):
             "rubric_version": version,
             "rubric_label": f"Rúbrica {version}" if version is not None and version > 0 else "Rúbrica sin versión",
             "sample_size": sample_size,
-            "median": _median_from_counts(score_counts, sample_size) / Decimal("2"),
+            "median": _median_from_counts(score_counts, sample_size),
             "bands": bands,
         })
     return distributions
@@ -219,10 +216,9 @@ def build_platform_statistics(*, period="30d", now=None):
         grouped_scores = current_completed.filter(
             completed_at__gte=effective_start,
             completed_at__lte=now,
-            score__gte=0,
-            score__lte=10,
+            score_stars__isnull=False,
         ).exclude(score_breakdown={}).values(
-            "matching_config__rubric_version", "score",
+            "matching_config__rubric_version", "score_stars",
         ).annotate(count=Count("pk"))
         distributions = _score_distribution(grouped_scores)
 

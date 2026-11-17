@@ -14,7 +14,7 @@ from jobs.models import Vacancy
 from matching.client import OmniRouteError, request_model_analysis, request_model_organization
 from matching.models import AICallAttempt, AnalysisSourceQuery, PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, ProfileVacancyDiscovery, VacancyAnalysis, VacancyOrganization
 from matching.schemas import InvalidAnalysisError, save_validated_analysis, save_validated_organization
-from matching.services import RUBRIC_PROMPT, get_active_matching_config
+from matching.services import get_active_matching_config, rubric_prompt
 from profiles.extract import extract_revision_text
 from profiles.models import Profile
 from profiles.locations import expand_locations, vacancy_location_is_eligible
@@ -340,7 +340,10 @@ def analyze_vacancy_for_profile(self, analysis_id):
     )
     try:
         profile_text = extract_revision_text(analysis.profile_revision)
-        prompt = "\n\n".join(part for part in (analysis.matching_config.analysis_prompt, RUBRIC_PROMPT) if part)
+        prompt = "\n\n".join(part for part in (
+            analysis.matching_config.analysis_prompt,
+            rubric_prompt(analysis.matching_config.rubric_version),
+        ) if part)
         call_started = perf_counter()
         model_result = request_model_analysis(
             profile_text=profile_text,
@@ -360,6 +363,7 @@ def analyze_vacancy_for_profile(self, analysis_id):
             },
             prompt=prompt,
             parameters=analysis.matching_config.parameters,
+            rubric_version=analysis.matching_config.rubric_version,
         )
         save_validated_analysis(analysis, getattr(model_result, "content", model_result))
         _record_ai_attempt(

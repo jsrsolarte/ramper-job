@@ -6,9 +6,10 @@ from jobs.models import Vacancy
 from profiles.models import Profile, ProfileRevision
 
 RUBRIC_VERSION = 2
-PROMPT_VERSION = 4
-CRITICAL_REQUIREMENT_DEDUCTION = "2.0"
-RUBRIC_CRITERIA = {
+PROMPT_VERSION = 5
+CRITICAL_REQUIREMENT_DEDUCTION = "1.0"
+CRITICAL_REQUIREMENT_DEDUCTION_V2 = "2.0"
+RUBRIC_CRITERIA_V2 = {
     "skills": {
         "label": "Competencias y habilidades requeridas",
         "max_score": 4,
@@ -30,21 +31,27 @@ RUBRIC_CRITERIA = {
         "max_score": 1,
     },
 }
+RUBRIC_CRITERIA = {
+    key: {**definition, "max_score": definition["max_score"] / 2}
+    for key, definition in RUBRIC_CRITERIA_V2.items()
+}
 RUBRIC_STATUSES = ("cumple", "parcial", "sin_evidencia", "contradicho", "no_aplica")
 
 
 def default_matching_parameters():
+    active_criteria = RUBRIC_CRITERIA if RUBRIC_VERSION == 3 else RUBRIC_CRITERIA_V2
+    active_deduction = (
+        CRITICAL_REQUIREMENT_DEDUCTION if RUBRIC_VERSION == 3
+        else CRITICAL_REQUIREMENT_DEDUCTION_V2
+    )
     return {
         "temperature": 0.1,
         "rubric": {
             "version": RUBRIC_VERSION,
-            "critical_requirement_deduction": CRITICAL_REQUIREMENT_DEDUCTION,
+                "critical_requirement_deduction": active_deduction,
             "criteria": {
-                "skills": {"max_score": 4, "description": "Competencias y habilidades requeridas"},
-                "experience": {"max_score": 2, "description": "Experiencia y responsabilidades relevantes"},
-                "alignment": {"max_score": 2, "description": "Alineación del cargo o sector"},
-                "education": {"max_score": 1, "description": "Educación o certificaciones explícitamente requeridas"},
-                "profile_criteria": {"max_score": 1, "description": "Otros criterios explícitos del perfil, sin ubicación"},
+                key: {"max_score": definition["max_score"], "description": definition["label"]}
+                for key, definition in active_criteria.items()
             },
         },
     }
@@ -144,6 +151,22 @@ class VacancyAnalysis(models.Model):
     organized_description = models.TextField(blank=True)
     organized_content = models.JSONField(default=dict, blank=True)
     score = models.DecimalField(max_digits=3, decimal_places=1, null=True, blank=True)
+    score_stars = models.GeneratedField(
+        expression=models.Case(
+            models.When(
+                score__gte=0, score__lte=10,
+                then=models.ExpressionWrapper(
+                    models.functions.Floor(models.F("score") + models.Value(0.5)) / models.Value(2.0),
+                    output_field=models.DecimalField(max_digits=2, decimal_places=1),
+                ),
+            ),
+            default=models.Value(None),
+            output_field=models.DecimalField(max_digits=2, decimal_places=1),
+        ),
+        output_field=models.DecimalField(max_digits=2, decimal_places=1),
+        db_persist=True,
+        null=True,
+    )
     score_breakdown = models.JSONField(default=dict, blank=True)
     reasons = models.JSONField(default=list, blank=True)
     gaps = models.JSONField(default=list, blank=True)

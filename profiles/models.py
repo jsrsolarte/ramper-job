@@ -25,6 +25,19 @@ class Profile(models.Model):
         validators=[MinValueValidator(0), MaxValueValidator(10)],
         verbose_name="puntaje mínimo de compatibilidad",
     )
+    min_score_stars = models.GeneratedField(
+        expression=models.Case(
+            models.When(
+                min_score__lte=10,
+                then=models.functions.Ceil(models.F("min_score") / models.Value(2.0)),
+            ),
+            default=models.Value(None),
+            output_field=models.PositiveSmallIntegerField(),
+        ),
+        output_field=models.PositiveSmallIntegerField(),
+        db_persist=True,
+        null=True,
+    )
     cv_file = models.FileField(
         upload_to=cv_upload_path,
         blank=True,

@@ -2,9 +2,12 @@ from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from django.db import transaction
 from django.utils import timezone
 
+from .score_scale import calculate_star_total
+
 from .models import (
     CRITICAL_REQUIREMENT_DEDUCTION,
     RUBRIC_CRITERIA,
+    RUBRIC_CRITERIA_V2,
     RUBRIC_STATUSES,
     RUBRIC_VERSION,
 )
@@ -45,26 +48,39 @@ def validate_search_keywords(payload: dict) -> list[str]:
 
 
 def validate_analysis(payload: dict, *, rubric_version: int = RUBRIC_VERSION,
-                      critical_deduction=CRITICAL_REQUIREMENT_DEDUCTION) -> dict:
+                      critical_deduction=None) -> dict:
     if not isinstance(payload, dict):
         raise InvalidAnalysisError("analysis.schema.not_object", "La respuesta debe ser un objeto JSON.")
     response_version = payload.get("rubric_version")
     if (isinstance(response_version, bool) or not isinstance(response_version, int)
             or response_version != rubric_version):
         raise InvalidAnalysisError("analysis.rubric.version", "La respuesta no corresponde a la versión de rúbrica solicitada.")
-    score_breakdown = _validate_score_breakdown(payload.get("score_breakdown"))
+    score_breakdown = _validate_score_breakdown(payload.get("score_breakdown"), rubric_version=rubric_version)
     critical_requirements = _validate_critical_requirements(payload.get("critical_requirements"))
+    if critical_deduction is None:
+        critical_deduction = "1.0" if rubric_version == 3 else "2.0"
     deduction_per_requirement = Decimal(str(critical_deduction))
     deductions = [
         {"requirement": item["requirement"], "evidence": item["evidence"], "points": deduction_per_requirement}
         for item in critical_requirements if item["status"] == "contradicho"
     ]
     raw_total = sum((item["score"] for item in score_breakdown.values()), Decimal("0.0"))
-    total = max(Decimal("0.0"), min(Decimal("10.0"), raw_total - sum(
-        (item["points"] for item in deductions), Decimal("0.0")
-    ))).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+    if rubric_version == 3:
+        # Keep the unrounded sum for discovery decisions. The displayed score is
+        # rounded only after every criterion and deduction has been applied.
+        threshold_score = max(Decimal("0"), min(Decimal("5"), raw_total - sum(
+            (item["points"] for item in deductions), Decimal("0.0")
+        ))) * 2
+        total = calculate_star_total((item["score"] for item in score_breakdown.values()),
+                                     (item["points"] for item in deductions))
+    else:
+        total = max(Decimal("0.0"), min(Decimal("10.0"), raw_total - sum(
+            (item["points"] for item in deductions), Decimal("0.0")
+        ))).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
+        threshold_score = total
     return {
         "score": total,
+        "threshold_score": threshold_score,
         "score_breakdown": score_breakdown,
         "critical_requirements": critical_requirements,
         "deductions": deductions,
@@ -73,11 +89,12 @@ def validate_analysis(payload: dict, *, rubric_version: int = RUBRIC_VERSION,
     }
 
 
-def _validate_score_breakdown(value):
+def _validate_score_breakdown(value, *, rubric_version=RUBRIC_VERSION):
     if not isinstance(value, dict) or set(value) != set(RUBRIC_CRITERIA):
         raise InvalidAnalysisError("analysis.rubric.criteria_set", "El desglose debe incluir exactamente los cinco criterios de la rúbrica.")
     validated = {}
-    for key, definition in RUBRIC_CRITERIA.items():
+    criteria = RUBRIC_CRITERIA if rubric_version == 3 else RUBRIC_CRITERIA_V2
+    for key, definition in criteria.items():
         item = value.get(key)
         if not isinstance(item, dict):
             raise InvalidAnalysisError(f"analysis.rubric.{key}.not_object", f"El criterio {key} debe ser un objeto.")
@@ -89,8 +106,9 @@ def _validate_score_breakdown(value):
         maximum = Decimal(str(definition["max_score"]))
         if isinstance(raw_points, bool) or not points.is_finite() or points < 0 or points > maximum:
             raise InvalidAnalysisError(f"analysis.rubric.{key}.score_out_of_range", f"El puntaje de {key} debe estar entre 0 y {maximum}.")
-        if points != points.quantize(Decimal("0.1")):
-            raise InvalidAnalysisError(f"analysis.rubric.{key}.score_precision", f"El puntaje de {key} admite como máximo una cifra decimal.")
+        precision = Decimal("0.05") if rubric_version == 3 else Decimal("0.1")
+        if points % precision != 0:
+            raise InvalidAnalysisError(f"analysis.rubric.{key}.score_precision", f"El puntaje de {key} no cumple la precisión de la rúbrica.")
         if status not in RUBRIC_STATUSES:
             raise InvalidAnalysisError(f"analysis.rubric.{key}.status_invalid", f"El estado de evidencia de {key} no es válido.")
         if not isinstance(evidence, str) or len(evidence.strip()) > 240:
@@ -168,12 +186,19 @@ def _string_list(value, label):
 def save_validated_analysis(analysis, payload: dict):
     parameters = analysis.matching_config.parameters or {}
     rubric_params = parameters.get("rubric") or {}
+    default_deduction = "1.0" if analysis.matching_config.rubric_version == 3 else "2.0"
+    configured_version = rubric_params.get("version")
+    deduction = rubric_params.get("critical_requirement_deduction", default_deduction)
+    if analysis.matching_config.rubric_version == 2 and configured_version == 3:
+        deduction = "2.0"
     result = validate_analysis(
         payload,
         rubric_version=analysis.matching_config.rubric_version,
-        critical_deduction=rubric_params.get("critical_requirement_deduction", CRITICAL_REQUIREMENT_DEDUCTION),
+        critical_deduction=deduction,
     )
-    analysis.score = result["score"]
+    # Keep the legacy 0–10 column readable by workers from the previous release.
+    # The database-generated score_stars column exposes the new 0–5 result.
+    analysis.score = result["score"] * 2 if analysis.matching_config.rubric_version == 3 else result["score"]
     score_breakdown = {
         key: {
             **item,
@@ -188,9 +213,7 @@ def save_validated_analysis(analysis, payload: dict):
         "deductions": [
             {**item, "points": float(item["points"])} for item in result["deductions"]
         ],
-        "deduction_per_critical_requirement": str(rubric_params.get(
-            "critical_requirement_deduction", CRITICAL_REQUIREMENT_DEDUCTION
-        )),
+        "deduction_per_critical_requirement": str(deduction),
     }
     analysis.reasons = result["reasons"]
     analysis.gaps = result["gaps"]
@@ -205,7 +228,7 @@ def save_validated_analysis(analysis, payload: dict):
     ])
     from dashboard.services import apply_discovery_score_threshold
 
-    apply_discovery_score_threshold(analysis.profile, analysis.vacancy, analysis.score)
+    apply_discovery_score_threshold(analysis.profile, analysis.vacancy, result["threshold_score"])
     return analysis
 
 

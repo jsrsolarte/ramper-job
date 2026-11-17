@@ -11,6 +11,18 @@ def score_star_percent(score):
     return _rounded_half_star_units(score) * 10
 
 
+def score_star_states(score):
+    """Return five discrete full, half, or empty star states for a 0–5 value."""
+    value = (Decimal(str(score)) * 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
+    half_units = max(0, min(10, int(value)))
+    return [
+        "full" if half_units >= index * 2 + 2
+        else "half" if half_units == index * 2 + 1
+        else "empty"
+        for index in range(5)
+    ]
+
+
 def score_star_label(score):
     """Return a localized 0–5 star value while preserving exact scores elsewhere."""
     stars = Decimal(_rounded_half_star_units(score)) / Decimal("2")

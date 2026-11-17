@@ -1,0 +1,134 @@
+name: Validate and promote production
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - deploy/overlays/prod/kustomization.yaml
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Escribe PROMOVER para autorizar el despliegue del código actual de main
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
+    with:
+      source_sha: ${{ github.sha }}
+    permissions:
+      contents: read
+
+  publish:
+    name: Build production image
+    if: github.event_name == 'push' && github.repository == 'jsrsolarte/ramper-job'
+    needs: [validate]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out validated main commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Publish image for the validated main commit
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/jsrsolarte/ramper-job:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.source=https://github.com/jsrsolarte/ramper-job
+            org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  promote:
+    name: Promote validated staging code to production
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.repository == 'jsrsolarte/ramper-job' &&
+      inputs.confirmation == 'PROMOVER'
+    needs: [validate]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ramper-job-production-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      packages: read
+    steps:
+      - name: Check out current main and staging history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Verify staging code, current main, and published image
+        env:
+          RELEASE_SHA: ${{ github.sha }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          [[ "$CONFIRMATION" == "PROMOVER" ]]
+          git fetch origin main staging
+          [[ "$(git rev-parse origin/main)" == "$RELEASE_SHA" ]]
+          STAGING_SHA="$(git show origin/staging:deploy/overlays/staging/kustomization.yaml | sed -nE 's/^[[:space:]]*newTag:[[:space:]]*([^[:space:]#]+).*/\1/p')"
+          [[ "$STAGING_SHA" =~ ^[0-9a-f]{40}$ ]]
+          python scripts/check_release_candidate.py "$STAGING_SHA" "$RELEASE_SHA" origin/staging origin/main
+          echo "$GH_TOKEN" | docker login ghcr.io -u "${GITHUB_ACTOR}" --password-stdin
+          docker buildx imagetools inspect "ghcr.io/${GITHUB_REPOSITORY,,}:$RELEASE_SHA" >/dev/null
+
+      - name: Point production overlay at the validated main image
+        env:
+          IMAGE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          path = Path("deploy/overlays/prod/kustomization.yaml")
+          content = path.read_text(encoding="utf-8")
+          updated, replacements = re.subn(
+              r"(?m)^(\s*)(?:digest:\s*sha256:[0-9a-f]{64}|newTag:\s*[^\s#]+)\s*$",
+              lambda match: f"{match.group(1)}newTag: {os.environ['IMAGE_SHA']}",
+              content,
+          )
+          if replacements != 1:
+              raise SystemExit(f"Expected one production image pin, found {replacements}")
+          path.write_text(updated, encoding="utf-8")
+          PY
+
+      - name: Commit and push the authorized production pin
+        env:
+          IMAGE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add deploy/overlays/prod/kustomization.yaml
+          if git diff --cached --quiet; then
+            echo "Production already points at ${IMAGE_SHA}"
+          else
+            git commit -m "deploy(prod): ${IMAGE_SHA}"
+            git push origin HEAD:main
+          fi

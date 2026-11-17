@@ -2,8 +2,9 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from datetime import timedelta
+from datetime import datetime, timedelta
 from decimal import Decimal
+from unittest.mock import patch
 
 from jobs.models import Vacancy
 from dashboard.models import VacancyFollowUp
@@ -57,6 +58,24 @@ class DashboardPrivacyTests(TestCase):
             self.assertEqual(response.context['follow_up_counts']['pending'], 2)
             self.assertEqual(response.context['follow_up_counts']['applied'], 1)
         self.assertContains(self.client.get(reverse('dashboard:home'), {'state': 'applied'}), 'Aplicada bajo el mínimo')
+
+    def test_dashboard_explains_estimated_paused_and_unavailable_search_schedule(self):
+        self.client.force_login(self.first)
+        next_at = timezone.make_aware(datetime(2026, 11, 12, 18, 30))
+
+        cases = (
+            ({"status": "scheduled", "next_at": next_at, "is_overdue": False}, "Próxima búsqueda automática estimada:", "Una actualización manual"),
+            ({"status": "paused", "next_at": None}, "Las búsquedas automáticas están pausadas.", "Una actualización manual"),
+            ({"status": "unavailable", "next_at": None}, "todavía no está disponible", "Una actualización manual"),
+        )
+        for schedule, expected, warning in cases:
+            with self.subTest(status=schedule["status"]), patch(
+                "dashboard.views.next_periodic_refresh_schedule", return_value=schedule,
+            ):
+                response = self.client.get(reverse("dashboard:home"))
+                self.assertEqual(response.status_code, 200)
+                self.assertContains(response, expected)
+                self.assertContains(response, warning)
 
     def test_dashboard_only_shows_owner_results_sorted_by_score(self):
         self.best.vacancy.raw_data = {
@@ -211,20 +230,20 @@ class DashboardPrivacyTests(TestCase):
 
         response = self.client.get(reverse("dashboard:home"))
 
-        self.assertContains(response, 'aria-label="Puntaje mínimo de compatibilidad"')
-        self.assertContains(response, 'aria-label="Mostrar todas las recomendaciones"')
-        self.assertContains(response, 'aria-label="Mostrar recomendaciones con 4 estrellas o más"')
-        self.assertContains(response, 'href="?score_min=0"')
+        self.assertContains(response, 'aria-label="Puntaje exacto de compatibilidad"')
+        self.assertContains(response, 'aria-label="Mostrar todas"')
+        self.assertContains(response, 'aria-label="Mostrar puntajes exactos de 4,5 estrellas"')
+        self.assertContains(response, 'href="?state=pending&amp;score_min=all"')
         self.assertNotContains(response, 'type="range" name="score_min"')
         self.assertNotContains(response, 'Mínimo de tu perfil: 4 estrellas')
-        self.assertEqual(response.context["score_filter_value"], 0)
+        self.assertEqual(response.context["score_filter_value"], "all")
 
-        response = self.client.get(reverse("dashboard:home"), {"score_min": "10"})
-        self.assertContains(response, 'href="?score_min=10" aria-current="true" aria-label="Mostrar recomendaciones con 5 estrellas o más"')
-        self.assertEqual(response.context["score_filter_value"], 10)
+        response = self.client.get(reverse("dashboard:home"), {"score_min": "4.5"})
+        self.assertContains(response, 'score_min=4.5" aria-current="true" aria-label="Mostrar puntajes exactos de 4,5 estrellas"')
+        self.assertEqual(response.context["score_filter_value"], Decimal("4.5"))
 
     def test_dashboard_score_filter_is_preserved_when_paginating(self):
-        for index in range(20):
+        for index in range(21):
             self._vacancy(
                 f"Vacante adicional {index}",
                 f"https://jobs.example.test/additional-{index}",
@@ -234,17 +253,41 @@ class DashboardPrivacyTests(TestCase):
             )
         self.client.force_login(self.first)
 
-        response = self.client.get(reverse("dashboard:home"), {"score_min": "8"})
+        response = self.client.get(reverse("dashboard:home"), {"score_min": "4"})
 
-        self.assertContains(response, "?score_min=8&amp;page=2")
+        self.assertContains(response, "?score_min=4&amp;page=2")
         self.assertEqual(response.context["analyses"].paginator.count, 21)
         self.assertEqual(self.first_profile.min_score, 0)
 
-        second_page = self.client.get(reverse("dashboard:home"), {"score_min": "8", "page": "2"})
+        second_page = self.client.get(reverse("dashboard:home"), {"score_min": "4", "page": "2"})
 
         self.assertEqual(second_page.status_code, 200)
-        self.assertEqual(second_page.context["score_filter"], 8)
+        self.assertEqual(second_page.context["score_filter"], Decimal("4"))
         self.assertEqual(second_page.context["analyses"].paginator.count, 21)
+
+    def test_exact_score_options_are_private_and_specific_to_each_follow_up_state(self):
+        applied_high = self._vacancy("Aplicada alta", "https://jobs.example.test/applied-high", 9, self.first_profile, self.first_revision)
+        applied_low = self._vacancy("Aplicada baja", "https://jobs.example.test/applied-low", 8, self.first_profile, self.first_revision)
+        discarded = self._vacancy("Descartada", "https://jobs.example.test/discarded-score", 9, self.first_profile, self.first_revision)
+        VacancyFollowUp.objects.create(profile=self.first_profile, vacancy=applied_high.vacancy, status=VacancyFollowUp.Status.APPLIED)
+        VacancyFollowUp.objects.create(profile=self.first_profile, vacancy=applied_low.vacancy, status=VacancyFollowUp.Status.APPLIED)
+        VacancyFollowUp.objects.create(profile=self.first_profile, vacancy=discarded.vacancy, status=VacancyFollowUp.Status.DISCARDED)
+        foreign = self._vacancy("Puntaje ajeno", "https://jobs.example.test/private-score", 10, self.second_profile, self.second_revision)
+        self.client.force_login(self.first)
+
+        pending = self.client.get(reverse("dashboard:home"), {"state": "pending"})
+        applied = self.client.get(reverse("dashboard:home"), {"state": "applied"})
+        discarded_response = self.client.get(reverse("dashboard:home"), {"state": "discarded"})
+        applied_exact = self.client.get(reverse("dashboard:home"), {"state": "applied", "score_min": "4"})
+        stale = self.client.get(reverse("dashboard:home"), {"state": "applied", "score_min": "3.5"})
+
+        self.assertEqual({option["value"] for option in pending.context["score_filter_options"]}, {"all", "3.5", "4.5"})
+        self.assertEqual({option["value"] for option in applied.context["score_filter_options"]}, {"all", "4", "4.5"})
+        self.assertEqual({option["value"] for option in discarded_response.context["score_filter_options"]}, {"all", "4.5"})
+        self.assertEqual([item.vacancy_id for item in applied_exact.context["analyses"]], [applied_low.vacancy_id])
+        self.assertIsNone(stale.context["score_filter"])
+        self.assertEqual(stale.context["analyses"].paginator.count, 2)
+        self.assertNotIn("5", {option["value"] for option in applied.context["score_filter_options"]})
 
     def test_elided_pagination_at_start_middle_and_end_preserves_filters(self):
         vacancies = [Vacancy(source="elempleo_co", title=f"Vacante {i}",
@@ -258,7 +301,7 @@ class DashboardPrivacyTests(TestCase):
         ])
         self.client.force_login(self.first)
         for page_number in (1, 6, 12):
-            response = self.client.get(reverse("dashboard:home"), {"state": "pending", "score_min": "8", "page": page_number})
+            response = self.client.get(reverse("dashboard:home"), {"state": "pending", "score_min": "4.5", "page": page_number})
             navigation = response.context["page_navigation"]
             numbers = [item["number"] for item in navigation if "number" in item]
             self.assertIn(1, numbers)
@@ -268,15 +311,16 @@ class DashboardPrivacyTests(TestCase):
             for item in navigation:
                 if "querystring" in item:
                     self.assertIn("state=pending", item["querystring"])
-                    self.assertIn("score_min=8", item["querystring"])
+                    self.assertIn("score_min=4.5", item["querystring"])
             self.assertEqual(next(item for item in navigation if item.get("current"))["number"], page_number)
     def test_empty_dashboard_score_filter_has_a_clear_action(self):
         self.client.force_login(self.first)
 
-        response = self.client.get(reverse("dashboard:home"), {"score_min": "10"})
+        response = self.client.get(reverse("dashboard:home"), {"score_min": "5"})
 
-        self.assertContains(response, "No hay recomendaciones con 5 estrellas o más")
-        self.assertContains(response, "Quitar filtro del listado")
+        self.assertContains(response, 'aria-label="Mostrar todas"')
+        self.assertContains(response, 'score_min=all" aria-current="true"')
+        self.assertNotContains(response, "Quitar filtro del listado")
         self.assertEqual(self.first_profile.min_score, 0)
 
     def test_dashboard_hides_completed_vacancy_outside_profile_locations(self):
@@ -416,14 +460,14 @@ class DashboardPrivacyTests(TestCase):
         response = self.client.get(reverse("dashboard:home"))
         analysis_page = self.client.get(reverse("dashboard:analysis"))
 
-        self.assertEqual(response.context["score_distribution_sample_size"], 5)
-        self.assertEqual([band["count"] for band in response.context["score_distribution"]], [1, 1, 0, 0, 0, 0, 0, 1, 0, 2])
-        self.assertEqual(response.context["score_recommended_min"], 7)
+        self.assertEqual(response.context["score_distribution_sample_size"], 6)
+        self.assertEqual([band["count"] for band in response.context["score_distribution"]], [1, 1, 0, 1, 3])
+        self.assertEqual(response.context["score_recommended_min"], Decimal("4"))
         self.assertEqual(response.context["score_recommended_count"], 3)
-        self.assertTrue(response.context["score_recommendation_below_profile"])
+        self.assertFalse(response.context["score_recommendation_below_profile"])
         self.assertContains(analysis_page, "Distribución de puntajes")
-        self.assertContains(analysis_page, "Puedes usarlo como filtro temporal del listado")
-        self.assertContains(analysis_page, 'href="/?score_min=7"')
+        self.assertContains(analysis_page, "Puedes usarlo como filtro temporal del estado actual")
+        self.assertContains(analysis_page, 'href="/?score_min=4"')
         self.assertNotContains(response, "Distribución de puntajes")
         self.assertContains(response, 'href="/analisis/"')
         self.assertEqual(self.first_profile.min_score, 8)
@@ -437,12 +481,12 @@ class DashboardPrivacyTests(TestCase):
         response = self.client.get(reverse("dashboard:home"))
         analysis_page = self.client.get(reverse("dashboard:analysis"))
 
-        self.assertEqual(response.context["score_recommended_min"], 7)
-        self.assertContains(analysis_page, 'href="/?score_min=7"')
-        filtered = self.client.get(reverse("dashboard:home"), {"score_min": "7"})
-        self.assertEqual(filtered.context["score_filter"], 7)
+        self.assertEqual(response.context["score_recommended_min"], Decimal("3.5"))
+        self.assertContains(analysis_page, 'href="/?score_min=3.5"')
+        filtered = self.client.get(reverse("dashboard:home"), {"score_min": "3.5"})
+        self.assertEqual(filtered.context["score_filter"], Decimal("3.5"))
         self.assertEqual(self.first_profile.min_score, 0)
-        selected = next(option for option in filtered.context["score_filter_options"] if option["value"] == 7)
+        selected = next(option for option in filtered.context["score_filter_options"] if option["value"] == "3.5")
         self.assertTrue(selected["selected"])
 
     def test_score_distribution_explains_insufficient_sample_and_empty_state(self):

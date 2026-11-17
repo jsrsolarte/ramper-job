@@ -17,7 +17,6 @@ from matching.models import (
     AICallAttempt,
     AnalysisSourceQuery,
     PROMPT_VERSION,
-    RUBRIC_VERSION,
     MatchingConfig,
     ProfileVacancyDiscovery,
     VacancyAnalysis,
@@ -66,7 +65,7 @@ class MatchingProcessingTests(TestCase):
         )
         self.config = MatchingConfig.objects.create(
             version=1,
-            rubric_version=RUBRIC_VERSION,
+            rubric_version=3,
             prompt_version=PROMPT_VERSION,
             analysis_prompt="Evalúa coincidencia",
             organization_prompt="Organiza descripción",
@@ -84,14 +83,14 @@ class MatchingProcessingTests(TestCase):
                 "requirements": ["Experiencia con SQL"],
                 "conditions": [],
             },
-            "rubric_version": RUBRIC_VERSION,
+            "rubric_version": 3,
             "critical_requirements": [],
             "score_breakdown": {
-                "skills": {"score": 4, "status": "cumple", "evidence": "Experiencia con SQL"},
-                "experience": {"score": 2, "status": "cumple", "evidence": "Analizar información"},
-                "alignment": {"score": 2, "status": "cumple", "evidence": "Cargo de análisis"},
-                "education": {"score": 1, "status": "cumple", "evidence": "Educación universitaria"},
-                "profile_criteria": {"score": 1, "status": "cumple", "evidence": "Criterios del perfil considerados"},
+                "skills": {"score": 2, "status": "cumple", "evidence": "Experiencia con SQL"},
+                "experience": {"score": 1, "status": "cumple", "evidence": "Analizar información"},
+                "alignment": {"score": 1, "status": "cumple", "evidence": "Cargo de análisis"},
+                "education": {"score": 0.5, "status": "cumple", "evidence": "Educación universitaria"},
+                "profile_criteria": {"score": 0.5, "status": "cumple", "evidence": "Criterios del perfil considerados"},
             },
             "reasons": ["Coincide SQL"],
             "gaps": [],
@@ -170,7 +169,7 @@ class MatchingProcessingTests(TestCase):
         self.profile.save(update_fields=["min_score"])
         payload = self._valid_payload()
         payload["score_breakdown"]["skills"] = {
-            "score": 2, "status": "parcial", "evidence": "Experiencia relacionada",
+            "score": 1, "status": "parcial", "evidence": "Experiencia relacionada",
         }
         score_call.return_value = payload
         organization_call.return_value = {
@@ -561,14 +560,14 @@ class MatchingProcessingTests(TestCase):
 
     def _valid_payload(self):
         return {
-            "rubric_version": RUBRIC_VERSION,
+            "rubric_version": 3,
             "critical_requirements": [],
             "score_breakdown": {
-                "skills": {"score": 4, "status": "cumple", "evidence": "Experiencia con SQL"},
-                "experience": {"score": 2, "status": "cumple", "evidence": "Analizar información"},
-                "alignment": {"score": 2, "status": "cumple", "evidence": "Cargo de análisis"},
-                "education": {"score": 1, "status": "cumple", "evidence": "Educación universitaria"},
-                "profile_criteria": {"score": 1, "status": "cumple", "evidence": "Criterios del perfil considerados"},
+                "skills": {"score": 2, "status": "cumple", "evidence": "Experiencia con SQL"},
+                "experience": {"score": 1, "status": "cumple", "evidence": "Analizar información"},
+                "alignment": {"score": 1, "status": "cumple", "evidence": "Cargo de análisis"},
+                "education": {"score": 0.5, "status": "cumple", "evidence": "Educación universitaria"},
+                "profile_criteria": {"score": 0.5, "status": "cumple", "evidence": "Criterios del perfil considerados"},
             },
             "reasons": ["Coincide SQL"],
             "gaps": [],
@@ -591,7 +590,7 @@ class ConcurrentAnalysisClaimTests(TransactionTestCase):
             original_url="https://www.elempleo.com/co/ofertas-trabajo/analista-concurrente",
         )
         config = MatchingConfig.objects.create(
-            version=1, rubric_version=RUBRIC_VERSION, prompt_version=PROMPT_VERSION, analysis_prompt="Evalúa", organization_prompt="Organiza"
+            version=1, rubric_version=3, prompt_version=PROMPT_VERSION, analysis_prompt="Evalúa", organization_prompt="Organiza"
         )
         self.analysis = VacancyAnalysis.objects.create(
             profile=profile, profile_revision=revision, vacancy=vacancy, matching_config=config

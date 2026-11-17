@@ -216,7 +216,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .score-distribution-heading h2 { margin: 0; color: var(--ink); font-size: 15px; font-weight: 750; }
 .score-distribution-heading .field-help { margin: 4px 0 0; }
 .score-distribution-chart { display: grid; max-width: 620px; gap: 5px; margin: 14px 0; }
-.score-distribution-row { display: grid; grid-template-columns: 52px minmax(40px, 1fr) 28px; align-items: center; gap: 9px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.score-distribution-row { display: grid; grid-template-columns: 104px minmax(40px, 1fr) 28px; align-items: center; gap: 9px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 .score-distribution-row strong { color: var(--ink-soft); text-align: right; }
 .score-distribution-track { display: block; height: 8px; overflow: hidden; border-radius: 99px; background: #edf2ef; }
 .score-distribution-track > span { display: block; height: 100%; border-radius: inherit; background: var(--green); }
@@ -328,6 +328,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   line-height: 1.05;
   white-space: nowrap;
 }
+.score-stars-inline { vertical-align: -1px; }
+.score-stars--discrete { color: transparent; background: none; }
+.score-star--full { color: #bf851f; }
+.score-star--empty { color: #d5dfda; }
+.score-star--half { color: transparent; background: linear-gradient(90deg, #bf851f 50%, #d5dfda 50%); background-clip: text; -webkit-background-clip: text; }
 
 .score-range-value { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .score-range-value .score-stars { font-size: 18px; }

@@ -84,6 +84,9 @@ class MandatoryGuidedTourMiddleware:
 
         current_step = step_by_id(progress.current_step)
         required_path = reverse(current_step["url_name"])
-        if request.method == "GET" and request.path_info == required_path:
+        if request.path_info == required_path and (
+            request.method == "GET"
+            or (request.method == "POST" and view_name == "profiles:edit")
+        ):
             return self.get_response(request)
         return redirect(required_path)

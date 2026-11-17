@@ -43,21 +43,20 @@ jobs:
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "release_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
           echo "release_reason=$RELEASE_REASON" >> "$GITHUB_OUTPUT"
 
-      - name: Verify commit is the image currently selected for staging
+      - name: Verify tested staging image matches release code
+        id: tested
         env:
-          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+          RELEASE_SHA: ${{ steps.version.outputs.release_sha }}
         run: |
           set -euo pipefail
-          git fetch origin staging:refs/remotes/origin/staging
-          git merge-base --is-ancestor "$SOURCE_SHA" origin/staging
-          STAGING_IMAGE_SHA="$(git show origin/staging:deploy/overlays/staging/kustomization.yaml | sed -nE 's/^[[:space:]]*newTag:[[:space:]]*([^[:space:]#]+).*/\1/p')"
-          if [[ "$STAGING_IMAGE_SHA" != "$SOURCE_SHA" ]]; then
-            echo "Release commit is not the image currently pinned in staging." >&2
-            exit 1
-          fi
+          git fetch origin staging:refs/remotes/origin/staging main:refs/remotes/origin/main
+          SOURCE_SHA="$(git show origin/staging:deploy/overlays/staging/kustomization.yaml | sed -nE 's/^[[:space:]]*newTag:[[:space:]]*([^[:space:]#]+).*/\1/p')"
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]
+          python scripts/check_release_candidate.py "$SOURCE_SHA" "$RELEASE_SHA" origin/staging origin/main
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
@@ -69,7 +68,7 @@ jobs:
       - name: Resolve the existing SHA-tagged image digest
         id: image
         env:
-          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+          SOURCE_SHA: ${{ steps.tested.outputs.source_sha }}
         run: |
           set -euo pipefail
           IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}:$SOURCE_SHA"
@@ -86,7 +85,8 @@ jobs:
         env:
           TAG: ${{ github.ref_name }}
           VERSION: ${{ steps.version.outputs.version }}
-          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+          SOURCE_SHA: ${{ steps.tested.outputs.source_sha }}
+          RELEASE_SHA: ${{ steps.version.outputs.release_sha }}
           RELEASE_REASON: ${{ steps.version.outputs.release_reason }}
           IMAGE: ${{ steps.image.outputs.image }}
           DIGEST: ${{ steps.image.outputs.digest }}
@@ -100,6 +100,7 @@ jobs:
               "version": os.environ["VERSION"],
               "git_tag": os.environ["TAG"],
               "source_sha": os.environ["SOURCE_SHA"],
+              "release_commit": os.environ["RELEASE_SHA"],
               "image": os.environ["IMAGE"],
               "image_digest": os.environ["DIGEST"],
               "release_reason": os.environ["RELEASE_REASON"],
@@ -121,10 +122,10 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
           VERSION: ${{ steps.version.outputs.version }}
-          SOURCE_SHA: ${{ steps.version.outputs.source_sha }}
+          RELEASE_SHA: ${{ steps.version.outputs.release_sha }}
         run: |
           gh release create "$TAG" "$RUNNER_TEMP/release-metadata.json" \
             --verify-tag \
-            --target "$SOURCE_SHA" \
+            --target "$RELEASE_SHA" \
             --title "Ramper Job $VERSION" \
             --notes-file "$RUNNER_TEMP/release-notes.md"

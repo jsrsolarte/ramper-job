@@ -39,18 +39,16 @@
     <a class="button" href="{% url 'profiles:edit' %}">Configurar mi perfil</a>
   </section>
 {% elif profile.cv_file %}
-  {% if follow_up_status == 'pending' %}
-  <section class="vacancy-filter panel" aria-label="Filtrar vacantes por puntaje" data-tour="score-filter">
+  {% if profile %}<section class="vacancy-filter panel" aria-label="Filtrar vacantes por puntaje" data-tour="score-filter">
     <div class="score-filter-heading">
-      <div><h2>Filtrar por estrellas</h2><p class="field-help">Elige un mínimo solo para este listado. Se mostrarán recomendaciones con ese puntaje o más.</p></div>
+      <div><h2>Filtrar por estrellas</h2><p class="field-help">Elige un puntaje exacto disponible en {{ follow_up_state_name }}.</p></div>
     </div>
-    <nav class="score-filter-options" aria-label="Puntaje mínimo de compatibilidad">
+    <nav class="score-filter-options" aria-label="Puntaje exacto de compatibilidad">
       {% for option in score_filter_options %}
-      <a class="score-filter-option{% if option.selected %} is-selected{% endif %}" href="?score_min={{ option.value }}"{% if option.selected %} aria-current="true"{% endif %} aria-label="{% if option.value == 0 %}Mostrar todas las recomendaciones{% else %}Mostrar recomendaciones con {{ option.label }} o más{% endif %}" title="{% if option.value == 0 %}Mostrar todas las recomendaciones{% else %}{{ option.label }} o más{% endif %}"><span class="score-stars" style="--score-fill: {{ option.percent }}%;" aria-hidden="true">★★★★★</span><small>{{ option.label }}</small></a>
+      <a class="score-filter-option{% if option.selected %} is-selected{% endif %}" href="?state={{ follow_up_status }}&amp;score_min={{ option.value }}"{% if option.selected %} aria-current="true"{% endif %} aria-label="{% if option.value == 'all' %}Mostrar todas{% else %}Mostrar puntajes exactos de {{ option.label }} estrellas{% endif %}"><span class="score-stars" style="--score-fill: {{ option.percent }}%;" aria-hidden="true">★★★★★</span>{% if option.value == 'all' %}<small>Todas</small>{% endif %}</a>
       {% endfor %}
     </nav>
-  </section>
-  {% endif %}
+  </section>{% endif %}
   {% if analyses %}
   <section class="results-list" aria-label="Vacantes recomendadas" data-tour="dashboard-content">
     {% for analysis in analyses %}
@@ -136,8 +134,8 @@
     {% if follow_up_status != 'pending' %}
       <p>Las vacantes que marques con este estado aparecerán aquí.</p>
     {% else %}
-    {% if score_filter %}
-      <p>No hay recomendaciones con {{ score_filter_star_label }} o más en este listado.</p>
+    {% if score_filter != None %}
+      <p>No hay vacantes con puntaje exacto de <span class="score-stars score-stars-inline" role="img" aria-label="{{ score_filter_star_label }}" style="--score-fill: {{ score_filter_star_percent }}%;">★★★★★</span> en este estado.</p>
       <a class="button button-secondary" href="{% url 'dashboard:home' %}">Quitar filtro del listado</a>
     {% else %}
       <p>Cuando termine el análisis, las vacantes que alcancen el umbral de descarte configurado en tu perfil aparecerán aquí.</p>

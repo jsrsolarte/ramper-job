@@ -5,52 +5,44 @@ MINIMUM_RECOMMENDATION_SAMPLE = 5
 
 
 def build_score_summary(scores, *, minimum_score=0):
-    """Build one-point score bands and a reproducible median suggestion."""
+    """Build one-star score bands from normalized 0–5 star values."""
     values = []
     for score in scores:
         try:
             value = Decimal(str(score))
         except (InvalidOperation, TypeError, ValueError):
             continue
-        if value.is_finite() and Decimal("0") <= value <= Decimal("10"):
+        if value.is_finite() and Decimal("0") <= value <= Decimal("5"):
             values.append(value)
 
     values.sort()
     sample_size = len(values)
-    maximum_count = 0
     bands = []
-    for lower in range(10):
+    for lower in range(5):
         upper = lower + 1
-        if upper == 10:
-            count = sum(1 for value in values if lower <= value <= Decimal("10"))
-            label = f"{lower}–10"
-        else:
-            count = sum(1 for value in values if lower <= value < upper)
-            label = f"{lower}–<{upper}"
-        maximum_count = max(maximum_count, count)
-        bands.append({"label": label, "count": count})
-
+        count = sum(1 for value in values if lower <= value < upper) if upper < 5 else sum(
+            1 for value in values if lower <= value <= Decimal("5")
+        )
+        bands.append({
+            "label": f"{lower}–{upper}",
+            "score_percent": (lower + upper) * 10,
+            "count": count,
+        })
+    maximum_count = max((band["count"] for band in bands), default=0)
     suggested_score = None
     suggested_count = 0
     if sample_size >= MINIMUM_RECOMMENDATION_SAMPLE:
         middle = sample_size // 2
-        if sample_size % 2:
-            median = values[middle]
-        else:
-            median = (values[middle - 1] + values[middle]) / Decimal("2")
-        suggested_score = int(median.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
+        median = values[middle] if sample_size % 2 else (values[middle - 1] + values[middle]) / Decimal("2")
+        suggested_score = (median * 2).quantize(Decimal("1"), rounding=ROUND_HALF_UP) / Decimal("2")
         suggested_count = sum(1 for value in values if value >= suggested_score)
-
     for band in bands:
         band["width_percent"] = round(band["count"] * 100 / maximum_count) if maximum_count else 0
-
     return {
         "bands": bands,
         "sample_size": sample_size,
         "maximum_count": maximum_count,
         "suggested_score": suggested_score,
         "suggested_count": suggested_count,
-        "suggestion_below_profile": (
-            suggested_score is not None and suggested_score < minimum_score
-        ),
+        "suggestion_below_profile": suggested_score is not None and suggested_score < minimum_score,
     }

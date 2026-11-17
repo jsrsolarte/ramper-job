@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 
-from .models import RUBRIC_CRITERIA, RUBRIC_STATUSES, RUBRIC_VERSION
+from .models import RUBRIC_CRITERIA, RUBRIC_CRITERIA_V2, RUBRIC_STATUSES, RUBRIC_VERSION
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,9 @@ class ModelCallResult:
 
 def request_model_analysis(
     *, profile_text: str, search_phrases: list[str], locations: list[str], remote_ok: bool,
-    vacancy: dict, prompt: str, parameters: dict
+    vacancy: dict, prompt: str, parameters: dict, rubric_version: int = RUBRIC_VERSION
 ):
+    criteria = RUBRIC_CRITERIA_V2 if rubric_version == 2 else RUBRIC_CRITERIA
     return _request_model_json(
         prompt=prompt,
         input_data={
@@ -40,18 +41,18 @@ def request_model_analysis(
             "response_format": {
                 "score_breakdown": {
                     key: {
-                        "score": f"number with at most one decimal from 0 to {criterion['max_score']}",
+                        "score": f"number from 0 to {criterion['max_score']} in increments of {'0.05' if rubric_version == 3 else '0.1'}",
                         "status": list(RUBRIC_STATUSES),
                         "evidence": "brief string grounded in CV or vacancy",
                     }
-                    for key, criterion in RUBRIC_CRITERIA.items()
+                    for key, criterion in criteria.items()
                 },
                 "critical_requirements": [{
                     "requirement": "explicit mandatory requirement",
                     "status": ["cumple", "sin_evidencia", "contradicho"],
                     "evidence": "short evidence from CV or vacancy",
                 }],
-                "rubric_version": RUBRIC_VERSION,
+                "rubric_version": rubric_version,
                 "reasons": ["string"],
                 "gaps": ["string"],
             },

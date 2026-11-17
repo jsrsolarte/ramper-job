@@ -7,6 +7,7 @@ from django.db.models import Count, Exists, F, Min, OuterRef, Q, Subquery
 from django.utils import timezone
 
 from dashboard.models import VacancyFollowUp
+from dashboard.score_display import score_star_states
 from matching.models import AICallAttempt, VacancyAnalysis
 
 from .models import OperationalRun
@@ -76,7 +77,7 @@ def _median_from_counts(score_counts, sample_size):
         return None
     if len(found) == 1:
         found.append(found[0])
-    return ((found[0] + found[1]) / Decimal("2")).quantize(Decimal("0.01"))
+    return (found[0] + found[1]) / Decimal("2")
 
 
 def _duration_percentiles(durations):
@@ -95,32 +96,35 @@ def _score_distribution(grouped_rows):
     scores_by_rubric = defaultdict(dict)
     for row in grouped_rows:
         version = row["matching_config__rubric_version"]
-        scores_by_rubric[version][row["score"]] = row["count"]
+        score = row.get("score_stars", row.get("score"))
+        scores_by_rubric[version][score] = row["count"]
 
     distributions = []
     for version in sorted(scores_by_rubric, key=lambda value: (value is None, value or 0)):
         score_counts = scores_by_rubric[version]
         sample_size = sum(score_counts.values())
-        maximum = max(score_counts.values(), default=0)
+        median = _median_from_counts(score_counts, sample_size)
         bands = []
-        for lower in range(10):
-            upper = lower + 1
-            if upper == 10:
-                count = sum(n for score, n in score_counts.items() if Decimal(lower) <= score <= Decimal("10"))
-                label = f"{lower}–10"
-            else:
-                count = sum(n for score, n in score_counts.items() if Decimal(lower) <= score < Decimal(upper))
-                label = f"{lower}–<{upper}"
+        for half_star in range(11):
+            score = Decimal(half_star) / Decimal("2")
+            count = score_counts.get(score, 0)
+            label = f"{score:g}"
             bands.append({
-                "label": label,
+                "label": label.replace(".", ","),
+                "score_percent": half_star * 10,
+                "star_states": score_star_states(score),
                 "count": count,
-                "width_percent": round(count * 100 / maximum) if maximum else 0,
             })
+        maximum = max((band["count"] for band in bands), default=0)
+        for band in bands:
+            band["width_percent"] = round(band["count"] * 100 / maximum) if maximum else 0
         distributions.append({
             "rubric_version": version,
             "rubric_label": f"Rúbrica {version}" if version is not None and version > 0 else "Rúbrica sin versión",
             "sample_size": sample_size,
-            "median": _median_from_counts(score_counts, sample_size),
+            "median": median,
+            "median_label": str(median).replace(".", ","),
+            "median_percent": int(median * 20),
             "bands": bands,
         })
     return distributions
@@ -218,10 +222,9 @@ def build_platform_statistics(*, period="30d", now=None):
         grouped_scores = current_completed.filter(
             completed_at__gte=effective_start,
             completed_at__lte=now,
-            score__gte=0,
-            score__lte=10,
+            score_stars__isnull=False,
         ).exclude(score_breakdown={}).values(
-            "matching_config__rubric_version", "score",
+            "matching_config__rubric_version", "score_stars",
         ).annotate(count=Count("pk"))
         distributions = _score_distribution(grouped_scores)
 

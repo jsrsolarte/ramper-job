@@ -1,0 +1,83 @@
+name: Deliver staging
+
+on:
+  push:
+    branches: [staging]
+    paths-ignore:
+      - deploy/overlays/staging/kustomization.yaml
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
+    with:
+      source_sha: ${{ github.sha }}
+    permissions:
+      contents: read
+
+  publish:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.sha }}
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069
+      - name: Publish the validated commit
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/jsrsolarte/ramper-job:${{ github.sha }}
+          labels: org.opencontainers.image.revision=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  pin:
+    needs: [validate, publish]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ramper-job-staging-deploy
+      cancel-in-progress: false
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: staging
+          fetch-depth: 0
+      - name: Check candidate and update pin
+        env:
+          CANDIDATE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          git fetch origin staging
+          git checkout --detach FETCH_HEAD
+          git show "$CANDIDATE_SHA:scripts/check_staging_candidate.py" > "$RUNNER_TEMP/check_staging_candidate.py"
+          python "$RUNNER_TEMP/check_staging_candidate.py" "$CANDIDATE_SHA" HEAD
+          python - <<'PYCODE'
+          import os, re
+          from pathlib import Path
+          path = Path('deploy/overlays/staging/kustomization.yaml')
+          updated, count = re.subn(r'(?m)^(\s*newTag:\s*)[^\s#]+',
+              lambda m: m.group(1) + os.environ['CANDIDATE_SHA'], path.read_text())
+          if count != 1:
+              raise SystemExit('Expected exactly one staging image tag')
+          path.write_text(updated)
+          PYCODE
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add deploy/overlays/staging/kustomization.yaml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "deploy(staging): $CANDIDATE_SHA"
+          git push origin HEAD:staging

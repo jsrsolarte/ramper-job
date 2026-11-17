@@ -358,3 +358,86 @@ class GuidedTourCSRFSecurityTests(TestCase):
         )
         self.assertEqual(accepted.status_code, 200)
         self.assertTrue(GuidedTourProgress.objects.filter(owner=applicant).exists())
+
+
+class MandatoryProfileSaveTests(TestCase):
+    def setUp(self):
+        self.applicant = get_user_model().objects.create_user("new-profile-user", password="pass")
+        self.progress = GuidedTourProgress.objects.create(
+            owner=self.applicant,
+            version=3,
+            status=GuidedTourProgress.Status.IN_PROGRESS,
+            current_step="cv",
+        )
+        self.client.force_login(self.applicant)
+
+    def test_profile_post_is_limited_to_profile_steps_and_other_methods_and_routes_remain_blocked(self):
+        profile_url = reverse("profiles:edit")
+        for step in (step for step in TOUR_STEPS if step["url_name"] == "profiles:edit"):
+            with self.subTest(step=step["id"]):
+                self.progress.current_step = step["id"]
+                self.progress.save(update_fields=("current_step",))
+                response = self.client.post(profile_url, {"min_score": "99"})
+                self.assertEqual(response.status_code, 200)
+                self.assertIn("min_score", response.context["form"].errors)
+                self.assertRedirects(self.client.put(profile_url), profile_url, fetch_redirect_response=False)
+                self.assertRedirects(self.client.get(reverse("dashboard:analysis")), profile_url, fetch_redirect_response=False)
+                self.assertRedirects(self.client.post(reverse("dashboard:analysis")), profile_url, fetch_redirect_response=False)
+
+        self.progress.current_step = "open_profile"
+        self.progress.save(update_fields=("current_step",))
+        self.assertRedirects(self.client.post(profile_url), reverse("dashboard:home"), fetch_redirect_response=False)
+
+    def test_valid_save_persists_cv_preferences_and_normal_callbacks_without_advancing(self):
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+        from django.core.files.uploadedfile import SimpleUploadedFile
+        from django.test import override_settings
+        from profiles.models import ProfileRevision
+
+        with TemporaryDirectory() as media_root, override_settings(MEDIA_ROOT=media_root), \
+             patch("matching.tasks.schedule_profile_analyses.delay") as analyses, \
+             patch("jobs.tasks.refresh_profile_sources.delay") as refresh:
+            upload = SimpleUploadedFile("sintetico.pdf", b"cv sintetico", content_type="application/pdf")
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(reverse("profiles:edit"), {
+                    "search_phrases": "Analista de datos", "locations": "Bogotá",
+                    "remote_ok": "on", "cv_file": upload,
+                })
+            self.assertRedirects(response, reverse("profiles:edit"))
+            profile = Profile.objects.get(owner=self.applicant)
+            self.assertEqual(profile.search_phrases, ["Analista de datos"])
+            self.assertEqual(profile.locations, ["Bogotá"])
+            self.assertTrue(profile.remote_ok)
+            self.assertEqual(profile.cv_file.read(), b"cv sintetico")
+            self.assertTrue(ProfileRevision.objects.filter(profile=profile, version=profile.revision_number).exists())
+            analyses.assert_called_once_with(profile.pk)
+            refresh.assert_called_once_with(profile.pk)
+            self.progress.refresh_from_db()
+            self.assertEqual(self.progress.current_step, "cv")
+            self.assertFalse(self.progress.mandatory_completed)
+            self.assertEqual(self.progress.status, GuidedTourProgress.Status.IN_PROGRESS)
+            self.assertRedirects(self.client.get(reverse("dashboard:analysis")), reverse("profiles:edit"), fetch_redirect_response=False)
+            self.progress.current_step = TOUR_STEPS[-1]["id"]
+            self.progress.save(update_fields=("current_step",))
+            response = self.client.post(reverse("profiles:tour_action"), {"action": "next"})
+            self.assertEqual(response.json()["status"], GuidedTourProgress.Status.COMPLETED)
+            self.assertEqual(self.client.get(reverse("dashboard:analysis")).status_code, 200)
+
+    def test_invalid_save_shows_errors_and_keeps_existing_data_and_step(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        profile = Profile.objects.create(owner=self.applicant, search_phrases=["Original"])
+        response = self.client.post(reverse("profiles:edit"), {
+            "search_phrases": "Cambio inválido", "locations": "Cali", "min_score": "99",
+            "cv_file": SimpleUploadedFile("sintetico.pdf", b"cv sintetico"),
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("min_score", response.context["form"].errors)
+        self.assertContains(response, "Asegúrese de que este valor sea menor o igual a 10")
+        profile.refresh_from_db()
+        self.assertEqual(profile.search_phrases, ["Original"])
+        self.assertEqual(profile.locations, [])
+        self.progress.refresh_from_db()
+        self.assertEqual(self.progress.current_step, "cv")
+        self.assertFalse(self.progress.mandatory_completed)

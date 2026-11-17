@@ -5,8 +5,8 @@ from django.utils import timezone
 from jobs.models import Vacancy
 from profiles.models import Profile, ProfileRevision
 
-RUBRIC_VERSION = 2
-PROMPT_VERSION = 5
+RUBRIC_VERSION = 3
+PROMPT_VERSION = 6
 CRITICAL_REQUIREMENT_DEDUCTION = "1.0"
 CRITICAL_REQUIREMENT_DEDUCTION_V2 = "2.0"
 RUBRIC_CRITERIA_V2 = {

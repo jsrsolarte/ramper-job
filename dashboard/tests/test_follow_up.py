@@ -267,9 +267,10 @@ class VacancyFollowUpActionTests(TestCase):
         )
         self.assertEqual(len(response.context["analyses"]), 1)
         nav = response.content.decode().split('<nav class="dashboard-tabs"', 1)[1].split("</nav>", 1)[0]
-        ordered_tabs = ["Por analizar", "Recomendaciones", "Aplicadas", "En proceso", "Entrevista", "Finalizadas", "Descartadas"]
+        ordered_tabs = ["Por analizar", "Recomendaciones", "Aplicadas", "En proceso", "Entrevista", "Finalizadas"]
         positions = [nav.index(tab) for tab in ordered_tabs]
         self.assertEqual(positions, sorted(positions))
+        self.assertNotContains(response, "Descartadas")
         self.assertContains(response, "<span>1</span>")
         self.assertContains(response, "<span>0</span>")
 
@@ -280,12 +281,15 @@ class VacancyFollowUpActionTests(TestCase):
         response = self.client.get(reverse("dashboard:home"), {"state": "discarded"})
         self.assertEqual(response.context["follow_up_counts"]["applied"], 0)
         self.assertEqual(response.context["follow_up_counts"]["discarded"], 1)
+        self.assertContains(response, "Descartadas")
         self.assertContains(response, "Restaurar vacante")
 
         restored = self.client.post(
             reverse("dashboard:update_follow_up", args=[self.vacancy.pk]), {"status": "restore"}
         )
         self.assertRedirects(restored, "/?state=applied", fetch_redirect_response=False)
+        restored_page = self.client.get(reverse("dashboard:home"), {"state": "applied"})
+        self.assertNotContains(restored_page, "Descartadas")
 
     def test_recommendations_are_sorted_by_full_decimal_score(self):
         self.profile.min_score = 8

@@ -329,6 +329,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   white-space: nowrap;
 }
 .score-stars-inline { vertical-align: -1px; }
+.score-stars--discrete { color: transparent; background: none; }
+.score-star--full { color: #bf851f; }
+.score-star--empty { color: #d5dfda; }
+.score-star--half { color: transparent; background: linear-gradient(90deg, #bf851f 50%, #d5dfda 50%); background-clip: text; -webkit-background-clip: text; }
 
 .score-range-value { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
 .score-range-value .score-stars { font-size: 18px; }

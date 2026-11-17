@@ -7,6 +7,7 @@ from django.db.models import Count, Exists, F, Min, OuterRef, Q, Subquery
 from django.utils import timezone
 
 from dashboard.models import VacancyFollowUp
+from dashboard.score_display import score_star_states
 from matching.models import AICallAttempt, VacancyAnalysis
 
 from .models import OperationalRun
@@ -111,6 +112,7 @@ def _score_distribution(grouped_rows):
             bands.append({
                 "label": label.replace(".", ","),
                 "score_percent": half_star * 10,
+                "star_states": score_star_states(score),
                 "count": count,
             })
         maximum = max((band["count"] for band in bands), default=0)

@@ -15,7 +15,8 @@ def candidate_is_current(candidate, head):
     if subprocess.run(["git", "merge-base", "--is-ancestor", candidate, head],
                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode:
         return False
-    current = head
+    candidate = git("rev-parse", "--verify", candidate + "^{commit}")
+    current = git("rev-parse", "--verify", head + "^{commit}")
     while current != candidate:
         parents = git("rev-list", "--parents", "-n", "1", current).split()
         if len(parents) != 2:

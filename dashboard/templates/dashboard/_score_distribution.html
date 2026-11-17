@@ -10,8 +10,8 @@
   {% if score_distribution_sample_size %}
     <div class="score-distribution-chart" aria-label="Distribución de puntajes por bandas">
       {% for band in score_distribution %}
-        <div class="score-distribution-row" role="img" aria-label="{{ band.label }} puntos: {{ band.count }} vacantes">
-          <span aria-hidden="true">{{ band.label }}</span>
+        <div class="score-distribution-row" role="img" aria-label="Rango de {{ band.label }} estrellas: {{ band.count }} vacantes">
+          <span class="score-stars score-stars-inline" aria-hidden="true" style="--score-fill: {{ band.score_percent }}%;">★★★★★</span>
           <span class="score-distribution-track" aria-hidden="true"><span style="width: {{ band.width_percent }}%;"></span></span>
           <strong aria-hidden="true">{{ band.count }}</strong>
         </div>
@@ -19,7 +19,7 @@
     </div>
     {% if score_recommended_min != None %}
       <div class="score-recommendation">
-        <p>La mediana de los {{ score_distribution_sample_size }} puntajes es {{ score_recommended_min }} estrellas. Con ese puntaje exacto hay {{ score_recommended_count }} vacante{{ score_recommended_count|pluralize:"s" }}.</p>
+        <p>La mediana de los {{ score_distribution_sample_size }} puntajes es <span class="score-stars score-stars-inline" role="img" aria-label="{{ score_recommended_min }} estrellas" style="--score-fill: {{ score_recommended_percent }}%;">★★★★★</span>. Con ese puntaje exacto hay {{ score_recommended_count }} vacante{{ score_recommended_count|pluralize:"s" }}.</p>
         <p class="field-help">Puedes usarlo como filtro temporal del estado actual; no cambia el umbral de descarte ni los estados.</p>
         <a class="button button-secondary" href="{% url 'dashboard:home' %}?score_min={% localize off %}{{ score_recommended_min }}{% endlocalize %}">Aplicar sugerencia al filtro</a>
       </div>

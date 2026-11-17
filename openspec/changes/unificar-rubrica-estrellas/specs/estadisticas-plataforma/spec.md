@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Consultar la distribución global de puntuaciones
-El panel SHALL mostrar la distribución agregada de los puntajes vigentes de compatibilidad, usando la escala de cero a cinco estrellas en incrementos de 0,5 y señalando el tamaño y periodo de la muestra.
+El panel SHALL mostrar la distribución agregada de los puntajes vigentes de compatibilidad, usando estrellas visuales para puntuaciones y medianas de cero a cinco en incrementos de 0,5, con etiquetas accesibles para su valor exacto, y señalando el tamaño y periodo de la muestra.
 
 #### Scenario: Hay puntajes vigentes en el periodo
 - **WHEN** la persona administradora selecciona un periodo con análisis vigentes

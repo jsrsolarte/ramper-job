@@ -23,7 +23,11 @@ def build_score_summary(scores, *, minimum_score=0):
         count = sum(1 for value in values if lower <= value < upper) if upper < 5 else sum(
             1 for value in values if lower <= value <= Decimal("5")
         )
-        bands.append({"label": f"{lower}–{upper}", "count": count})
+        bands.append({
+            "label": f"{lower}–{upper}",
+            "score_percent": (lower + upper) * 10,
+            "count": count,
+        })
     maximum_count = max((band["count"] for band in bands), default=0)
     suggested_score = None
     suggested_count = 0

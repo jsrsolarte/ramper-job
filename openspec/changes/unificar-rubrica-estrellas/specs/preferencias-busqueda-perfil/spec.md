@@ -28,7 +28,7 @@ El sistema SHALL permitir que cada aspirante seleccione y guarde un puntaje ente
 - **THEN** el sistema conserva la vacante como recomendación pendiente de decisión
 
 ### Requirement: Seleccionar el puntaje mínimo con estrellas
-Mi perfil SHALL permitir seleccionar el umbral de descarte automático con opciones representadas con estrellas, con las seis opciones enteras 0, 1, 2, 3, 4 y 5 estrellas, y comunicar que los puntajes inferiores se descartan automáticamente para vacantes nuevas.
+Mi perfil SHALL permitir seleccionar el umbral de descarte automático con opciones representadas únicamente por estrellas visuales, con las seis opciones enteras 0, 1, 2, 3, 4 y 5, incluida la opción visual de cero estrellas, y comunicar mediante accesibilidad que los puntajes inferiores se descartan automáticamente para vacantes nuevas.
 
 #### Scenario: Cambiar el mínimo guardado
 - **WHEN** la persona selecciona una opción de estrellas y guarda el perfil

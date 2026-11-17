@@ -45,7 +45,7 @@
     </div>
     <nav class="score-filter-options" aria-label="Puntaje exacto de compatibilidad">
       {% for option in score_filter_options %}
-      <a class="score-filter-option{% if option.selected %} is-selected{% endif %}" href="?state={{ follow_up_status }}&amp;score_min={{ option.value }}"{% if option.selected %} aria-current="true"{% endif %} aria-label="{% if option.value == 'all' %}Mostrar todas{% else %}Mostrar puntajes exactos de {{ option.label }} estrellas{% endif %}" title="{% if option.value == 'all' %}Todas{% else %}{{ option.label }} estrellas{% endif %}"><span class="score-stars" style="--score-fill: {{ option.percent }}%;" aria-hidden="true">★★★★★</span><small>{{ option.label }}</small></a>
+      <a class="score-filter-option{% if option.selected %} is-selected{% endif %}" href="?state={{ follow_up_status }}&amp;score_min={{ option.value }}"{% if option.selected %} aria-current="true"{% endif %} aria-label="{% if option.value == 'all' %}Mostrar todas{% else %}Mostrar puntajes exactos de {{ option.label }} estrellas{% endif %}"><span class="score-stars" style="--score-fill: {{ option.percent }}%;" aria-hidden="true">★★★★★</span>{% if option.value == 'all' %}<small>Todas</small>{% endif %}</a>
       {% endfor %}
     </nav>
   </section>{% endif %}
@@ -135,7 +135,7 @@
       <p>Las vacantes que marques con este estado aparecerán aquí.</p>
     {% else %}
     {% if score_filter != None %}
-      <p>No hay vacantes con puntaje exacto de {{ score_filter_star_label }} estrellas en este estado.</p>
+      <p>No hay vacantes con puntaje exacto de <span class="score-stars score-stars-inline" role="img" aria-label="{{ score_filter_star_label }}" style="--score-fill: {{ score_filter_star_percent }}%;">★★★★★</span> en este estado.</p>
       <a class="button button-secondary" href="{% url 'dashboard:home' %}">Quitar filtro del listado</a>
     {% else %}
       <p>Cuando termine el análisis, las vacantes que alcancen el umbral de descarte configurado en tu perfil aparecerán aquí.</p>

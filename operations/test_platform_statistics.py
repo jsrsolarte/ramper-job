@@ -106,7 +106,7 @@ class PlatformStatisticsTests(TestCase):
         response = self.client.get(reverse("operations:platform_statistics"), {"period": "7d"})
         self.assertContains(response, "0 estrellas")
         self.assertContains(response, "4,5 estrellas")
-        self.assertContains(response, "3,25</strong> estrellas", html=False)
+        self.assertContains(response, 'aria-label="3,25 estrellas"')
         self.assertContains(response, "Rúbrica 1")
         self.assertContains(response, "Rúbrica 2")
         self.assertContains(response, "2</strong> resultados", html=False)

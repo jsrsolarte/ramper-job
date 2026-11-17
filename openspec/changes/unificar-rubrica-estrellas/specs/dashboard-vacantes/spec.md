@@ -24,7 +24,7 @@ El dashboard SHALL permitir filtrar temporalmente cada estado de vacantes analiz
 - **THEN** el sistema conserva el umbral de descarte del perfil y los estados de seguimiento existentes
 
 ### Requirement: Ajustar el filtro temporal seleccionando estrellas
-El dashboard SHALL permitir ajustar el filtro temporal del listado mediante opciones seleccionables representadas con estrellas, solo para puntuaciones exactas disponibles en el estado actual, desde cero hasta cinco estrellas en medios puntos. Cada opción SHALL indicar de forma accesible que se muestran puntajes iguales al valor seleccionado y SHALL aplicarse al seleccionarla, sin botón de confirmación.
+El dashboard SHALL representar visualmente con estrellas las puntuaciones del listado, filtros y distribución, incluso cero y medios puntos, en lugar de mostrar su valor como texto visible. SHALL conservar etiquetas accesibles con el valor exacto. El dashboard SHALL permitir ajustar el filtro temporal del listado mediante opciones seleccionables representadas con estrellas, solo para puntuaciones exactas disponibles en el estado actual, desde cero hasta cinco estrellas en medios puntos. Cada opción SHALL indicar de forma accesible que se muestran puntajes iguales al valor seleccionado y SHALL aplicarse al seleccionarla, sin botón de confirmación.
 
 #### Scenario: Aplicar el filtro eligiendo estrellas
 - **WHEN** la persona selecciona una opción de estrellas

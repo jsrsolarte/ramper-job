@@ -317,6 +317,7 @@ def home(request):
             "score_distribution_sample_size": score_summary["sample_size"],
             "score_distribution_maximum_count": score_summary["maximum_count"],
             "score_recommended_min": score_summary["suggested_score"],
+            "score_recommended_percent": score_star_percent(Decimal(score_summary["suggested_score"]) * 2) if score_summary["suggested_score"] is not None else 0,
             "score_recommended_count": score_summary["suggested_count"],
             "score_recommendation_below_profile": score_summary["suggestion_below_profile"],
             "unavailable_sources": unavailable_sources,

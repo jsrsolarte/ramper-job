@@ -102,6 +102,7 @@ def _score_distribution(grouped_rows):
     for version in sorted(scores_by_rubric, key=lambda value: (value is None, value or 0)):
         score_counts = scores_by_rubric[version]
         sample_size = sum(score_counts.values())
+        median = _median_from_counts(score_counts, sample_size)
         bands = []
         for half_star in range(11):
             score = Decimal(half_star) / Decimal("2")
@@ -109,6 +110,7 @@ def _score_distribution(grouped_rows):
             label = f"{score:g}"
             bands.append({
                 "label": label.replace(".", ","),
+                "score_percent": half_star * 10,
                 "count": count,
             })
         maximum = max((band["count"] for band in bands), default=0)
@@ -118,7 +120,9 @@ def _score_distribution(grouped_rows):
             "rubric_version": version,
             "rubric_label": f"Rúbrica {version}" if version is not None and version > 0 else "Rúbrica sin versión",
             "sample_size": sample_size,
-            "median": _median_from_counts(score_counts, sample_size),
+            "median": median,
+            "median_label": str(median).replace(".", ","),
+            "median_percent": int(median * 20),
             "bands": bands,
         })
     return distributions

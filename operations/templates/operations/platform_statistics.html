@@ -36,9 +36,9 @@
   {% if has_score_data %}
     {% for distribution in score_distributions %}
       <section class="global-rubric-distribution" aria-label="{{ distribution.rubric_label }}">
-        <div class="global-rubric-heading"><h3>{{ distribution.rubric_label }}</h3><p><strong>{{ distribution.sample_size }}</strong> resultados · mediana <strong>{{ distribution.median|floatformat:-2 }}</strong> estrellas</p></div>
+        <div class="global-rubric-heading"><h3>{{ distribution.rubric_label }}</h3><p><strong>{{ distribution.sample_size }}</strong> resultados · mediana <span class="score-stars score-stars-inline" role="img" aria-label="{{ distribution.median_label }} estrellas" style="--score-fill: {{ distribution.median_percent }}%;">★★★★★</span></p></div>
         <div class="score-distribution-chart" role="list">
-          {% for band in distribution.bands %}<div class="score-distribution-row" role="listitem"><span>{{ band.label }} estrellas</span><span class="score-distribution-track" aria-hidden="true"><span style="width: {{ band.width_percent }}%"></span></span><strong>{{ band.count }}</strong></div>{% endfor %}
+          {% for band in distribution.bands %}<div class="score-distribution-row" role="img" aria-label="{{ band.label }} estrellas: {{ band.count }} resultados"><span class="score-stars score-stars-inline" aria-hidden="true" style="--score-fill: {{ band.score_percent }}%;">★★★★★</span><span class="score-distribution-track" aria-hidden="true"><span style="width: {{ band.width_percent }}%"></span></span><strong aria-hidden="true">{{ band.count }}</strong></div>{% endfor %}
         </div>
       </section>
     {% endfor %}

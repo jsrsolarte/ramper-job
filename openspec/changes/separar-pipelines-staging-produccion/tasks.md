@@ -2,8 +2,8 @@
 
 ## 1. Preparar la separación
 
-- [ ] 1.1 Comparar en una copia Git separada las ramas y workflows remotos vigentes con el árbol local y registrar el plan de transición, evitando reemplazar archivos o cambios ajenos; identificar el workflow antiguo, sus ejecuciones y el pin actual antes de cualquier mutación.
-- [ ] 1.2 Separar la validación de PR en un archivo independiente del workflow antiguo, reutilizando pasos comunes cuando sea seguro; verificar que los PR ejecutan pruebas sin publicar ni alterar pines y documentar eventos y permisos.
+- [x] 1.1 Comparar en una copia Git separada las ramas y workflows remotos vigentes con el árbol local y registrar el plan de transición, evitando reemplazar archivos o cambios ajenos; identificar el workflow antiguo, sus ejecuciones y el pin actual antes de cualquier mutación.
+- [x] 1.2 Separar la validación de PR en un archivo independiente del workflow antiguo, reutilizando pasos comunes cuando sea seguro; verificar que los PR ejecutan pruebas sin publicar ni alterar pines y documentar eventos y permisos.
 
 ## 2. Entregar desde staging
 

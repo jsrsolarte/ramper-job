@@ -76,7 +76,7 @@ def _median_from_counts(score_counts, sample_size):
         return None
     if len(found) == 1:
         found.append(found[0])
-    return ((found[0] + found[1]) / Decimal("2")).quantize(Decimal("0.01"))
+    return (found[0] + found[1]) / Decimal("2")
 
 
 def _duration_percentiles(durations):
@@ -101,26 +101,27 @@ def _score_distribution(grouped_rows):
     for version in sorted(scores_by_rubric, key=lambda value: (value is None, value or 0)):
         score_counts = scores_by_rubric[version]
         sample_size = sum(score_counts.values())
-        maximum = max(score_counts.values(), default=0)
         bands = []
         for lower in range(10):
             upper = lower + 1
             if upper == 10:
                 count = sum(n for score, n in score_counts.items() if Decimal(lower) <= score <= Decimal("10"))
-                label = f"{lower}–10"
+                label = f"{lower / 2:g}–5"
             else:
                 count = sum(n for score, n in score_counts.items() if Decimal(lower) <= score < Decimal(upper))
-                label = f"{lower}–<{upper}"
+                label = f"{lower / 2:g}–<{upper / 2:g}"
             bands.append({
-                "label": label,
+                "label": label.replace(".", ","),
                 "count": count,
-                "width_percent": round(count * 100 / maximum) if maximum else 0,
             })
+        maximum = max((band["count"] for band in bands), default=0)
+        for band in bands:
+            band["width_percent"] = round(band["count"] * 100 / maximum) if maximum else 0
         distributions.append({
             "rubric_version": version,
             "rubric_label": f"Rúbrica {version}" if version is not None and version > 0 else "Rúbrica sin versión",
             "sample_size": sample_size,
-            "median": _median_from_counts(score_counts, sample_size),
+            "median": _median_from_counts(score_counts, sample_size) / Decimal("2"),
             "bands": bands,
         })
     return distributions

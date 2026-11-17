@@ -1,0 +1,16 @@
+name: Validate production branch
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
+    with:
+      source_sha: ${{ github.sha }}
+    permissions:
+      contents: read

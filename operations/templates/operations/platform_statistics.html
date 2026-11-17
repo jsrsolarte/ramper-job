@@ -30,15 +30,15 @@
 </div>
 
 <section class="admin-panel global-score-panel" aria-labelledby="global-score-title">
-  <div class="global-statistics-heading"><div><h2 id="global-score-title">Distribución de puntuaciones</h2><p class="muted">Solo el análisis vigente por perfil-vacante; cada rúbrica se presenta por separado.</p></div></div>
+  <div class="global-statistics-heading"><div><h2 id="global-score-title">Distribución de puntuaciones</h2><p class="muted">Rangos en estrellas, calculados a partir de los puntajes exactos. Solo el análisis vigente por perfil-vacante; cada rúbrica se presenta por separado.</p></div></div>
   <p class="muted admin-period-note"><strong>Periodo:</strong> {{ requested_start|date:"Y-m-d H:i" }} – {{ cutoff_at|date:"Y-m-d H:i" }} · <strong>Cobertura registrada desde:</strong> {{ coverage_start|date:"Y-m-d H:i"|default:"Sin cobertura registrada" }}</p>
   {% if coverage_start and not coverage_complete %}<p class="notice notice-warning" role="status">Este periodo empieza antes de la cobertura confiable. Solo se cuentan resultados desde {{ coverage_start|date:"Y-m-d H:i" }}; el tramo anterior no se presenta como cero.</p>{% endif %}
   {% if has_score_data %}
     {% for distribution in score_distributions %}
       <section class="global-rubric-distribution" aria-label="{{ distribution.rubric_label }}">
-        <div class="global-rubric-heading"><h3>{{ distribution.rubric_label }}</h3><p><strong>{{ distribution.sample_size }}</strong> resultados · mediana <strong>{{ distribution.median|floatformat:2 }}</strong></p></div>
+        <div class="global-rubric-heading"><h3>{{ distribution.rubric_label }}</h3><p><strong>{{ distribution.sample_size }}</strong> resultados · mediana <strong>{{ distribution.median|floatformat:-2 }}</strong> estrellas</p></div>
         <div class="score-distribution-chart" role="list">
-          {% for band in distribution.bands %}<div class="score-distribution-row" role="listitem"><span>{{ band.label }}</span><span class="score-distribution-track" aria-hidden="true"><span style="width: {{ band.width_percent }}%"></span></span><strong>{{ band.count }}</strong></div>{% endfor %}
+          {% for band in distribution.bands %}<div class="score-distribution-row" role="listitem"><span>{{ band.label }} estrellas</span><span class="score-distribution-track" aria-hidden="true"><span style="width: {{ band.width_percent }}%"></span></span><strong>{{ band.count }}</strong></div>{% endfor %}
         </div>
       </section>
     {% endfor %}

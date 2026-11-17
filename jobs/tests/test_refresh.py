@@ -64,7 +64,7 @@ class RefreshTasksTests(TestCase):
     @patch("jobs.tasks.processing_is_paused", return_value=True)
     def test_periodic_refresh_keeps_last_start_unchanged_when_paused(self, is_paused, run_refresh):
         last_started_at = timezone.now() - timedelta(hours=1)
-        PeriodicRefreshState.objects.create(last_started_at=last_started_at)
+        PeriodicRefreshState.objects.create(pk=1, last_started_at=last_started_at)
         refresh_periodic_sources.run()
         self.assertEqual(PeriodicRefreshState.objects.get(pk=1).last_started_at, last_started_at)
         run_refresh.assert_called_once_with()

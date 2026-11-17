@@ -9,7 +9,7 @@ from django.utils import timezone
 from dashboard.models import VacancyFollowUp
 from jobs.models import Vacancy
 from matching.models import AICallAttempt, MatchingConfig, VacancyAnalysis
-from operations.platform_statistics import build_platform_statistics
+from operations.platform_statistics import _score_distribution, build_platform_statistics
 from profiles.models import Profile, ProfileRevision
 
 
@@ -74,6 +74,48 @@ class PlatformStatisticsTests(TestCase):
         )
         return analysis
 
+    def test_star_bands_keep_original_boundaries_and_counts(self):
+        scores = [Decimal("0"), Decimal("0.99"), *(Decimal(i) for i in range(1, 10)), Decimal("10")]
+        rows = [{"matching_config__rubric_version": 1, "score": score, "count": 1} for score in scores]
+        distribution = _score_distribution(rows)[0]
+        self.assertEqual([band["label"] for band in distribution["bands"]], [
+            "0–<0,5", "0,5–<1", "1–<1,5", "1,5–<2", "2–<2,5",
+            "2,5–<3", "3–<3,5", "3,5–<4", "4–<4,5", "4,5–5",
+        ])
+        self.assertEqual([band["count"] for band in distribution["bands"]], [2, 1, 1, 1, 1, 1, 1, 1, 1, 2])
+        self.assertEqual(sum(band["count"] for band in distribution["bands"]), len(scores))
+        self.assertEqual(distribution["sample_size"], len(scores))
+        self.assertEqual([band["width_percent"] for band in distribution["bands"]],
+                         [100, 50, 50, 50, 50, 50, 50, 50, 50, 100])
+
+    def test_median_conversion_preserves_precision_before_display(self):
+        for scores, expected in ((["4", "8"], "3"), (["6.24", "6.26"], "3.125"),
+                                 (["6.24", "6.25"], "3.1225"), (["7"], "3.5")):
+            with self.subTest(scores=scores):
+                rows = [{"matching_config__rubric_version": 1, "score": Decimal(score), "count": 1} for score in scores]
+                self.assertEqual(_score_distribution(rows)[0]["median"], Decimal(expected))
+
+    def test_admin_chart_renders_star_units_sample_period_rubrics_and_privacy(self):
+        now = timezone.now()
+        first = self._analysis(self.profile_a, self._vacancy("chart-a"), self.config_v1, "2.5", created_at=now)
+        self._analysis(self.profile_b, self._vacancy("chart-b"), self.config_v1, "10", created_at=now)
+        self._analysis(self.profile_a, self._vacancy("chart-c"), self.config_v2, "8.5", created_at=now)
+        AICallAttempt.objects.create(analysis=first, stage=AICallAttempt.Stage.SCORING,
+                                     duration_ms=1, outcome=AICallAttempt.Outcome.SUCCEEDED)
+        AICallAttempt.objects.filter(analysis=first).update(created_at=now - timedelta(hours=1))
+        self.client.force_login(self.admin)
+        response = self.client.get(reverse("operations:platform_statistics"), {"period": "7d"})
+        self.assertContains(response, "0–&lt;0,5 estrellas", html=False)
+        self.assertContains(response, "4,5–5 estrellas")
+        self.assertContains(response, "3,13</strong> estrellas", html=False)
+        self.assertContains(response, "Rúbrica 1")
+        self.assertContains(response, "Rúbrica 2")
+        self.assertContains(response, "2</strong> resultados", html=False)
+        self.assertContains(response, 'value="7d" selected', html=False)
+        self.assertNotContains(response, "candidate-a")
+        self.assertNotContains(response, "private search phrase")
+        self.assertNotContains(response, "Private vacancy title")
+
     def test_tracking_counts_are_per_profile_vacancy_and_include_implicit_pending(self):
         shared = self._vacancy("shared")
         another = self._vacancy("another")
@@ -136,11 +178,11 @@ class PlatformStatisticsTests(TestCase):
 
         self.assertFalse(stats["coverage_complete"])
         self.assertEqual(distributions[1]["sample_size"], 2)
-        self.assertEqual(distributions[1]["median"], Decimal("6.25"))
+        self.assertEqual(distributions[1]["median"], Decimal("3.125"))
         self.assertEqual(distributions[1]["bands"][2]["count"], 1)
         self.assertEqual(distributions[1]["bands"][9]["count"], 1)
         self.assertEqual(distributions[2]["sample_size"], 1)
-        self.assertEqual(distributions[2]["median"], Decimal("8.50"))
+        self.assertEqual(distributions[2]["median"], Decimal("4.25"))
         self.assertFalse(VacancyAnalysis.objects.filter(pk=replaced.pk, status=VacancyAnalysis.Status.COMPLETED).exists())
         self.assertTrue(VacancyAnalysis.objects.filter(pk=old_outside_coverage.pk).exists())
 
@@ -200,6 +242,7 @@ class PlatformStatisticsTests(TestCase):
         response = self.client.get(reverse("operations:platform_statistics"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Todavía no hay puntajes válidos con cobertura para este periodo.")
         self.assertContains(response, "Seguimiento por perfil")
         self.assertContains(response, "Estadísticas globales")
         self.assertContains(response, "Fallos de formato del análisis")

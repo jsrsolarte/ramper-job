@@ -38,6 +38,7 @@ class StagingCandidateTests(unittest.TestCase):
 
     def test_current_candidate_and_verified_pin_only_commit_are_accepted(self):
         self.assertTrue(self.check(self.base, self.base))
+        self.assertTrue(self.check(self.base, "HEAD"))
         self.run_git('config', 'user.email', module.BOT_EMAIL)
         self.pin.write_text('updated')
         self.commit('deploy(staging): candidate')

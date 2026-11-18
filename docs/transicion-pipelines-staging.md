@@ -12,9 +12,18 @@ Este documento describe el flujo propuesto para el cambio `separar-pipelines-sta
 
 ## Producción y reversión
 
-Los PR utilizan `pr-validation.yml` con permisos de lectura. `production.yml` valida pushes a `main` sin escribir pines ni recursos. `release.yml` verifica que el commit de la etiqueta en `main` contiene el código del candidato fijado en staging y resuelve el digest de la imagen existente; cualquier diferencia fuera de configuración de despliegue, documentación OpenSpec y workflows impide preparar la liberación. Etiquetar o validar no autoriza una promoción productiva.
+Los PR utilizan `pr-validation.yml` con permisos de lectura. Al integrar mediante PR un
+candidato probado desde `staging` a `main`, `production.yml` valida el commit y consulta
+el PR fusionado para rechazar pushes directos y PRs de otro origen. Verifica que el
+código de aplicación coincide con el SHA fijado en el overlay de staging y que la imagen
+inmutable está disponible en GHCR. Si todo pasa, actualiza automáticamente el overlay de
+producción al mismo SHA de imagen. Las fallas o los candidatos obsoletos conservan el pin
+actual. El commit del pin no vuelve a iniciar el pipeline.
 
-Para revertir la transición, deshabilitar `staging.yml` y esperar a que terminen sus ejecuciones. Confirmar que ya no puede escribir el pin antes de volver a habilitar `ci.yml`; restaurar el pin inmutable anterior mediante Git si corresponde y comprobar la validación de PR. No modificar producción sin autorización específica.
+El merge del PR de staging es la autorización explícita para esa versión. La etiqueta de
+versión que crea `release.yml` registra metadatos del artefacto y no cambia el pin por sí
+sola. Para revertir un despliegue, restaura mediante Git el SHA anterior en el overlay de
+producción y deja que Flux reconcilie; la reversión requiere una decisión explícita.
 
 ## Comprobación previa del 16 de noviembre de 2026
 

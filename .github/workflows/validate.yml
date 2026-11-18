@@ -68,7 +68,7 @@ jobs:
         run: |
           uv run python manage.py check
           uv run python manage.py test
-          uv run python -m unittest scripts.test_check_staging_candidate
+          uv run python -m unittest scripts.test_check_staging_candidate scripts.test_check_production_promotion
 
       - name: Validate Kustomize overlays
         run: |

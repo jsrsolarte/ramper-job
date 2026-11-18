@@ -8,8 +8,8 @@ from profiles.models import Profile, ProfileRevision
 RUBRIC_VERSION = 3
 PROMPT_VERSION = 6
 CRITICAL_REQUIREMENT_DEDUCTION = "1.0"
-CRITICAL_REQUIREMENT_DEDUCTION_V2 = "2.0"
-RUBRIC_CRITERIA_V2 = {
+# Read-only presentation metadata for historical analyses.
+HISTORICAL_RUBRIC_CRITERIA_V2 = {
     "skills": {
         "label": "Competencias y habilidades requeridas",
         "max_score": 4,
@@ -33,25 +33,20 @@ RUBRIC_CRITERIA_V2 = {
 }
 RUBRIC_CRITERIA = {
     key: {**definition, "max_score": definition["max_score"] / 2}
-    for key, definition in RUBRIC_CRITERIA_V2.items()
+    for key, definition in HISTORICAL_RUBRIC_CRITERIA_V2.items()
 }
 RUBRIC_STATUSES = ("cumple", "parcial", "sin_evidencia", "contradicho", "no_aplica")
 
 
 def default_matching_parameters():
-    active_criteria = RUBRIC_CRITERIA if RUBRIC_VERSION == 3 else RUBRIC_CRITERIA_V2
-    active_deduction = (
-        CRITICAL_REQUIREMENT_DEDUCTION if RUBRIC_VERSION == 3
-        else CRITICAL_REQUIREMENT_DEDUCTION_V2
-    )
     return {
         "temperature": 0.1,
         "rubric": {
             "version": RUBRIC_VERSION,
-                "critical_requirement_deduction": active_deduction,
+                "critical_requirement_deduction": CRITICAL_REQUIREMENT_DEDUCTION,
             "criteria": {
                 key: {"max_score": definition["max_score"], "description": definition["label"]}
-                for key, definition in active_criteria.items()
+                for key, definition in RUBRIC_CRITERIA.items()
             },
         },
     }

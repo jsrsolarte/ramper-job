@@ -1,4 +1,4 @@
-from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
+from decimal import Decimal, InvalidOperation
 from django.db import transaction
 from django.utils import timezone
 
@@ -7,7 +7,6 @@ from .score_scale import calculate_star_total
 from .models import (
     CRITICAL_REQUIREMENT_DEDUCTION,
     RUBRIC_CRITERIA,
-    RUBRIC_CRITERIA_V2,
     RUBRIC_STATUSES,
     RUBRIC_VERSION,
 )
@@ -49,6 +48,8 @@ def validate_search_keywords(payload: dict) -> list[str]:
 
 def validate_analysis(payload: dict, *, rubric_version: int = RUBRIC_VERSION,
                       critical_deduction=None) -> dict:
+    if rubric_version != RUBRIC_VERSION:
+        raise InvalidAnalysisError("analysis.rubric.version_unsupported", "La versión de rúbrica solicitada ya no está activa.")
     if not isinstance(payload, dict):
         raise InvalidAnalysisError("analysis.schema.not_object", "La respuesta debe ser un objeto JSON.")
     response_version = payload.get("rubric_version")
@@ -58,26 +59,20 @@ def validate_analysis(payload: dict, *, rubric_version: int = RUBRIC_VERSION,
     score_breakdown = _validate_score_breakdown(payload.get("score_breakdown"), rubric_version=rubric_version)
     critical_requirements = _validate_critical_requirements(payload.get("critical_requirements"))
     if critical_deduction is None:
-        critical_deduction = "1.0" if rubric_version == 3 else "2.0"
+        critical_deduction = "1.0"
     deduction_per_requirement = Decimal(str(critical_deduction))
     deductions = [
         {"requirement": item["requirement"], "evidence": item["evidence"], "points": deduction_per_requirement}
         for item in critical_requirements if item["status"] == "contradicho"
     ]
     raw_total = sum((item["score"] for item in score_breakdown.values()), Decimal("0.0"))
-    if rubric_version == 3:
-        # Keep the unrounded sum for discovery decisions. The displayed score is
-        # rounded only after every criterion and deduction has been applied.
-        threshold_score = max(Decimal("0"), min(Decimal("5"), raw_total - sum(
-            (item["points"] for item in deductions), Decimal("0.0")
-        ))) * 2
-        total = calculate_star_total((item["score"] for item in score_breakdown.values()),
-                                     (item["points"] for item in deductions))
-    else:
-        total = max(Decimal("0.0"), min(Decimal("10.0"), raw_total - sum(
-            (item["points"] for item in deductions), Decimal("0.0")
-        ))).quantize(Decimal("0.1"), rounding=ROUND_HALF_UP)
-        threshold_score = total
+    # Keep the unrounded sum for discovery decisions. The displayed score is
+    # rounded only after every criterion and deduction has been applied.
+    threshold_score = max(Decimal("0"), min(Decimal("5"), raw_total - sum(
+        (item["points"] for item in deductions), Decimal("0.0")
+    ))) * 2
+    total = calculate_star_total((item["score"] for item in score_breakdown.values()),
+                                 (item["points"] for item in deductions))
     return {
         "score": total,
         "threshold_score": threshold_score,
@@ -90,10 +85,12 @@ def validate_analysis(payload: dict, *, rubric_version: int = RUBRIC_VERSION,
 
 
 def _validate_score_breakdown(value, *, rubric_version=RUBRIC_VERSION):
+    if rubric_version != RUBRIC_VERSION:
+        raise InvalidAnalysisError("analysis.rubric.version_unsupported", "La versión de rúbrica solicitada ya no está activa.")
     if not isinstance(value, dict) or set(value) != set(RUBRIC_CRITERIA):
         raise InvalidAnalysisError("analysis.rubric.criteria_set", "El desglose debe incluir exactamente los cinco criterios de la rúbrica.")
     validated = {}
-    criteria = RUBRIC_CRITERIA if rubric_version == 3 else RUBRIC_CRITERIA_V2
+    criteria = RUBRIC_CRITERIA
     for key, definition in criteria.items():
         item = value.get(key)
         if not isinstance(item, dict):
@@ -106,7 +103,7 @@ def _validate_score_breakdown(value, *, rubric_version=RUBRIC_VERSION):
         maximum = Decimal(str(definition["max_score"]))
         if isinstance(raw_points, bool) or not points.is_finite() or points < 0 or points > maximum:
             raise InvalidAnalysisError(f"analysis.rubric.{key}.score_out_of_range", f"El puntaje de {key} debe estar entre 0 y {maximum}.")
-        precision = Decimal("0.05") if rubric_version == 3 else Decimal("0.1")
+        precision = Decimal("0.05")
         if points % precision != 0:
             raise InvalidAnalysisError(f"analysis.rubric.{key}.score_precision", f"El puntaje de {key} no cumple la precisión de la rúbrica.")
         if status not in RUBRIC_STATUSES:
@@ -184,13 +181,15 @@ def _string_list(value, label):
 
 @transaction.atomic
 def save_validated_analysis(analysis, payload: dict):
+    if analysis.matching_config.rubric_version != RUBRIC_VERSION:
+        raise InvalidAnalysisError("analysis.rubric.version_unsupported", "No se pueden guardar análisis con una rúbrica antigua.")
     parameters = analysis.matching_config.parameters or {}
     rubric_params = parameters.get("rubric") or {}
-    default_deduction = "1.0" if analysis.matching_config.rubric_version == 3 else "2.0"
+    default_deduction = "1.0"
     configured_version = rubric_params.get("version")
     deduction = rubric_params.get("critical_requirement_deduction", default_deduction)
-    if analysis.matching_config.rubric_version == 2 and configured_version == 3:
-        deduction = "2.0"
+    if configured_version not in (None, RUBRIC_VERSION):
+        deduction = default_deduction
     result = validate_analysis(
         payload,
         rubric_version=analysis.matching_config.rubric_version,
@@ -198,7 +197,7 @@ def save_validated_analysis(analysis, payload: dict):
     )
     # Keep the legacy 0–10 column readable by workers from the previous release.
     # The database-generated score_stars column exposes the new 0–5 result.
-    analysis.score = result["score"] * 2 if analysis.matching_config.rubric_version == 3 else result["score"]
+    analysis.score = result["score"] * 2
     score_breakdown = {
         key: {
             **item,

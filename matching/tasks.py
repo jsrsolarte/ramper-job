@@ -171,7 +171,7 @@ def schedule_legacy_analyses(batch_size=50, repair_pending=False):
     if processing_is_paused():
         return []
     config = get_active_matching_config()
-    if config.rubric_version < RUBRIC_VERSION:
+    if config.rubric_version != RUBRIC_VERSION:
         return []
     current_result = VacancyAnalysis.objects.filter(
         profile_id=OuterRef("profile_id"),
@@ -306,7 +306,7 @@ def analyze_vacancy_for_profile(self, analysis_id):
         pk=analysis_id,
     )
     if (
-        analysis.matching_config.rubric_version < RUBRIC_VERSION
+        analysis.matching_config.rubric_version != RUBRIC_VERSION
         or analysis.matching_config.prompt_version < PROMPT_VERSION
         or (analysis.status == VacancyAnalysis.Status.PENDING and not analysis.matching_config.is_active)
     ):

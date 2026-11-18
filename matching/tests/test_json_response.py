@@ -71,29 +71,34 @@ class ModelJSONResponseTests(SimpleTestCase):
         OMNIROUTE_TIMEOUT_SECONDS=5,
     )
     @patch("matching.client.requests.post")
-    def test_valid_fenced_score_json_for_v2_and_v3_uses_one_call(self, post):
-        for rubric_version in (2, 3):
-            with self.subTest(rubric_version=rubric_version):
-                post.reset_mock()
-                response = Mock()
-                response.json.return_value = {
-                    "choices": [{"message": {"content": f'```json\n{{"rubric_version": {rubric_version}}}\n```'}}]
-                }
-                post.return_value = response
+    def test_valid_fenced_score_json_for_current_rubric_uses_one_call(self, post):
+        response = Mock()
+        response.json.return_value = {
+            "choices": [{"message": {"content": '```json\n{"rubric_version": 3}\n```'}}]
+        }
+        post.return_value = response
 
-                result = request_model_analysis(
-                    profile_text="CV sintético",
-                    search_phrases=["Analista"],
-                    locations=["Bogotá"],
-                    remote_ok=False,
-                    vacancy={"title": "Vacante sintética"},
-                    prompt="Evalúa datos sintéticos",
-                    parameters={},
-                    rubric_version=rubric_version,
-                )
+        result = request_model_analysis(
+            profile_text="CV sintético",
+            search_phrases=["Analista"],
+            locations=["Bogotá"],
+            remote_ok=False,
+            vacancy={"title": "Vacante sintética"},
+            prompt="Evalúa datos sintéticos",
+            parameters={},
+            rubric_version=3,
+        )
 
-                self.assertEqual(result.content, {"rubric_version": rubric_version})
-                post.assert_called_once()
+        self.assertEqual(result.content, {"rubric_version": 3})
+        post.assert_called_once()
+
+    def test_legacy_rubric_is_rejected_before_a_model_call(self, post):
+        with self.assertRaises(ValueError):
+            request_model_analysis(
+                profile_text="CV sintético", search_phrases=[], locations=[], remote_ok=False,
+                vacancy={}, prompt="Evalúa", parameters={}, rubric_version=2,
+            )
+        post.assert_not_called()
 
     @override_settings(
         OMNIROUTE_BASE_URL="http://omniroute.internal/v1",

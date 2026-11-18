@@ -7,7 +7,7 @@ from urllib.parse import urljoin
 import requests
 from django.conf import settings
 
-from .models import RUBRIC_CRITERIA, RUBRIC_CRITERIA_V2, RUBRIC_STATUSES, RUBRIC_VERSION
+from .models import RUBRIC_CRITERIA, RUBRIC_STATUSES, RUBRIC_VERSION
 from .json_response import (
     ModelJSONParseError,
     parse_model_json_object_with_action,
@@ -52,7 +52,9 @@ def request_model_analysis(
     *, profile_text: str, search_phrases: list[str], locations: list[str], remote_ok: bool,
     vacancy: dict, prompt: str, parameters: dict, rubric_version: int = RUBRIC_VERSION
 ):
-    criteria = RUBRIC_CRITERIA_V2 if rubric_version == 2 else RUBRIC_CRITERIA
+    if rubric_version != RUBRIC_VERSION:
+        raise ValueError("Solo se admiten solicitudes con la rúbrica vigente.")
+    criteria = RUBRIC_CRITERIA
     return _request_model_json(
         prompt=prompt,
         input_data={
@@ -63,7 +65,7 @@ def request_model_analysis(
             "response_format": {
                 "score_breakdown": {
                     key: {
-                        "score": f"number from 0 to {criterion['max_score']} in increments of {'0.05' if rubric_version == 3 else '0.1'}",
+                        "score": f"number from 0 to {criterion['max_score']} in increments of 0.05",
                         "status": list(RUBRIC_STATUSES),
                         "evidence": "brief string grounded in CV or vacancy",
                     }
@@ -148,8 +150,10 @@ def request_model_title_preselection(*, search_terms: list[str], vacancies: list
 
 
 def _analysis_json_schema(rubric_version):
-    criteria = RUBRIC_CRITERIA_V2 if rubric_version == 2 else RUBRIC_CRITERIA
-    precision = 0.1 if rubric_version == 2 else 0.05
+    if rubric_version != RUBRIC_VERSION:
+        raise ValueError("Solo se admiten esquemas con la rúbrica vigente.")
+    criteria = RUBRIC_CRITERIA
+    precision = 0.05
     score_breakdown = {}
     for key, criterion in criteria.items():
         score_breakdown[key] = {

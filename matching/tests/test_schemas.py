@@ -69,6 +69,7 @@ class AnalysisSchemaTests(TestCase):
         }
 
         result = save_validated_analysis(self.analysis, payload)
+        result.refresh_from_db(fields=["score_stars"])
 
         self.assertEqual(result.status, VacancyAnalysis.Status.COMPLETED)
         self.assertEqual(result.score, Decimal("8.0"))

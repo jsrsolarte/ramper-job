@@ -94,8 +94,8 @@ class VacancyOrganizationAdmin(admin.ModelAdmin):
 
 @admin.register(AICallAttempt)
 class AICallAttemptAdmin(admin.ModelAdmin):
-    list_display = ("stage", "outcome", "duration_ms", "input_tokens", "output_tokens", "created_at")
-    list_filter = ("stage", "outcome", "error_category")
+    list_display = ("stage", "format_action", "outcome", "duration_ms", "input_tokens", "output_tokens", "created_at")
+    list_filter = ("stage", "format_action", "outcome", "error_category")
     readonly_fields = tuple(field.name for field in AICallAttempt._meta.fields)
 
     def has_add_permission(self, request):

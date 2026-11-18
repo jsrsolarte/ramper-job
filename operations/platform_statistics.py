@@ -23,6 +23,9 @@ DEFAULT_SCORE_PERIOD = "30d"
 FORMAT_FAILURE_LABELS = {
     "analysis_invalid": "Formato inválido (registro histórico)",
     "omniroute.invalid_json": "La respuesta no es JSON válido",
+    "omniroute.ambiguous_content": "La respuesta contiene JSON ambiguo",
+    "omniroute.repair_not_preserved": "No se pudo verificar la reparación",
+    "omniroute.repair_invalid": "La reparación no devolvió JSON válido",
     "analysis.schema.not_object": "La respuesta JSON no es un objeto",
     "analysis.rubric.version": "Versión de rúbrica incorrecta",
     "analysis.rubric.criteria_set": "Criterios de rúbrica ausentes o adicionales",
@@ -231,14 +234,16 @@ def build_platform_statistics(*, period="30d", now=None):
     format_failures = []
     if effective_start:
         attempts = AICallAttempt.objects.filter(
-            stage=AICallAttempt.Stage.SCORING,
+            stage__in=(AICallAttempt.Stage.SCORING, AICallAttempt.Stage.SCORING_REPAIR),
             outcome__in=[AICallAttempt.Outcome.FAILED, AICallAttempt.Outcome.RETRYING],
             created_at__gte=effective_start,
             created_at__lte=now,
-        ).values("error_category").annotate(count=Count("pk"))
+        ).values("stage", "error_category").annotate(count=Count("pk"))
         for row in attempts:
             label = _format_failure_label(row["error_category"])
             if label:
+                if row["stage"] == AICallAttempt.Stage.SCORING_REPAIR:
+                    label = f"Reparación JSON: {label.lower()}"
                 format_failures.append({"code": row["error_category"], "label": label, "count": row["count"]})
         format_failures.sort(key=lambda item: (-item["count"], item["label"]))
 

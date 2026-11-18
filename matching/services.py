@@ -1,6 +1,5 @@
 from copy import deepcopy
 from dataclasses import dataclass
-from decimal import Decimal, InvalidOperation
 import logging
 
 from django.db import transaction
@@ -13,6 +12,7 @@ from .models import (
     CRITICAL_REQUIREMENT_DEDUCTION,
     DEFAULT_SEARCH_PROMPT,
     RUBRIC_CRITERIA,
+    RUBRIC_VERSION,
     RUBRIC_VERSION,
     MatchingConfig,
     PROMPT_VERSION,
@@ -63,23 +63,6 @@ DEFAULT_ORGANIZATION_PROMPT = (
     f"Incluye solo datos respaldados por el texto y no añadas hechos. {CONCISE_ORGANIZATION_INSTRUCTION}"
 )
 
-RUBRIC_PROMPT_V2 = """
-Evalúa usando exclusivamente esta rúbrica común, versión 2. No otorgues puntos por ubicación ni modalidad: la elegibilidad geográfica ya se verificó antes del análisis. No devuelvas un puntaje total; la aplicación lo suma y aplica las deducciones.
-
-Criterios y máximos:
-- skills (0–4): 0 sin evidencia o contradicción; 1 evidencia débil o transferible; 2 evidencia parcial y directa; 3 evidencia directa para la mayoría de requisitos; 4 evidencia sólida para las competencias centrales.
-- experience (0–2): 0 sin evidencia o contradicción; 1 experiencia relacionada o parcial; 2 experiencia directamente pertinente.
-- alignment (0–2): 0 sin relación o contradicción; 1 cargo o sector adyacente; 2 alineación directa.
-- education (0–1): 1 con evidencia de que cumple la educación/certificación explícitamente requerida; 0 si no cumple, está contradicha o falta evidencia. Si no existe un requisito explícito, asigna 1 y estado no_aplica.
-- profile_criteria (0–1): evalúa otros criterios explícitos del perfil, excluyendo ubicación/modalidad. 1 si cumple con evidencia; 0 si no cumple, está contradicho o falta evidencia. Si no hay otro criterio explícito, asigna 1 y estado no_aplica.
-
-Para cada criterio devuelve score (número de 0 a su máximo con hasta una cifra decimal), status y evidence (máximo 240 caracteres, apoyada en CV o vacante). Estados: cumple, parcial, sin_evidencia, contradicho, no_aplica. Usa cumple solo para el máximo; parcial solo para puntajes intermedios; sin_evidencia y contradicho reciben 0; contradicho requiere evidencia. No uses no_aplica salvo para education o profile_criteria, que reciben su máximo. No inventes soporte.
-
-En evidence, reasons y gaps incluye solo la evidencia o razón principal que sustenta el resultado. Evita repetir una idea y omite contexto que no cambie el puntaje. Conserva todos los campos requeridos y la evidencia necesaria para justificar cada puntaje y deducción.
-
-Enumera aparte critical_requirements solo cuando la vacante contenga requisitos explícitos y obligatorios. Para cada uno usa requirement, status (cumple, sin_evidencia o contradicho) y evidence. La aplicación resta 2.0 puntos por cada requisito obligatorio contradicho; no marques contradicho sin evidencia explícita de incompatibilidad. La falta de información no es contradicción y no genera deducción. No uses discapacidad, edad, sexo, género, origen, religión, situación familiar ni otros atributos personales para puntuar o deducir. Devuelve rubric_version=2.
-""".strip()
-
 RUBRIC_PROMPT = """
 Evalúa usando exclusivamente esta rúbrica común, versión 3, en escala de 0 a 5. No otorgues puntos por ubicación ni modalidad. No devuelvas un puntaje total; la aplicación suma los criterios y aplica las deducciones.
 
@@ -92,33 +75,21 @@ Enumera aparte critical_requirements solo para requisitos explícitos y obligato
 
 
 def rubric_prompt(version):
-    return RUBRIC_PROMPT_V2 if version == 2 else RUBRIC_PROMPT
+    if version != RUBRIC_VERSION:
+        raise ValueError("No hay un prompt activo para una versión antigua de rúbrica.")
+    return RUBRIC_PROMPT
 
 
 @transaction.atomic
 def get_active_matching_config():
     config = MatchingConfig.objects.select_for_update().filter(is_active=True).order_by("-version").first()
-    if config and config.rubric_version >= RUBRIC_VERSION and config.prompt_version >= PROMPT_VERSION:
+    if config and config.rubric_version == RUBRIC_VERSION and config.prompt_version >= PROMPT_VERSION:
         return config
     latest_version = MatchingConfig.objects.order_by("-version").values_list("version", flat=True).first() or 0
     parameters = deepcopy(config.parameters) if config else default_matching_parameters()
-    if not config or config.rubric_version < RUBRIC_VERSION:
-        previous_deduction = (
-            (parameters.get("rubric") or {}).get("critical_requirement_deduction", "2.0")
-            if config and config.rubric_version < 3 else "1.0"
-        )
-        if config and config.rubric_version < 3 and (parameters.get("rubric") or {}).get("version") == 3:
-            previous_deduction = "2.0"
-        try:
-            migrated_deduction = (
-                Decimal(str(previous_deduction)) / Decimal("2")
-                if config and config.rubric_version < 3 else Decimal("1.0")
-            )
-        except (InvalidOperation, ValueError):
-            migrated_deduction = Decimal("1.0")
+    if not config or config.rubric_version != RUBRIC_VERSION:
         parameters.pop("weights", None)
         parameters["rubric"] = default_matching_parameters()["rubric"]
-        parameters["rubric"]["critical_requirement_deduction"] = str(migrated_deduction)
     if config:
         config.is_active = False
         config.save(update_fields=["is_active"])

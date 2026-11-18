@@ -81,6 +81,26 @@ class OperationalDashboardTests(TestCase):
         self.staff = get_user_model().objects.create_superuser("operator", password="strong-pass")
         self.applicant = get_user_model().objects.create_user("applicant", password="strong-pass")
 
+    def test_admin_center_shows_the_shared_search_schedule_states(self):
+        from datetime import datetime
+
+        self.client.force_login(self.staff)
+        next_at = timezone.make_aware(datetime(2026, 11, 12, 18, 30))
+        cases = (
+            ({"status": "scheduled", "next_at": next_at, "is_overdue": False}, "Próximo ciclo estimado:"),
+            ({"status": "paused", "next_at": None}, "Las búsquedas están pausadas."),
+            ({"status": "unavailable", "next_at": None}, "El horario todavía no está disponible."),
+        )
+        for schedule, expected in cases:
+            with self.subTest(status=schedule["status"]), patch(
+                "operations.views.next_periodic_refresh_schedule", return_value=schedule,
+            ):
+                response = self.client.get(reverse("operations:admin_center"))
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.context["automatic_refresh_schedule"], schedule)
+                self.assertContains(response, expected)
+                self.assertContains(response, "Una actualización manual")
+
     def test_staff_can_view_period_metrics_and_pending_queue(self):
         now = timezone.now()
         first_run = OperationalRun.objects.create(
@@ -185,6 +205,14 @@ class OperationalDashboardTests(TestCase):
         AICallAttempt.objects.create(
             analysis=pending, stage=AICallAttempt.Stage.SCORING,
             duration_ms=1000, input_tokens=70, output_tokens=12,
+            format_action=AICallAttempt.FormatAction.NORMALIZED,
+        )
+        AICallAttempt.objects.create(
+            analysis=pending, stage=AICallAttempt.Stage.SCORING_REPAIR,
+            duration_ms=500, input_tokens=21, output_tokens=8,
+            outcome=AICallAttempt.Outcome.FAILED,
+            error_category="omniroute.repair_not_preserved",
+            format_action=AICallAttempt.FormatAction.REPAIR_REQUESTED,
         )
         VacancyAnalysis.objects.filter(pk=pending.pk).update(created_at=now - timedelta(hours=5))
         pending.refresh_from_db()
@@ -211,6 +239,11 @@ class OperationalDashboardTests(TestCase):
         self.assertEqual(response.context["oldest_pending"], pending.created_at)
         self.assertEqual(response.context["superseded_analyses"], 1)
         self.assertEqual(response.context["coverage_start"], first_run.started_at)
+        ai_stages = {item["label"]: item for item in response.context["ai_call_stages"]}
+        self.assertEqual(ai_stages["Puntuación"]["normalized"], 1)
+        self.assertEqual(ai_stages["Reparación de puntuación"]["total"], 1)
+        self.assertEqual(ai_stages["Reparación de puntuación"]["input_tokens"], 21)
+        self.assertEqual(ai_stages["Reparación de puntuación"]["output_tokens"], 8)
         self.assertEqual(response.context["source_rows"][0]["status"], source_status)
         self.assertEqual(response.context["source_rows"][0]["metrics"]["classified_queries"], 1)
         self.assertEqual(response.context["source_rows"][0]["metrics"]["new_items"], 1)

@@ -78,6 +78,32 @@ class VersionedConfigAdminTests(TestCase):
         self.assertIn(EVIDENCE_STATUS_INSTRUCTION, current.analysis_prompt)
         self.assertEqual(current.parameters["rubric"]["critical_requirement_deduction"], "1.5")
 
+    def test_legacy_rubric_config_is_replaced_without_changing_historical_analysis(self):
+        old = MatchingConfig.objects.create(
+            version=1, rubric_version=2, prompt_version=5,
+            analysis_prompt="Prompt v2", organization_prompt="Organización antigua",
+            parameters={"temperature": 0.2, "rubric": {"version": 2, "critical_requirement_deduction": "2.0"}},
+        )
+        profile = Profile.objects.create(owner=self.request.user, cv_file="cv.pdf", revision_number=1)
+        revision = ProfileRevision.objects.create(profile=profile, version=1, cv_file_path="cv.pdf")
+        vacancy = Vacancy.objects.create(source="ejemplo", title="Analista", original_url="https://example.test/legacy")
+        historical = VacancyAnalysis.objects.create(
+            profile=profile, profile_revision=revision, vacancy=vacancy, matching_config=old,
+            status=VacancyAnalysis.Status.COMPLETED, score=8,
+            score_breakdown={"skills": {"score": 4}},
+        )
+
+        current = get_active_matching_config()
+
+        old.refresh_from_db()
+        historical.refresh_from_db()
+        self.assertFalse(old.is_active)
+        self.assertEqual(old.rubric_version, 2)
+        self.assertEqual(historical.score, 8)
+        self.assertEqual(historical.score_breakdown["skills"]["score"], 4)
+        self.assertEqual(current.rubric_version, RUBRIC_VERSION)
+        self.assertEqual(current.parameters["rubric"], default_matching_parameters()["rubric"])
+
     def test_admin_config_versions_custom_critical_deduction(self):
         config = MatchingConfig(
             search_prompt="Busca", analysis_prompt="Evalúa", organization_prompt="Ordena",

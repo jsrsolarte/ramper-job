@@ -1,7 +1,7 @@
 from datetime import timedelta
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.contrib.auth import get_user_model
 from django.db import connections
@@ -118,6 +118,70 @@ class MatchingProcessingTests(TestCase):
         self.assertEqual(request.call_args.kwargs["vacancy"]["details"]["education"], "Universitaria")
         self.assertEqual(request.call_args.kwargs["vacancy"]["description"], "Experiencia con SQL")
 
+    @override_settings(
+        OMNIROUTE_BASE_URL="http://omniroute.internal/v1",
+        OMNIROUTE_MODEL="auto",
+        OMNIROUTE_TIMEOUT_SECONDS=5,
+    )
+    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    @patch("matching.client.requests.post")
+    def test_repaired_response_records_original_and_repair_metrics_separately(self, post, extract):
+        import json
+
+        payload = self._valid_payload()
+        valid_json = json.dumps(payload, ensure_ascii=False)
+        malformed_json = valid_json.replace(', "reasons"', ' "reasons"')
+        first = Mock()
+        first.json.return_value = {
+            "choices": [{"message": {"content": malformed_json}}],
+            "usage": {"prompt_tokens": 101, "completion_tokens": 41},
+        }
+        repaired = Mock()
+        repaired.json.return_value = {
+            "choices": [{"message": {"content": valid_json}}],
+            "usage": {"prompt_tokens": 17, "completion_tokens": 9},
+        }
+        post.side_effect = [first, repaired]
+
+        analyze_vacancy_for_profile.apply(args=(self.analysis.pk,), throw=True)
+
+        attempts = list(AICallAttempt.objects.filter(analysis=self.analysis).order_by("stage"))
+        original = next(item for item in attempts if item.stage == AICallAttempt.Stage.SCORING)
+        repair = next(item for item in attempts if item.stage == AICallAttempt.Stage.SCORING_REPAIR)
+        self.assertEqual(original.format_action, AICallAttempt.FormatAction.REPAIR_SUCCEEDED)
+        self.assertEqual((original.input_tokens, original.output_tokens), (101, 41))
+        self.assertEqual(repair.outcome, AICallAttempt.Outcome.SUCCEEDED)
+        self.assertEqual((repair.input_tokens, repair.output_tokens), (17, 9))
+        self.assertEqual(repair.format_action, AICallAttempt.FormatAction.REPAIR_SUCCEEDED)
+        self.assertEqual(post.call_count, 2)
+
+    @override_settings(
+        OMNIROUTE_BASE_URL="http://omniroute.internal/v1",
+        OMNIROUTE_MODEL="auto",
+        OMNIROUTE_TIMEOUT_SECONDS=5,
+    )
+    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    @patch("matching.client.requests.post")
+    def test_fenced_score_response_records_normalization_without_repair(self, post, extract):
+        import json
+
+        response = Mock()
+        response.json.return_value = {
+            "choices": [{"message": {"content": f'```json\n{json.dumps(self._valid_payload(), ensure_ascii=False)}\n```'}}],
+            "usage": {"prompt_tokens": 101, "completion_tokens": 41},
+        }
+        post.return_value = response
+
+        analyze_vacancy_for_profile.apply(args=(self.analysis.pk,), throw=True)
+
+        attempt = AICallAttempt.objects.get(analysis=self.analysis)
+        self.assertEqual(attempt.format_action, AICallAttempt.FormatAction.NORMALIZED)
+        self.assertEqual(attempt.input_tokens, 101)
+        self.assertEqual(attempt.output_tokens, 41)
+        self.assertFalse(AICallAttempt.objects.filter(
+            analysis=self.analysis, stage=AICallAttempt.Stage.SCORING_REPAIR,
+        ).exists())
+
     @patch("matching.tasks.request_model_analysis", side_effect=OmniRouteError("Servicio no disponible"))
     @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
     def test_model_outage_leaves_analysis_pending_for_retry(self, extract, request):
@@ -138,6 +202,40 @@ class MatchingProcessingTests(TestCase):
         self.assertIsNone(attempt.input_tokens)
         self.assertIsNone(attempt.output_tokens)
 
+    @patch(
+        "matching.tasks.request_model_analysis",
+        side_effect=OmniRouteError(
+            "OmniRoute no pudo reparar el formato de la respuesta.",
+            category="omniroute.repair_not_preserved",
+            repair_duration_ms=17,
+            repair_attempted=True,
+        ),
+    )
+    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    def test_failed_json_repair_uses_existing_durable_retry_without_partial_score(self, extract, request):
+        from celery.exceptions import Retry
+
+        with patch.object(analyze_vacancy_for_profile, "retry", side_effect=Retry()):
+            with self.assertRaises(Retry):
+                analyze_vacancy_for_profile.run(self.analysis.pk)
+
+        self.analysis.refresh_from_db()
+        self.assertEqual(self.analysis.status, VacancyAnalysis.Status.PENDING)
+        self.assertIsNone(self.analysis.score)
+        self.assertIsNone(self.analysis.completed_at)
+        self.assertEqual(
+            self.analysis.error_message,
+            "OmniRoute no pudo reparar el formato de la respuesta.",
+        )
+        attempt = AICallAttempt.objects.get(analysis=self.analysis, stage=AICallAttempt.Stage.SCORING)
+        self.assertEqual(attempt.outcome, AICallAttempt.Outcome.RETRYING)
+        self.assertEqual(attempt.error_category, "omniroute.repair_not_preserved")
+        repair_attempt = AICallAttempt.objects.get(
+            analysis=self.analysis, stage=AICallAttempt.Stage.SCORING_REPAIR,
+        )
+        self.assertEqual(repair_attempt.outcome, AICallAttempt.Outcome.RETRYING)
+        self.assertEqual(repair_attempt.duration_ms, 17)
+
     @patch("matching.tasks.request_model_analysis", return_value={"private_sentinel": "do not persist"})
     @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
     def test_invalid_rubric_response_records_safe_code_and_generic_message(self, extract, request):
@@ -146,6 +244,8 @@ class MatchingProcessingTests(TestCase):
 
         self.analysis.refresh_from_db()
         self.assertEqual(self.analysis.status, VacancyAnalysis.Status.PENDING)
+        self.assertIsNone(self.analysis.score)
+        self.assertIsNone(self.analysis.completed_at)
         self.assertEqual(self.analysis.error_message, "La respuesta de IA no cumple el formato esperado.")
         attempt = AICallAttempt.objects.get(analysis=self.analysis)
         self.assertEqual(attempt.error_category, "analysis.rubric.version")

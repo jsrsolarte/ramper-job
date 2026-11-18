@@ -15,7 +15,7 @@ from dashboard.score_display import score_star_label, score_star_percent, score_
 from dashboard.services import discard_follow_up
 from dashboard.time_format import publication_age, relative_age
 from jobs.models import JobSourceStatus
-from matching.models import AICallAttempt, RUBRIC_CRITERIA, RUBRIC_CRITERIA_V2, VacancyAnalysis
+from matching.models import AICallAttempt, HISTORICAL_RUBRIC_CRITERIA_V2, RUBRIC_CRITERIA, VacancyAnalysis
 from operations.scheduling import next_periodic_refresh_schedule
 from profiles.models import Profile
 from profiles.locations import vacancy_location_is_eligible
@@ -242,14 +242,15 @@ def home(request):
                 "no_aplica": "No aplica",
             }
             breakdown = analysis.score_breakdown or {}
-            rubric_criteria = RUBRIC_CRITERIA if analysis.matching_config.rubric_version == 3 else RUBRIC_CRITERIA_V2
+            is_current_rubric = analysis.matching_config.rubric_version == 3
+            rubric_criteria = RUBRIC_CRITERIA if is_current_rubric else HISTORICAL_RUBRIC_CRITERIA_V2
             analysis.rubric_details = [
                 {
                     "label": definition["label"],
                     "score": breakdown.get(key, {}).get("score", 0),
                     "max_score": breakdown.get(key, {}).get(
                         "max_score",
-                        Decimal(str(definition["max_score"])) / (2 if analysis.matching_config.rubric_version == 3 else 1),
+                        Decimal(str(definition["max_score"])) / (2 if is_current_rubric else 1),
                     ),
                     "status": status_labels.get(breakdown.get(key, {}).get("status"), "Sin información"),
                     "evidence": breakdown.get(key, {}).get("evidence", ""),

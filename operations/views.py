@@ -769,6 +769,14 @@ def dashboard(request):
             average_duration=Avg("duration_ms"),
             input_tokens=Sum("input_tokens"),
             output_tokens=Sum("output_tokens"),
+            normalized=Count("pk", filter=Q(format_action=AICallAttempt.FormatAction.NORMALIZED)),
+            repair_requested=Count("pk", filter=Q(
+                stage__in=(AICallAttempt.Stage.SCORING, AICallAttempt.Stage.ORGANIZATION),
+                format_action__in=(
+                    AICallAttempt.FormatAction.REPAIR_REQUESTED,
+                    AICallAttempt.FormatAction.REPAIR_SUCCEEDED,
+                ),
+            )),
         )
         metric["average_duration"] = minutes(metric["average_duration"] or 0)
         ai_call_stages.append({"label": label, **metric})

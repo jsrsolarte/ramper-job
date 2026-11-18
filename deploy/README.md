@@ -14,17 +14,19 @@ Cada overlay incluye `../../base` y declara sus ajustes de ambiente: namespace,
 hostname, probes, ConfigMap y referencias a secretos. No apuntes ambas fuentes a
 `deploy/base` ni a la raíz del repositorio.
 
-El workflow de GitHub Actions valida los cambios y construye/publica la imagen de cada
-commit que llega a `main` o `staging`, con la etiqueta completa del SHA
-(`ghcr.io/jsrsolarte/ramper-job:<sha>`). No usa `latest`. Los pull requests solo
-validan y construyen localmente; no publican imágenes.
+El workflow de GitHub Actions valida los cambios. Al integrar un candidato en `staging`,
+publica una imagen identificada por su SHA completo y no usa `latest`. Los pull requests
+solo validan y construyen localmente; no publican imágenes.
 
-En pushes a `staging`, CI actualiza el pin SHA de
-`deploy/overlays/staging/kustomization.yaml` en esa misma rama. En pushes a `main`,
-CI construye y publica la imagen, pero no modifica el overlay productivo ni despliega
-producción. Para una promoción se cambia el pin de
-`deploy/overlays/prod/kustomization.yaml` mediante un cambio Git revisado. Este
-repositorio no crea ni activa fuentes o Kustomizations de Flux.
+Al integrar un candidato en `staging`, CI actualiza el pin SHA de
+`deploy/overlays/staging/kustomization.yaml` en esa misma rama. Cuando el candidato
+aprobado se integra desde `staging` a `main` mediante PR, CI valida el merge,
+verifica que el código corresponda al candidato y que su imagen exista, y actualiza
+automáticamente el pin de producción al mismo SHA de imagen probado. Un push directo,
+un PR de otro origen, una falla de validación o una discrepancia no cambia el pin.
+El pipeline serializa promociones y evita repetir el ciclo por su propio commit GitOps.
+Flux reconcilia el pin desde `main`. Este repositorio no crea ni activa fuentes o
+Kustomizations de Flux.
 
 ## Secretos requeridos
 
@@ -90,7 +92,7 @@ Las pruebas de staging siguen identificándose por el SHA de la imagen y no reci
 
 Incrementa PATCH para correcciones compatibles, MINOR para funcionalidades compatibles y MAJOR para cambios incompatibles que requieren adaptación. El asunto de la etiqueta anotada debe explicar el tipo de incremento y su motivo.
 
-El flujo de liberación solo acepta un commit que esté en `staging` y cuya imagen SHA sea la actualmente fijada en el overlay. Resuelve el digest de esa imagen ya construida y adjunta a la versión un manifiesto con etiqueta, versión, SHA, referencia y digest. No reconstruye la imagen. Crear la versión no despliega por sí solo: Flux productivo obtiene `deploy/overlays/prod` desde `main`; este repositorio no activa su Kustomization.
+El flujo de liberación solo acepta un commit que esté en `staging` y cuya imagen SHA sea la actualmente fijada en el overlay. Resuelve el digest de esa imagen ya construida y adjunta a la versión un manifiesto con etiqueta, versión, SHA, referencia y digest. No reconstruye la imagen. El merge aprobado de `staging` a `main` promueve automáticamente el artefacto; crear una etiqueta de versión no cambia por sí sola el pin. Flux productivo obtiene `deploy/overlays/prod` desde `main`; este repositorio no activa su Kustomization.
 
 El init container del web ejecuta `migrate --noinput` antes de iniciar Gunicorn. Los init
 containers del worker y Beat esperan hasta 15 minutos a que no haya migraciones pendientes;

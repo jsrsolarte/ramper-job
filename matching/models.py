@@ -240,6 +240,14 @@ class AICallAttempt(models.Model):
     class Stage(models.TextChoices):
         SCORING = "scoring", "Puntuación"
         ORGANIZATION = "organization", "Organización"
+        SCORING_REPAIR = "scoring_repair", "Reparación de puntuación"
+        ORGANIZATION_REPAIR = "organization_repair", "Reparación de organización"
+
+    class FormatAction(models.TextChoices):
+        DIRECT = "direct", "JSON directo"
+        NORMALIZED = "normalized", "Bloque Markdown normalizado"
+        REPAIR_REQUESTED = "repair_requested", "Reparación solicitada"
+        REPAIR_SUCCEEDED = "repair_succeeded", "Reparación completada"
 
     class Outcome(models.TextChoices):
         SUCCEEDED = "succeeded", "Completado"
@@ -252,7 +260,10 @@ class AICallAttempt(models.Model):
     organization = models.ForeignKey(
         VacancyOrganization, null=True, blank=True, on_delete=models.CASCADE, related_name="ai_attempts"
     )
-    stage = models.CharField(max_length=16, choices=Stage.choices)
+    stage = models.CharField(max_length=24, choices=Stage.choices)
+    format_action = models.CharField(
+        max_length=24, choices=FormatAction.choices, default=FormatAction.DIRECT,
+    )
     duration_ms = models.PositiveIntegerField()
     outcome = models.CharField(max_length=16, choices=Outcome.choices)
     input_tokens = models.PositiveIntegerField(null=True, blank=True)

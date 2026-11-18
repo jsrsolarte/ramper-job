@@ -219,6 +219,13 @@ class PlatformStatisticsTests(TestCase):
         AICallAttempt.objects.create(analysis=recent, stage=AICallAttempt.Stage.SCORING, duration_ms=1,
                                      outcome=AICallAttempt.Outcome.FAILED, error_category="analysis_invalid")
         AICallAttempt.objects.filter(analysis=recent).update(created_at=now - timedelta(hours=2))
+        AICallAttempt.objects.create(
+            analysis=recent, stage=AICallAttempt.Stage.SCORING_REPAIR, duration_ms=9,
+            outcome=AICallAttempt.Outcome.FAILED,
+            error_category="omniroute.repair_not_preserved",
+            format_action=AICallAttempt.FormatAction.REPAIR_REQUESTED,
+        )
+        AICallAttempt.objects.filter(stage=AICallAttempt.Stage.SCORING_REPAIR).update(created_at=now)
         AICallAttempt.objects.create(analysis=old, stage=AICallAttempt.Stage.SCORING, duration_ms=1,
                                      outcome=AICallAttempt.Outcome.FAILED, error_category="analysis.rubric.version")
         AICallAttempt.objects.filter(analysis=old).update(created_at=now - timedelta(days=3))
@@ -229,12 +236,14 @@ class PlatformStatisticsTests(TestCase):
         self.assertEqual(counts, {
             "analysis.rubric.version": 1,
             "omniroute.invalid_json": 1,
+            "omniroute.repair_not_preserved": 1,
             "analysis_invalid": 1,
         })
         self.assertTrue(stats["has_format_failures"])
         labels = {row["code"]: row["label"] for row in stats["format_failures"]}
         self.assertEqual(labels["omniroute.invalid_json"], "La respuesta no es JSON válido")
         self.assertEqual(labels["analysis_invalid"], "Formato inválido (registro histórico)")
+        self.assertEqual(labels["omniroute.repair_not_preserved"], "Reparación JSON: no se pudo verificar la reparación")
 
     def test_admin_can_open_global_statistics_and_applicant_cannot(self):
         self.client.force_login(self.admin)

@@ -368,18 +368,30 @@ def analyze_vacancy_for_profile(self, analysis_id):
         save_validated_analysis(analysis, getattr(model_result, "content", model_result))
         _record_ai_attempt(
             analysis=analysis, stage=AICallAttempt.Stage.SCORING,
-            duration_ms=_elapsed_ms(call_started), outcome=AICallAttempt.Outcome.SUCCEEDED,
+            duration_ms=getattr(model_result, "call_duration_ms", 0) or _elapsed_ms(call_started),
+            outcome=AICallAttempt.Outcome.SUCCEEDED,
             input_tokens=getattr(model_result, "input_tokens", None),
             output_tokens=getattr(model_result, "output_tokens", None),
+            format_action=getattr(model_result, "format_action", AICallAttempt.FormatAction.DIRECT),
+        )
+        _record_repair_attempt(
+            analysis=analysis, primary_stage=AICallAttempt.Stage.SCORING, result=model_result,
         )
         queue_organization(analysis)
     except OmniRouteError as exc:
         if "call_started" in locals():
             _record_ai_attempt(
                 analysis=analysis, stage=AICallAttempt.Stage.SCORING,
-                duration_ms=_elapsed_ms(call_started),
+                duration_ms=getattr(exc, "call_duration_ms", 0) or _elapsed_ms(call_started),
                 outcome=AICallAttempt.Outcome.RETRYING if self.request.retries < self.max_retries else AICallAttempt.Outcome.FAILED,
                 error_category=exc.category,
+                input_tokens=getattr(exc, "input_tokens", None),
+                output_tokens=getattr(exc, "output_tokens", None),
+                format_action=getattr(exc, "format_action", AICallAttempt.FormatAction.DIRECT),
+            )
+            _record_repair_attempt(
+                analysis=analysis, primary_stage=AICallAttempt.Stage.SCORING, error=exc,
+                outcome=AICallAttempt.Outcome.RETRYING if self.request.retries < self.max_retries else AICallAttempt.Outcome.FAILED,
             )
         release_analysis(analysis.pk, error_message=str(exc), update_dispatch=self.request.retries < self.max_retries)
         will_retry = self.request.retries < self.max_retries
@@ -401,7 +413,12 @@ def analyze_vacancy_for_profile(self, analysis_id):
         if "call_started" in locals():
             _record_ai_attempt(analysis=analysis, stage=AICallAttempt.Stage.SCORING,
                                duration_ms=_elapsed_ms(call_started), outcome=AICallAttempt.Outcome.FAILED,
-                               error_category=exc.code)
+                               error_category=exc.code,
+                               format_action=getattr(locals().get("model_result"), "format_action", AICallAttempt.FormatAction.DIRECT))
+            _record_repair_attempt(
+                analysis=analysis, primary_stage=AICallAttempt.Stage.SCORING,
+                result=locals().get("model_result"), outcome=AICallAttempt.Outcome.SUCCEEDED,
+            )
         release_analysis(analysis.pk, error_message="La respuesta de IA no cumple el formato esperado.")
         finish_run(run, status=OperationalRun.Status.FAILED, error_category=exc.code)
         logger.warning("vacancy_analysis_invalid_response category=%s", exc.code)
@@ -410,7 +427,12 @@ def analyze_vacancy_for_profile(self, analysis_id):
         if "call_started" in locals():
             _record_ai_attempt(analysis=analysis, stage=AICallAttempt.Stage.SCORING,
                                duration_ms=_elapsed_ms(call_started), outcome=AICallAttempt.Outcome.FAILED,
-                               error_category="analysis_invalid")
+                               error_category="analysis_invalid",
+                               format_action=getattr(locals().get("model_result"), "format_action", AICallAttempt.FormatAction.DIRECT))
+            _record_repair_attempt(
+                analysis=analysis, primary_stage=AICallAttempt.Stage.SCORING,
+                result=locals().get("model_result"), outcome=AICallAttempt.Outcome.SUCCEEDED,
+            )
         release_analysis(analysis.pk, error_message="La respuesta de IA no cumple el formato esperado.")
         finish_run(run, status=OperationalRun.Status.FAILED, error_category="analysis_invalid")
         logger.warning("vacancy_analysis_invalid_response")
@@ -419,7 +441,12 @@ def analyze_vacancy_for_profile(self, analysis_id):
         if "call_started" in locals():
             _record_ai_attempt(analysis=analysis, stage=AICallAttempt.Stage.SCORING,
                                duration_ms=_elapsed_ms(call_started), outcome=AICallAttempt.Outcome.FAILED,
-                               error_category="analysis_error")
+                               error_category="analysis_error",
+                               format_action=getattr(locals().get("model_result"), "format_action", AICallAttempt.FormatAction.DIRECT))
+            _record_repair_attempt(
+                analysis=analysis, primary_stage=AICallAttempt.Stage.SCORING,
+                result=locals().get("model_result"), outcome=AICallAttempt.Outcome.SUCCEEDED,
+            )
         release_analysis(analysis.pk, error_message="Ocurrió un error interno durante el análisis.")
         finish_run(run, status=OperationalRun.Status.FAILED, error_category="analysis_error")
         logger.error("vacancy_analysis_failed exception_type=%s", type(exc).__name__)
@@ -457,11 +484,40 @@ def _elapsed_ms(started):
 
 
 def _record_ai_attempt(*, analysis=None, organization=None, stage, duration_ms, outcome,
-                       input_tokens=None, output_tokens=None, error_category=""):
+                       input_tokens=None, output_tokens=None, error_category="",
+                       format_action=AICallAttempt.FormatAction.DIRECT):
     AICallAttempt.objects.create(
         analysis=analysis, organization=organization, stage=stage, duration_ms=duration_ms,
         outcome=outcome, input_tokens=input_tokens, output_tokens=output_tokens,
-        error_category=error_category[:80],
+        error_category=error_category[:80], format_action=format_action,
+    )
+
+
+def _record_repair_attempt(*, primary_stage, analysis=None, organization=None,
+                           result=None, error=None, outcome=None):
+    succeeded = result is not None and getattr(result, "format_action", "") == "repair_succeeded"
+    attempted = succeeded or bool(error and getattr(error, "repair_attempted", False))
+    if not attempted:
+        return
+    stage = (
+        AICallAttempt.Stage.SCORING_REPAIR
+        if primary_stage == AICallAttempt.Stage.SCORING
+        else AICallAttempt.Stage.ORGANIZATION_REPAIR
+    )
+    _record_ai_attempt(
+        analysis=analysis,
+        organization=organization,
+        stage=stage,
+        duration_ms=(getattr(result, "repair_duration_ms", 0) if succeeded
+                     else getattr(error, "repair_duration_ms", 0)),
+        outcome=outcome or (AICallAttempt.Outcome.SUCCEEDED if succeeded else AICallAttempt.Outcome.FAILED),
+        input_tokens=(getattr(result, "repair_input_tokens", None) if succeeded
+                      else getattr(error, "repair_input_tokens", None)),
+        output_tokens=(getattr(result, "repair_output_tokens", None) if succeeded
+                       else getattr(error, "repair_output_tokens", None)),
+        error_category=("" if succeeded else getattr(error, "category", "omniroute.repair_failed")),
+        format_action=(AICallAttempt.FormatAction.REPAIR_SUCCEEDED if succeeded
+                       else AICallAttempt.FormatAction.REPAIR_REQUESTED),
     )
 
 
@@ -547,16 +603,29 @@ def organize_vacancy(self, organization_id):
         save_validated_organization(organization, getattr(result, "content", result))
         _record_ai_attempt(
             organization=organization, stage=AICallAttempt.Stage.ORGANIZATION,
-            duration_ms=_elapsed_ms(started), outcome=AICallAttempt.Outcome.SUCCEEDED,
+            duration_ms=getattr(result, "call_duration_ms", 0) or _elapsed_ms(started),
+            outcome=AICallAttempt.Outcome.SUCCEEDED,
             input_tokens=getattr(result, "input_tokens", None),
             output_tokens=getattr(result, "output_tokens", None),
+            format_action=getattr(result, "format_action", AICallAttempt.FormatAction.DIRECT),
+        )
+        _record_repair_attempt(
+            organization=organization, primary_stage=AICallAttempt.Stage.ORGANIZATION, result=result,
         )
     except OmniRouteError as exc:
         will_retry = self.request.retries < self.max_retries
         _record_ai_attempt(
             organization=organization, stage=AICallAttempt.Stage.ORGANIZATION,
-            duration_ms=_elapsed_ms(started), outcome=AICallAttempt.Outcome.RETRYING if will_retry else AICallAttempt.Outcome.FAILED,
+            duration_ms=getattr(exc, "call_duration_ms", 0) or _elapsed_ms(started),
+            outcome=AICallAttempt.Outcome.RETRYING if will_retry else AICallAttempt.Outcome.FAILED,
             error_category=exc.category,
+            input_tokens=getattr(exc, "input_tokens", None),
+            output_tokens=getattr(exc, "output_tokens", None),
+            format_action=getattr(exc, "format_action", AICallAttempt.FormatAction.DIRECT),
+        )
+        _record_repair_attempt(
+            organization=organization, primary_stage=AICallAttempt.Stage.ORGANIZATION, error=exc,
+            outcome=AICallAttempt.Outcome.RETRYING if will_retry else AICallAttempt.Outcome.FAILED,
         )
         organization.processing_started_at = None
         organization.error_message = "La organización no está disponible temporalmente."
@@ -570,8 +639,14 @@ def organize_vacancy(self, organization_id):
     except (InvalidAnalysisError, ValueError) as exc:
         _record_ai_attempt(
             organization=organization, stage=AICallAttempt.Stage.ORGANIZATION,
-            duration_ms=_elapsed_ms(started), outcome=AICallAttempt.Outcome.FAILED,
+            duration_ms=getattr(locals().get("result"), "call_duration_ms", 0) or _elapsed_ms(started),
+            outcome=AICallAttempt.Outcome.FAILED,
             error_category="organization_invalid",
+            format_action=getattr(locals().get("result"), "format_action", AICallAttempt.FormatAction.DIRECT),
+        )
+        _record_repair_attempt(
+            organization=organization, primary_stage=AICallAttempt.Stage.ORGANIZATION,
+            result=locals().get("result"), outcome=AICallAttempt.Outcome.SUCCEEDED,
         )
         organization.status = VacancyOrganization.Status.FAILED
         organization.processing_started_at = None
@@ -582,8 +657,14 @@ def organize_vacancy(self, organization_id):
     except Exception as exc:
         _record_ai_attempt(
             organization=organization, stage=AICallAttempt.Stage.ORGANIZATION,
-            duration_ms=_elapsed_ms(started), outcome=AICallAttempt.Outcome.FAILED,
+            duration_ms=getattr(locals().get("result"), "call_duration_ms", 0) or _elapsed_ms(started),
+            outcome=AICallAttempt.Outcome.FAILED,
             error_category="organization_error",
+            format_action=getattr(locals().get("result"), "format_action", AICallAttempt.FormatAction.DIRECT),
+        )
+        _record_repair_attempt(
+            organization=organization, primary_stage=AICallAttempt.Stage.ORGANIZATION,
+            result=locals().get("result"), outcome=AICallAttempt.Outcome.SUCCEEDED,
         )
         organization.status = VacancyOrganization.Status.FAILED
         organization.processing_started_at = None

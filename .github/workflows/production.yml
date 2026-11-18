@@ -47,24 +47,7 @@ jobs:
           git fetch origin main staging
           [[ "$(git rev-parse origin/main)" == "$RELEASE_SHA" ]]
 
-          PR_HEAD_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${RELEASE_SHA}/pulls" | python -c '
-          import json
-          import os
-          import sys
-
-          release_sha = os.environ["RELEASE_SHA"]
-          prs = json.load(sys.stdin)
-          matches = [
-              pr for pr in prs
-              if pr.get("merged_at")
-              and pr.get("merge_commit_sha") == release_sha
-              and pr.get("base", {}).get("ref") == "main"
-              and pr.get("head", {}).get("ref") == "staging"
-          ]
-          if len(matches) != 1:
-              raise SystemExit("Commit is not the unique merge of a staging PR into main")
-          print(matches[0]["head"]["sha"])
-          ')"
+          PR_HEAD_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${RELEASE_SHA}/pulls" | python scripts/check_production_promotion.py pr-head "$RELEASE_SHA")"
           git merge-base --is-ancestor "$PR_HEAD_SHA" "$RELEASE_SHA"
 
           STAGING_SHA="$(git show origin/staging:deploy/overlays/staging/kustomization.yaml | sed -nE 's/^[[:space:]]*newTag:[[:space:]]*([^[:space:]#]+).*/\1/p')"
@@ -94,26 +77,9 @@ jobs:
         run: |
           set -euo pipefail
           git fetch origin main staging
-          [[ "$(git rev-parse origin/main)" == "$RELEASE_SHA" ]]
+          CURRENT_MAIN_SHA="$(git rev-parse origin/main)"
           CURRENT_STAGING_SHA="$(git show origin/staging:deploy/overlays/staging/kustomization.yaml | sed -nE 's/^[[:space:]]*newTag:[[:space:]]*([^[:space:]#]+).*/\1/p')"
-          [[ "$CURRENT_STAGING_SHA" == "$IMAGE_SHA" ]]
-
-          python - <<'PY'
-          import os
-          import re
-          from pathlib import Path
-
-          path = Path("deploy/overlays/prod/kustomization.yaml")
-          content = path.read_text(encoding="utf-8")
-          updated, replacements = re.subn(
-              r"(?m)^(\s*)(?:digest:\s*sha256:[0-9a-f]{64}|newTag:\s*[^\s#]+)\s*$",
-              lambda match: f"{match.group(1)}newTag: {os.environ['IMAGE_SHA']}",
-              content,
-          )
-          if replacements != 1:
-              raise SystemExit(f"Expected one production image pin, found {replacements}")
-          path.write_text(updated, encoding="utf-8")
-          PY
+          python scripts/update_production_pin.py deploy/overlays/prod/kustomization.yaml "$IMAGE_SHA" "$RELEASE_SHA" "$CURRENT_MAIN_SHA" "$CURRENT_STAGING_SHA"
 
       - name: Commit and push the production image pin
         env:

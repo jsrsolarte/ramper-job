@@ -140,6 +140,33 @@ class DashboardPrivacyTests(TestCase):
         self.assertContains(failed, "no se pudieron organizar los detalles")
         self.assertContains(failed, "Mejor vacante")
 
+    def test_historical_rubric_breakdown_remains_readable_in_its_original_scale(self):
+        old_config = MatchingConfig.objects.create(
+            version=2, rubric_version=2, analysis_prompt="Antiguo", organization_prompt="Organiza",
+            is_active=False,
+        )
+        vacancy = Vacancy.objects.create(
+            source="elempleo_co", title="Vacante histórica", original_url="https://jobs.example.test/historical-rubric",
+        )
+        historical = VacancyAnalysis.objects.create(
+            profile=self.first_profile, profile_revision=self.first_revision, vacancy=vacancy,
+            matching_config=old_config, status=VacancyAnalysis.Status.COMPLETED, score=8,
+            score_breakdown={
+                "skills": {"score": 3, "max_score": 4},
+                "experience": {"score": 2, "max_score": 2},
+                "alignment": {"score": 1, "max_score": 2},
+                "education": {"score": 1, "max_score": 1},
+                "profile_criteria": {"score": 1, "max_score": 1},
+            },
+        )
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"))
+
+        displayed = next(item for item in response.context["analyses"] if item.pk == historical.pk)
+        self.assertEqual([item["max_score"] for item in displayed.rubric_details], [4, 2, 2, 1, 1])
+        self.assertEqual(displayed.score, 8)
+
     def test_scores_use_half_star_visual_rounding_but_keep_exact_accessible_values(self):
         self.best.score = 8.5
         self.best.save(update_fields=["score"])

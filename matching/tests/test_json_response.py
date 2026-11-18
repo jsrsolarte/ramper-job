@@ -92,6 +92,7 @@ class ModelJSONResponseTests(SimpleTestCase):
         self.assertEqual(result.content, {"rubric_version": 3})
         post.assert_called_once()
 
+    @patch("matching.client.requests.post")
     def test_legacy_rubric_is_rejected_before_a_model_call(self, post):
         with self.assertRaises(ValueError):
             request_model_analysis(
@@ -112,19 +113,16 @@ class ModelJSONResponseTests(SimpleTestCase):
         response.json.return_value = {"choices": [{"message": {"content": '{"ok": true}'}}]}
         post.return_value = response
 
-        for version, precision in ((2, 0.1), (3, 0.05)):
-            with self.subTest(version=version):
-                post.reset_mock()
-                request_model_analysis(
-                    profile_text="CV sintético", search_phrases=[], locations=[], remote_ok=False,
-                    vacancy={}, prompt="Evalúa", parameters={}, rubric_version=version,
-                )
-                structured = post.call_args.kwargs["json"]["response_format"]
-                self.assertEqual(structured["type"], "json_schema")
-                schema = structured["json_schema"]
-                self.assertEqual(schema["name"], f"vacancy_score_v{version}")
-                self.assertTrue(schema["strict"])
-                self.assertEqual(schema["schema"]["properties"]["score_breakdown"]["properties"]["skills"]["properties"]["score"]["multipleOf"], precision)
+        request_model_analysis(
+            profile_text="CV sintético", search_phrases=[], locations=[], remote_ok=False,
+            vacancy={}, prompt="Evalúa", parameters={}, rubric_version=3,
+        )
+        structured = post.call_args.kwargs["json"]["response_format"]
+        self.assertEqual(structured["type"], "json_schema")
+        schema = structured["json_schema"]
+        self.assertEqual(schema["name"], "vacancy_score_v3")
+        self.assertTrue(schema["strict"])
+        self.assertEqual(schema["schema"]["properties"]["score_breakdown"]["properties"]["skills"]["properties"]["score"]["multipleOf"], 0.05)
 
     @override_settings(
         OMNIROUTE_BASE_URL="http://omniroute.internal/v1",

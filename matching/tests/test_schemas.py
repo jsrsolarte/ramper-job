@@ -71,7 +71,8 @@ class AnalysisSchemaTests(TestCase):
         result = save_validated_analysis(self.analysis, payload)
 
         self.assertEqual(result.status, VacancyAnalysis.Status.COMPLETED)
-        self.assertEqual(result.score, Decimal("4.0"))
+        self.assertEqual(result.score, Decimal("8.0"))
+        self.assertEqual(result.score_stars, Decimal("4.0"))
         self.assertEqual(result.organization_status, VacancyAnalysis.OrganizationStatus.DEFERRED)
         self.assertEqual(result.score_breakdown["deductions"][0]["points"], 1.0)
         self.assertEqual(result.reasons, ["Experiencia relacionada"])
@@ -122,7 +123,7 @@ class AnalysisSchemaTests(TestCase):
         self.assertEqual(validate_v3(decimal)["score"], Decimal("4.5"))
         too_precise = {**decimal, "score_breakdown": {
             **decimal["score_breakdown"],
-            "skills": {"score": 1.55, "status": "parcial", "evidence": "Experiencia parcial"},
+            "skills": {"score": 1.51, "status": "parcial", "evidence": "Experiencia parcial"},
         }}
         with self.assertRaises(InvalidAnalysisError):
             validate_v3(too_precise)

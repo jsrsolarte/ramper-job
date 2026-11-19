@@ -101,11 +101,13 @@ def _recover_simple_json_syntax(value):
         parsed = _decode_json(candidate)
         if isinstance(parsed, dict):
             return parsed
-        without_trailing_commas = re.sub(r",\s*([}\]])", r"\1", candidate)
+        without_trailing_commas = _sub_outside_json_strings(
+            r",\s*([}\]])", r"\1", candidate
+        )
         if without_trailing_commas != candidate:
             candidate = without_trailing_commas
             continue
-        with_missing_commas = re.sub(
+        with_missing_commas = _sub_outside_json_strings(
             r'("(?:\\.|[^"\\])*")\s+("(?:\\.|[^"\\])*"\s*:)',
             r"\1,\2",
             candidate,
@@ -113,7 +115,7 @@ def _recover_simple_json_syntax(value):
         if with_missing_commas != candidate:
             candidate = with_missing_commas
             continue
-        with_missing_commas = re.sub(
+        with_missing_commas = _sub_outside_json_strings(
             r'(true|false|null|-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?|[}\]])\s+("(?:\\.|[^"\\])*"\s*:)',
             r"\1,\2",
             candidate,
@@ -124,6 +126,50 @@ def _recover_simple_json_syntax(value):
         break
     parsed = _decode_json(candidate)
     return parsed if isinstance(parsed, dict) else _INVALID
+
+
+def _sub_outside_json_strings(pattern, replacement, value):
+    """Apply a recovery pattern only when its match starts outside a JSON string.
+
+    Recovery patterns may include complete quoted keys. Checking the start position
+    lets those tokens participate while preventing a matching substring inside a
+    value literal from being rewritten.
+    """
+    outside = _outside_json_strings(value)
+    matches = list(re.finditer(pattern, value))
+    if not matches:
+        return value
+    pieces = []
+    position = 0
+    for match in matches:
+        if not outside[match.start()]:
+            continue
+        pieces.append(value[position:match.start()])
+        pieces.append(match.expand(replacement))
+        position = match.end()
+    if not pieces:
+        return value
+    pieces.append(value[position:])
+    return "".join(pieces)
+
+
+def _outside_json_strings(value):
+    """Return a per-character mask that is false inside strings, honoring escapes."""
+    outside = [True] * len(value)
+    in_string = False
+    escaped = False
+    for index, char in enumerate(value):
+        outside[index] = not in_string
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+        elif char == '"':
+            in_string = True
+    return outside
 
 
 def _same_json_value(left, right):

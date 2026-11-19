@@ -6,11 +6,47 @@ from django.test import SimpleTestCase, override_settings
 from requests import HTTPError, Timeout
 
 from matching.client import OmniRouteError, request_model_analysis, request_model_organization
-from matching.json_response import ModelJSONParseError, parse_model_json_object
+from matching.json_response import (
+    ModelJSONParseError,
+    _recover_simple_json_syntax,
+    parse_model_json_object,
+    repair_preserves_values,
+)
 from matching.schemas import InvalidAnalysisError, validate_analysis
 
 
 class ModelJSONResponseTests(SimpleTestCase):
+    def test_repair_does_not_rewrite_json_syntax_like_text_inside_values(self):
+        malformed = '{"evidence":"texto, } y más",}'
+        unchanged = {"evidence": "texto, } y más"}
+        changed = {"evidence": "texto } y más"}
+
+        self.assertEqual(_recover_simple_json_syntax(malformed), unchanged)
+        self.assertTrue(repair_preserves_values(malformed, unchanged))
+        self.assertFalse(repair_preserves_values(malformed, changed))
+
+    def test_repair_preserves_escapes_unicode_and_nested_values(self):
+        malformed = (
+            '{"outer":{"text":"Dice \\"hola\\"\\\\ ruta, } café",'
+            '"items":[1, {"ok":true,}],},"accent":"Bogotá",}'
+        )
+        expected = {
+            "outer": {"text": 'Dice "hola"\\ ruta, } café', "items": [1, {"ok": True}]},
+            "accent": "Bogotá",
+        }
+
+        self.assertTrue(repair_preserves_values(malformed, expected))
+        changed_type = {**expected, "outer": {**expected["outer"], "items": ["1", {"ok": True}]}}
+        changed_key = {"outer": expected["outer"], "accented": expected["accent"]}
+        self.assertFalse(repair_preserves_values(malformed, changed_type))
+        self.assertFalse(repair_preserves_values(malformed, changed_key))
+
+    def test_repair_rejects_duplicate_keys_and_unambiguous_recovery_failures(self):
+        self.assertFalse(
+            repair_preserves_values('{"value":"uno","value":"dos",}', {"value": "dos"})
+        )
+        self.assertFalse(repair_preserves_values('{"value": "sin cierre"', {"value": "sin cierre"}))
+
     def test_accepts_direct_object_and_one_complete_fenced_object(self):
         expected = {"message": "contenido sintético"}
 
@@ -239,18 +275,34 @@ class ModelJSONResponseTests(SimpleTestCase):
     @patch("matching.client.requests.post")
     def test_repair_rejects_changed_values_and_ambiguous_content_is_never_repaired(self, post):
         malformed = Mock()
-        malformed.json.return_value = {"choices": [{"message": {"content": '{"summary": "Original" "keywords": []}'}}]}
+        malformed.json.return_value = {
+            "choices": [{
+                "message": {
+                    "content": (
+                        '{"summary": "texto, } y más", "keywords": [], '
+                        '"responsibilities": [], "requirements": [], "conditions": [],}'
+                    )
+                }
+            }]
+        }
         altered = Mock()
-        altered.json.return_value = {"choices": [{"message": {"content": '{"summary": "Inventado", "keywords": []}'}}]}
+        altered.json.return_value = {
+            "choices": [{
+                "message": {
+                    "content": (
+                        '{"summary": "texto} y más", "keywords": [], '
+                        '"responsibilities": [], "requirements": [], "conditions": []}'
+                    )
+                }
+            }]
+        }
         post.side_effect = [malformed, altered]
         with self.assertLogs("matching.client", level="WARNING") as captured:
             with self.assertRaises(OmniRouteError) as changed:
                 request_model_organization(vacancy={}, prompt="Organiza", parameters={})
         self.assertEqual(changed.exception.category, "omniroute.repair_not_preserved")
-        self.assertNotIn("Original", str(changed.exception))
-        self.assertNotIn("Inventado", str(changed.exception))
-        self.assertNotIn("Original", " ".join(captured.output))
-        self.assertNotIn("Inventado", " ".join(captured.output))
+        self.assertNotIn("texto", str(changed.exception))
+        self.assertNotIn("texto", " ".join(captured.output))
         self.assertEqual(post.call_count, 2)
 
         post.reset_mock()

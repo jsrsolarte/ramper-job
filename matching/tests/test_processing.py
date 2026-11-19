@@ -162,6 +162,46 @@ class MatchingProcessingTests(TestCase):
     )
     @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
     @patch("matching.client.requests.post")
+    def test_scoring_repair_cannot_persist_evidence_changed_inside_a_string(self, post, extract):
+        import json
+        from celery.exceptions import Retry
+
+        original = self._valid_payload()
+        original["score_breakdown"]["skills"]["evidence"] = "texto, } y más"
+        malformed_json = json.dumps(original, ensure_ascii=False)[:-1] + ",}"
+
+        altered = self._valid_payload()
+        altered["score_breakdown"]["skills"]["evidence"] = "texto} y más"
+        first = Mock()
+        first.json.return_value = {"choices": [{"message": {"content": malformed_json}}]}
+        repaired = Mock()
+        repaired.json.return_value = {
+            "choices": [{"message": {"content": json.dumps(altered, ensure_ascii=False)}}]
+        }
+        post.side_effect = [first, repaired]
+
+        with patch.object(analyze_vacancy_for_profile, "retry", side_effect=Retry()):
+            with self.assertRaises(Retry):
+                analyze_vacancy_for_profile.run(self.analysis.pk)
+
+        self.analysis.refresh_from_db()
+        self.assertEqual(self.analysis.status, VacancyAnalysis.Status.PENDING)
+        self.assertIsNone(self.analysis.score)
+        self.assertEqual(self.analysis.score_breakdown, {})
+        self.assertNotIn("texto", self.analysis.error_message)
+        repair_attempt = AICallAttempt.objects.get(
+            analysis=self.analysis, stage=AICallAttempt.Stage.SCORING_REPAIR,
+        )
+        self.assertEqual(repair_attempt.error_category, "omniroute.repair_not_preserved")
+        self.assertEqual(post.call_count, 2)
+
+    @override_settings(
+        OMNIROUTE_BASE_URL="http://omniroute.internal/v1",
+        OMNIROUTE_MODEL="auto",
+        OMNIROUTE_TIMEOUT_SECONDS=5,
+    )
+    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    @patch("matching.client.requests.post")
     def test_fenced_score_response_records_normalization_without_repair(self, post, extract):
         import json
 

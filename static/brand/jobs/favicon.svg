@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="28 0 365 370" role="img" aria-labelledby="title desc">
+<title id="title">Jobs · símbolo aprobado</title>
+<desc id="desc">Identidad de Jobs: J geométrica bicolor, curva cian y tres barras ascendentes; aplicación independiente del ecosistema RamPer.</desc>
+<defs>
+  <linearGradient id="jobsJBlue" x1="0" y1="0" x2="0.75" y2="1">
+    <stop offset="0" stop-color="#159BFA"/>
+    <stop offset="0.35" stop-color="#348CF5"/>
+    <stop offset="0.7" stop-color="#056BDF"/>
+    <stop offset="1" stop-color="#0453CD"/>
+  </linearGradient>
+  <linearGradient id="jobsJCyan" x1="0" y1="0.4" x2="1" y2="0.75">
+    <stop offset="0" stop-color="#68EFEA"/>
+    <stop offset="0.3" stop-color="#67D4F4"/>
+    <stop offset="0.7" stop-color="#1BA3FA"/>
+    <stop offset="1" stop-color="#057AF1"/>
+  </linearGradient>
+  <linearGradient id="jobsBars" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#5BEDF0"/>
+    <stop offset="0.55" stop-color="#13B1F5"/>
+    <stop offset="1" stop-color="#0869E7"/>
+  </linearGradient>
+  <clipPath id="jobsJClip"><path d="M369 19 L262 19 L242 24 L223 35 L211 47 L201 62 L193 82 L190 101 L267 101 L270 104 L270 115 L257 206 L249 233 L242 249 L229 269 L205 267 L187 263 L154 251 L94 219 L85 217 L69 219 L62 223 L56 229 L50 242 L50 261 L53 272 L61 288 L76 306 L97 322 L125 335 L143 340 L164 343 L199 343 L219 340 L251 330 L271 320 L296 301 L307 289 L318 273 L327 255 L334 234 L339 211 Z"/></clipPath>
+</defs>
+<path d="M369 19 L262 19 L242 24 L223 35 L211 47 L201 62 L193 82 L190 101 L267 101 L270 104 L270 115 L257 206 L249 233 L242 249 L229 269 L205 267 L187 263 L154 251 L94 219 L85 217 L69 219 L62 223 L56 229 L50 242 L50 261 L53 272 L61 288 L76 306 L97 322 L125 335 L143 340 L164 343 L199 343 L219 340 L251 330 L271 320 L296 301 L307 289 L318 273 L327 255 L334 234 L339 211 Z" fill="url(#jobsJBlue)"/>
+<path d="M 48 239 C 57 214 75 209 96 219 C 154 252 189 273 231 269 C 274 270 315 250 340 213 L 339 296 L 248 351 L 131 354 L 51 298 Z" fill="url(#jobsJCyan)" clip-path="url(#jobsJClip)"/>
+<path d="M120 179 L114 184 L112 188 L110 221 L112 224 L139 224 L143 219 L144 186 L141 181 L135 178 L123 178 Z" fill="url(#jobsBars)" />
+<path d="M167 156 L160 161 L157 168 L157 183 L156 184 L154 220 L158 224 L184 224 L188 219 L188 212 L189 211 L190 184 L191 183 L191 164 L188 159 L183 156 Z" fill="url(#jobsBars)" />
+<path d="M230 128 L217 128 L214 129 L208 134 L205 142 L205 157 L204 158 L204 172 L203 173 L203 185 L202 186 L202 199 L201 200 L201 214 L200 215 L201 221 L204 224 L228 224 L232 222 L235 217 L238 168 L239 167 L240 138 L239 135 L233 129 Z" fill="url(#jobsBars)" />
+</svg>

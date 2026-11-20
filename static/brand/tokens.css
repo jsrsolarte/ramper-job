@@ -1,0 +1,34 @@
+/* RamPer Brand v0.7.0 · guía compartida, logos aún no aprobados */
+:root {
+  --rp-font-display: "Sora", system-ui, sans-serif;
+  --rp-font-ui: "Inter", system-ui, sans-serif;
+  --rp-surface: #F6F7FB;
+  --rp-dark: #111827;
+  --rp-white: #FFFFFF;
+  --rp-on-dark: #F6F7FB;
+  --rp-text: #111827;
+  --rp-grid: 8px;
+  --rp-radius: 16px;
+}
+[data-brand="ramper"] {
+  --brand-primary: #5B4BFF;
+  --brand-secondary: #AD9BFF;
+  --brand-dark: #111827;
+  --brand-text-on-light: #5B4BFF;
+}
+[data-brand="jobs"] {
+  --brand-primary: #348CF5;
+  --brand-secondary: #67D4F4;
+  --brand-dark: #12263F;
+  --brand-text-on-light: #2D6CDF;
+}
+[data-brand="finzen"] {
+  --brand-primary: #16B98A;
+  --brand-secondary: #65DFC0;
+  --brand-dark: #10352F;
+  --brand-text-on-light: #0D7F5C;
+}
+[data-brand] {
+  --brand-action-bg: var(--brand-text-on-light);
+  --brand-action-fg: var(--rp-white);
+}

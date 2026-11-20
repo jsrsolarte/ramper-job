@@ -1,63 +1,67 @@
+@import url("fonts/fonts.css");
+@import url("brand/tokens.css");
+@import url("brand/buttons.css");
+
 :root {
-  --primary: #176c58;
-  --secondary: #105443;
-  --accent: #a9d5c4;
+  --primary: #2d6cdf;
+  --secondary: #1c4fa6;
+  --accent: #67d4f4;
   --primary-fg: #fff;
-  --body-fg: #172e32;
-  --body-bg: #f5f7f2;
-  --header-color: #172e32;
-  --header-branding-color: #172e32;
+  --body-fg: #12263f;
+  --body-bg: #f6f7fb;
+  --header-color: #12263f;
+  --header-branding-color: #12263f;
   --header-bg: #fff;
-  --breadcrumbs-fg: #294247;
+  --breadcrumbs-fg: #263c57;
   --breadcrumbs-link-fg: #fff;
-  --breadcrumbs-bg: #176c58;
-  --link-fg: #176c58;
-  --link-hover-color: #105443;
-  --hairline-color: #dce7e3;
-  --border-color: #dce7e3;
-  --darkened-bg: #f8faf7;
-  --selected-bg: #e7f2ed;
-  --selected-row: #e7f2ed;
-  --button-bg: #176c58;
-  --button-hover-bg: #105443;
-  --default-button-bg: #176c58;
-  --default-button-hover-bg: #105443;
-  --close-button-bg: #687c7d;
+  --breadcrumbs-bg: #2d6cdf;
+  --link-fg: #2d6cdf;
+  --link-hover-color: #1c4fa6;
+  --hairline-color: #d8e1ed;
+  --border-color: #d8e1ed;
+  --darkened-bg: #f8faff;
+  --selected-bg: #e8f1fc;
+  --selected-row: #e8f1fc;
+  --button-bg: #2d6cdf;
+  --button-hover-bg: #1c4fa6;
+  --default-button-bg: #2d6cdf;
+  --default-button-hover-bg: #1c4fa6;
+  --close-button-bg: #50647b;
   --close-button-hover-bg: #526566;
   --delete-button-bg: #a33535;
   --delete-button-hover-bg: #852b2b;
-  --object-tools-bg: #176c58;
-  --object-tools-hover-bg: #105443;
+  --object-tools-bg: #2d6cdf;
+  --object-tools-hover-bg: #1c4fa6;
   color-scheme: light;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-body { background: #f5f7f2; color: #172e32; }
-#header { min-height: 72px; padding: 12px max(24px, calc((100vw - 1180px) / 2)); border-bottom: 1px solid #dce7e3; box-shadow: 0 3px 12px rgba(28, 61, 54, .045); }
+body { background: #f6f7fb; color: #12263f; }
+#header { min-height: 72px; padding: 12px max(24px, calc((100vw - 1180px) / 2)); border-bottom: 1px solid #d8e1ed; box-shadow: 0 3px 12px rgba(18, 38, 63, .045); }
 #site-name { margin: 0; }
-#site-name a { display: flex; align-items: center; gap: 9px; color: #172e32; font-size: 18px; font-weight: 760; text-decoration: none; }
-#site-name strong { color: #176c58; }
-#site-name small { margin-left: 6px; padding-left: 14px; border-left: 1px solid #dce7e3; color: #687c7d; font-size: 11px; font-weight: 650; letter-spacing: .02em; }
-.ramper-admin-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 11px; color: white; background: #176c58; font-family: Georgia, serif; font-size: 23px; line-height: 1; }
-#user-tools { color: #687c7d; font-size: 11px; }
-#user-tools a { color: #176c58; }
+#site-name a { display: flex; align-items: center; gap: 9px; color: #12263f; font-size: 18px; font-weight: 760; text-decoration: none; }
+#site-name strong { color: #2d6cdf; }
+#site-name small { margin-left: 6px; padding-left: 14px; border-left: 1px solid #d8e1ed; color: #50647b; font-size: 11px; font-weight: 650; letter-spacing: .02em; }
+.ramper-admin-mark { display: grid; width: 32px; height: 32px; place-items: center; border-radius: 11px; color: white; background: #2d6cdf; font-family: Sora, sans-serif; font-size: 23px; line-height: 1; }
+#user-tools { color: #50647b; font-size: 11px; }
+#user-tools a { color: #2d6cdf; }
 .ramper-admin-nav { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
-.ramper-admin-nav a { padding: 6px 10px; border-radius: 999px; color: #294247; font-size: 11px; font-weight: 650; text-decoration: none; }
-.ramper-admin-nav a:hover { color: #105443; background: #e7f2ed; }
+.ramper-admin-nav a { padding: 6px 10px; border-radius: 999px; color: #263c57; font-size: 11px; font-weight: 650; text-decoration: none; }
+.ramper-admin-nav a:hover { color: #1c4fa6; background: #e8f1fc; }
 #content { width: min(100% - 48px, 1180px); margin: 34px auto 72px; }
-#content h1 { margin-bottom: 20px; color: #172e32; font-size: clamp(28px, 3.4vw, 38px); font-weight: 760; letter-spacing: -1.2px; }
-.module, .dashboard #content-main .module { overflow: hidden; margin-bottom: 20px; border: 1px solid #dce7e3; border-radius: 16px; background: #fff; box-shadow: 0 3px 12px rgba(28, 61, 54, .045); }
-.module h2, .module caption, .inline-group h2 { padding: 12px 16px; background: #f8faf7; color: #294247; font-size: 12px; font-weight: 760; letter-spacing: .04em; text-transform: uppercase; }
-table { border-color: #dce7e3; }
-th, td { border-color: #dce7e3; }
-tr:nth-child(odd), .row-form-errors { background: #f8faf7; }
-input, textarea, select, .vTextField { border: 1px solid #c5d5ce; border-radius: 8px; }
-input:focus, textarea:focus, select:focus { border-color: #176c58; outline: 0; box-shadow: 0 0 0 3px rgba(39, 139, 108, .18); }
-.button, input[type=submit], input[type=button], .submit-row input, a.button { min-height: 36px; border: 1px solid #176c58; border-radius: 999px; background: #176c58; box-shadow: none; font-weight: 680; }
-.button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover, a.button:hover { background: #105443; }
+#content h1 { margin-bottom: 20px; color: #12263f; font-size: clamp(28px, 3.4vw, 38px); font-weight: 760; letter-spacing: -1.2px; }
+.module, .dashboard #content-main .module { overflow: hidden; margin-bottom: 20px; border: 1px solid #d8e1ed; border-radius: 16px; background: #fff; box-shadow: 0 3px 12px rgba(18, 38, 63, .045); }
+.module h2, .module caption, .inline-group h2 { padding: 12px 16px; background: #f8faff; color: #263c57; font-size: 12px; font-weight: 760; letter-spacing: .04em; text-transform: uppercase; }
+table { border-color: #d8e1ed; }
+th, td { border-color: #d8e1ed; }
+tr:nth-child(odd), .row-form-errors { background: #f8faff; }
+input, textarea, select, .vTextField { border: 1px solid #728496; border-radius: 8px; }
+input:focus, textarea:focus, select:focus { border-color: #2d6cdf; outline: 0; box-shadow: 0 0 0 3px rgba(45, 108, 223, .3); }
+.button, input[type=submit], input[type=button], .submit-row input, a.button { min-height: 36px; border: 1px solid #2d6cdf; border-radius: 999px; background: #2d6cdf; box-shadow: none; font-weight: 680; }
+.button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover, a.button:hover { background: #1c4fa6; }
 .breadcrumbs { padding: 10px max(24px, calc((100vw - 1180px) / 2)); }
 .messagelist li { border-radius: 10px; }
-#footer { color: #687c7d; }
+#footer { color: #50647b; }
 
 @media (max-width: 700px) {
   #header { padding: 12px 16px; }
@@ -66,3 +70,44 @@ input:focus, textarea:focus, select:focus { border-color: #176c58; outline: 0; b
   .ramper-admin-nav { gap: 2px; }
   .ramper-admin-nav a { padding-inline: 8px; }
 }
+
+/* Identidad Jobs y foco visible sobre superficies claras. */
+h1, h2, h3, h4, h5, h6 { font-family: Sora, sans-serif; }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, summary:focus-visible { outline: 3px solid #2d6cdf; outline-offset: 2px; }
+
+body, input, select, textarea, button { font-family: Inter, sans-serif; }
+.admin-brand-logo { display: block; width: 116px; height: auto; }
+
+/* El tema de administración es claro; evitar la mezcla de colores del tema oscuro de Django. */
+:root {
+  --body-quiet-color: #50647b;
+  --body-medium-color: #263c57;
+  --body-loud-color: #12263f;
+  --header-link-color: #1c4fa6;
+  --link-selected-fg: #1c4fa6;
+  --font-family-primary: Inter, sans-serif;
+}
+#header #user-tools a:link, #header #user-tools a:visited, #header #logout-form button { color: #1c4fa6; }
+#nav-sidebar .module caption a:link, #nav-sidebar .module caption a:visited { color: #12263f; }
+.theme-toggle { display: none; }
+
+/* Los controles administrativos comparten los roles de acción de Jobs. */
+:root {
+  --button-bg: var(--jobs-action); --default-button-bg: var(--jobs-action);
+  --button-hover-bg: var(--jobs-action-hover); --default-button-hover-bg: var(--jobs-action-hover);
+  --delete-button-bg: var(--jobs-danger); --delete-button-hover-bg: var(--jobs-danger-hover);
+  --object-tools-bg: var(--jobs-action); --object-tools-hover-bg: var(--jobs-action-hover);
+}
+.button, input[type=submit], input[type=button], .submit-row input, a.button { color: var(--jobs-action-text); background: var(--jobs-action); border-color: var(--jobs-action); }
+.button:hover, input[type=submit]:hover, input[type=button]:hover, .submit-row input:hover, a.button:hover { color: var(--jobs-action-text); background: var(--jobs-action-hover); border-color: var(--jobs-action-hover); }
+a.button.cancel-link, .button.cancel-link { color: var(--jobs-secondary-text); background: var(--jobs-secondary); border-color: var(--jobs-secondary-border); }
+a.button.cancel-link:hover, .button.cancel-link:hover { color: var(--jobs-secondary-text); background: var(--jobs-secondary-hover); }
+.submit-row a.deletelink, .delete-confirmation input[type=submit] { color: #fff; background: var(--jobs-danger); border-color: var(--jobs-danger); }
+.submit-row a.deletelink:hover, .delete-confirmation input[type=submit]:hover { color: #fff; background: var(--jobs-danger-hover); border-color: var(--jobs-danger-hover); }
+/* Contraste del contexto actual y enlaces en fondos resaltados. */
+:root { --breadcrumbs-fg: #fff; }
+#nav-sidebar a:link, #nav-sidebar a:visited { color: #1c4fa6; }
+/* Tamaño mínimo táctil para acciones y filtros de Django admin. */
+#header #logout-form button { min-height: 24px; }
+#changelist-filter li a { display: flex; align-items: center; min-height: 24px; }
+#header #user-tools a { display: inline-flex; align-items: center; min-height: 24px; }

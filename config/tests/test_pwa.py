@@ -18,7 +18,10 @@ class ChromeInstallabilityTests(TestCase):
         self.assertEqual(manifest["start_url"], "/")
         self.assertEqual(manifest["scope"], "/")
         self.assertEqual(manifest["display"], "standalone")
-        self.assertEqual(manifest["name"], "Ramper Job")
+        self.assertEqual(manifest["name"], "Jobs")
+        self.assertEqual(manifest["short_name"], "Jobs")
+        self.assertEqual(manifest["theme_color"], "#12263F")
+        self.assertEqual({icon["sizes"] for icon in manifest["icons"]}, {"192x192", "512x512"})
 
         for icon in manifest["icons"]:
             icon_response = self.client.get(icon["src"])
@@ -32,7 +35,7 @@ class ChromeInstallabilityTests(TestCase):
         login = self.client.get(reverse("login"))
         self.assertRegex(
             login.content.decode(),
-            r'<link rel="manifest" href="/static/manifest(?:\.[a-f0-9]+)?\.json">',
+            r'<link rel="manifest" href="/static/manifest(?:\.[a-f0-9]+)?\.json\?v=jobs-1">',
         )
 
         user = get_user_model().objects.create_user(username="pwa-user", password="test-password")
@@ -41,7 +44,7 @@ class ChromeInstallabilityTests(TestCase):
         self.assertEqual(home.status_code, 200)
         self.assertRegex(
             home.content.decode(),
-            r'<link rel="manifest" href="/static/manifest(?:\.[a-f0-9]+)?\.json">',
+            r'<link rel="manifest" href="/static/manifest(?:\.[a-f0-9]+)?\.json\?v=jobs-1">',
         )
 
     def test_private_pages_are_not_cached_and_logout_removes_access(self):

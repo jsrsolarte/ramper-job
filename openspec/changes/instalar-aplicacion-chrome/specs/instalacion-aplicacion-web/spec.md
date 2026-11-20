@@ -2,23 +2,27 @@
 
 ## Purpose
 
-Permite instalar Ramper Job desde Chrome y abrirlo como aplicación web identificable en el dispositivo.
+Permite instalar Jobs desde Chrome y abrirlo como aplicación web identificable en el dispositivo.
 
 ## ADDED Requirements
 
 ### Requirement: Permitir la instalación desde Chrome
-El sistema SHALL ofrecer los recursos necesarios para que Chrome permita instalar Ramper Job en computador y Android desde su interfaz de instalación, cuando se cumplan los requisitos del navegador y del entorno seguro.
+El sistema SHALL ofrecer los recursos necesarios para que Chrome permita instalar Jobs en computador y Android desde su interfaz de instalación, cuando se cumplan los requisitos del navegador y del entorno seguro.
 
 #### Scenario: Instalar desde el navegador
-- **WHEN** una persona visita Ramper Job en una versión compatible de Chrome mediante HTTPS y selecciona instalar
-- **THEN** Chrome ofrece instalar la aplicación con el nombre e icono de Ramper Job
+- **WHEN** una persona visita Jobs en una versión compatible de Chrome mediante HTTPS y selecciona instalar
+- **THEN** Chrome ofrece instalar la aplicación con el nombre Jobs e icono oficial aprobado de Jobs
 
 #### Scenario: La persona no instala
 - **WHEN** la persona ignora o cancela la instalación
 - **THEN** puede seguir usando el sitio web normalmente
 
+#### Scenario: Actualizar una instalación existente
+- **WHEN** se actualizan el nombre y los iconos de una instalación existente en el mismo origen
+- **THEN** la identidad estable de la instalación se conserva y la actualización no requiere crear otra aplicación
+
 ### Requirement: Abrir la aplicación instalada
-La aplicación instalada SHALL abrir la página inicial de Ramper Job en una presentación independiente y conservar el flujo normal de autenticación y autorización.
+La aplicación instalada SHALL abrir la página inicial de Jobs en una presentación independiente y conservar el flujo normal de autenticación y autorización.
 
 #### Scenario: Apertura sin sesión
 - **WHEN** se abre la aplicación instalada sin una sesión válida

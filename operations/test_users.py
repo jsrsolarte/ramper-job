@@ -196,7 +196,7 @@ class InvitationEnrollmentTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Cache-Control"], "private, no-store")
         self.assertEqual(response["Referrer-Policy"], "no-referrer")
-        token_match = re.search(r"#([A-Za-z0-9_-]+)", response.content.decode())
+        token_match = re.search(r'id="invitation-link"[^>]*value="[^"#]+#([A-Za-z0-9_-]+)"', response.content.decode())
         self.assertIsNotNone(token_match)
         return response, token_match.group(1)
 

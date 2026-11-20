@@ -2,8 +2,8 @@ from django.contrib.admin import AdminSite
 
 
 class PlatformAdminSite(AdminSite):
-    site_header = "Ramper Job · Administración"
-    site_title = "Administración Ramper Job"
+    site_header = "Jobs · Administración"
+    site_title = "Administración Jobs"
     index_title = "Herramientas internas"
 
     def has_permission(self, request):

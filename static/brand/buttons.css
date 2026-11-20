@@ -1,0 +1,12 @@
+/* Roles compartidos para acciones de Jobs. */
+:root {
+  --jobs-action: #2d6cdf;
+  --jobs-action-hover: #1c4fa6;
+  --jobs-action-text: #fff;
+  --jobs-secondary: #eef5ff;
+  --jobs-secondary-hover: #dfedfc;
+  --jobs-secondary-text: #1c4fa6;
+  --jobs-secondary-border: #728496;
+  --jobs-danger: #a33535;
+  --jobs-danger-hover: #852b2b;
+}

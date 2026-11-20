@@ -616,8 +616,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 @media (max-width: 390px) {
-  .site-header { padding: 0 12px; }
-  .site-header nav a, .text-button { padding: 0 7px; }
+  .site-header { gap: 8px; padding: 8px 12px; }
+  .site-header nav { min-width: 0; flex-wrap: wrap; justify-content: flex-end; gap: 0; }
+  .site-header nav a, .text-button { min-height: 34px; padding: 0 5px; font-size: 10px; }
   .vacancy-facts { grid-template-columns: 1fr 1fr; }
   .vacancy-facts div:nth-child(4) { background: #fff; }
   .hero-actions { gap: 7px; }
@@ -672,6 +673,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .global-rubric-heading strong { color: var(--ink-soft); }
 .global-statistics-empty { padding: 16px; border: 1px dashed var(--line-strong); border-radius: 12px; color: var(--muted); text-align: center; }
 .global-statistics-privacy { margin: 12px 0 24px; font-size: 12px; }
+.user-statistics-cutoff { margin: 8px 0 14px; }
+.user-statistics-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; align-items: start; }
+.user-statistics-panel { min-width: 0; margin: 0; }
+.user-statistics-panel > p { line-height: 1.55; }
+.user-statistics-list { display: grid; gap: 0; margin: 16px 0; }
+.user-statistics-list > div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.user-statistics-list dt { color: var(--ink-soft); }
+.user-statistics-list dd { margin: 0; color: var(--ink); font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+.user-statistics-list .user-statistics-total { border-top: 2px solid var(--line-strong); font-weight: 740; }
+.user-statistics-panel .field-help { margin-bottom: 0; }
 .source-performance-wrap { margin: 14px 0 0; }
 .source-performance-table { table-layout: fixed; font-size: 10px; font-variant-numeric: tabular-nums; }
 .source-performance-table th, .source-performance-table td { padding: 9px 6px; white-space: normal; overflow-wrap: anywhere; line-height: 1.35; }
@@ -687,7 +698,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .reset-setting-form { margin-top: 10px; }
 
 @media (max-width: 800px) {
-  .admin-tools, .global-statistics-grid { grid-template-columns: 1fr; }
+  .admin-tools, .global-statistics-grid, .user-statistics-grid { grid-template-columns: 1fr; }
   .admin-tool { min-height: 0; }
   .admin-actions { align-items: flex-start; flex-direction: column; }
   .admin-settings-grid { grid-template-columns: 1fr; }

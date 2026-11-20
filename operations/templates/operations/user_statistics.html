@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Estadísticas del aspirante · Administración{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Administración · Usuarios</p>
+  {% if unavailable %}
+    <h1>Estadísticas no disponibles</h1>
+    <p class="muted">La cuenta solicitada no está disponible para consulta.</p>
+  {% else %}
+    <h1>Estadísticas del aspirante</h1>
+    <p class="muted">Cuenta: <strong>{{ account.get_username }}</strong></p>
+  {% endif %}
+</section>
+<p><a class="button button-secondary" href="{% url 'operations:users' %}">Volver a usuarios</a></p>
+
+{% if not unavailable %}
+  {% if not profile %}
+    <section class="admin-panel" aria-labelledby="no-profile-heading">
+      <h2 id="no-profile-heading">Perfil no configurado</h2>
+      <p>Esta cuenta todavía no tiene un perfil laboral. No hay métricas individuales que mostrar.</p>
+    </section>
+  {% else %}
+    <p class="muted user-statistics-cutoff">Consulta realizada el <time datetime="{{ statistics.queried_at|date:'c' }}">{{ statistics.queried_at|date:"d/m/Y H:i" }}</time>.</p>
+    <div class="user-statistics-grid">
+      <section class="admin-panel user-statistics-panel" aria-labelledby="follow-up-heading">
+        <h2 id="follow-up-heading">Estados actuales de vacantes</h2>
+        <p class="muted">{{ statistics.follow_up_total }} vacante{{ statistics.follow_up_total|pluralize:"s" }} visible{{ statistics.follow_up_total|pluralize:"s" }} en el dashboard, sin filtros de estrellas ni de fecha.</p>
+        <dl class="user-statistics-list">
+          {% for state in statistics.follow_up_states %}
+            <div><dt>{{ state.label }}</dt><dd>{{ state.count }}</dd></div>
+          {% endfor %}
+          <div class="user-statistics-total"><dt>Total visible</dt><dd>{{ statistics.follow_up_total }}</dd></div>
+          <div><dt>Seguimientos archivados por inactividad</dt><dd>{{ statistics.archived_count }}</dd></div>
+        </dl>
+        <p class="field-help">Las vacantes sin seguimiento explícito cuentan como pendientes. Las archivadas se excluyen del total visible y se cuentan aparte.</p>
+      </section>
+
+      <section class="admin-panel user-statistics-panel" aria-labelledby="analysis-heading">
+        <h2 id="analysis-heading">Procesamiento de análisis</h2>
+        <p class="muted">{{ statistics.analysis_unit_label|capfirst }}.</p>
+        <dl class="user-statistics-list">
+          <div><dt>Pendientes</dt><dd>{{ statistics.analysis_counts.pending }}</dd></div>
+          <div><dt>Completos</dt><dd>{{ statistics.analysis_counts.completed }}</dd></div>
+          <div><dt>Fallidos</dt><dd>{{ statistics.analysis_counts.failed }}</dd></div>
+          <div class="user-statistics-total"><dt>Total vigente</dt><dd>{{ statistics.analysis_total }}</dd></div>
+        </dl>
+        <p class="field-help">Cada vacante cuenta una vez según el análisis más reciente de la revisión actual. Los análisis reemplazados no se cuentan aquí.</p>
+      </section>
+
+      <section class="admin-panel user-statistics-panel" aria-labelledby="history-heading">
+        <h2 id="history-heading">Actividad histórica disponible</h2>
+        <dl class="user-statistics-list">
+          <div><dt>Vacantes descubiertas para este perfil</dt><dd>{{ statistics.discovered_count }}</dd></div>
+          <div><dt>Descubrimiento más reciente</dt><dd>{% if statistics.latest_discovery %}<time datetime="{{ statistics.latest_discovery|date:'c' }}">{{ statistics.latest_discovery|date:"d/m/Y H:i" }}</time>{% else %}<span class="muted">Fecha no disponible</span>{% endif %}</dd></div>
+          <div><dt>Análisis completados conservados</dt><dd>{{ statistics.historical_completed_count }}</dd></div>
+          <div><dt>Finalización más reciente</dt><dd>{% if statistics.latest_historical_completion %}<time datetime="{{ statistics.latest_historical_completion|date:'c' }}">{{ statistics.latest_historical_completion|date:"d/m/Y H:i" }}</time>{% else %}<span class="muted">Fecha no disponible</span>{% endif %}</dd></div>
+        </dl>
+        <p class="field-help">Los totales abarcan los registros históricos que aún se conservan, incluidos análisis completados luego reemplazados. No hay una cronología completa de cambios de seguimiento ni se infiere actividad anterior a esos registros.</p>
+      </section>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

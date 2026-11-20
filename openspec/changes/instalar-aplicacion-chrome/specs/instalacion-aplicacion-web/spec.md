@@ -1,0 +1,40 @@
+# Spec Delta
+
+## Purpose
+
+Permite instalar Ramper Job desde Chrome y abrirlo como aplicación web identificable en el dispositivo.
+
+## ADDED Requirements
+
+### Requirement: Permitir la instalación desde Chrome
+El sistema SHALL ofrecer los recursos necesarios para que Chrome permita instalar Ramper Job en computador y Android desde su interfaz de instalación, cuando se cumplan los requisitos del navegador y del entorno seguro.
+
+#### Scenario: Instalar desde el navegador
+- **WHEN** una persona visita Ramper Job en una versión compatible de Chrome mediante HTTPS y selecciona instalar
+- **THEN** Chrome ofrece instalar la aplicación con el nombre e icono de Ramper Job
+
+#### Scenario: La persona no instala
+- **WHEN** la persona ignora o cancela la instalación
+- **THEN** puede seguir usando el sitio web normalmente
+
+### Requirement: Abrir la aplicación instalada
+La aplicación instalada SHALL abrir la página inicial de Ramper Job en una presentación independiente y conservar el flujo normal de autenticación y autorización.
+
+#### Scenario: Apertura sin sesión
+- **WHEN** se abre la aplicación instalada sin una sesión válida
+- **THEN** se presenta el inicio de sesión y las páginas privadas siguen protegidas
+
+#### Scenario: Apertura con sesión válida
+- **WHEN** se abre la aplicación instalada con una sesión válida
+- **THEN** la persona llega al destino habitual de su cuenta y puede navegar y cerrar sesión
+
+### Requirement: Mantener acceso y privacidad
+La instalación SHALL ser opcional y no SHALL almacenar datos privados de perfiles, vacantes o CV para uso sin conexión.
+
+#### Scenario: Se pierde la conexión
+- **WHEN** una persona abre o utiliza la aplicación sin conexión
+- **THEN** no se presenta información privada almacenada por la funcionalidad de instalación ni se promete que las operaciones se completaron
+
+#### Scenario: Cierre de sesión o cambio de cuenta
+- **WHEN** una persona cierra sesión y otra abre la aplicación instalada
+- **THEN** se aplican los controles de acceso habituales sin revelar datos privados de la sesión anterior mediante una caché de instalación

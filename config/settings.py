@@ -45,6 +45,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "config.middleware.PrivateResponseCacheControlMiddleware",
     "config.middleware.RecordAuthenticatedApplicantActivityMiddleware",
     "config.middleware.LogoutInactiveUsersMiddleware",
     "config.middleware.MandatoryGuidedTourMiddleware",

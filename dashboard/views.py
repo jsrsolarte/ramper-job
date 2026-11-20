@@ -12,7 +12,7 @@ from django.views.decorators.http import require_POST
 from dashboard.models import VacancyFollowUp
 from dashboard.score_distribution import build_score_summary
 from dashboard.score_display import score_star_label, score_star_percent, score_star_threshold_label
-from dashboard.services import discard_follow_up
+from dashboard.services import current_score_analyses, dashboard_follow_up_summary, discard_follow_up
 from dashboard.time_format import publication_age, relative_age
 from jobs.models import JobSourceStatus
 from matching.models import AICallAttempt, HISTORICAL_RUBRIC_CRITERIA_V2, RUBRIC_CRITERIA, VacancyAnalysis
@@ -22,40 +22,7 @@ from profiles.locations import vacancy_location_is_eligible
 
 
 def _current_score_analyses(profile):
-    if not profile:
-        return [], None, set()
-
-    revision = profile.revisions.filter(version=profile.revision_number).first()
-    latest_result = VacancyAnalysis.objects.filter(
-        profile=OuterRef("profile"),
-        vacancy=OuterRef("vacancy"),
-        status=VacancyAnalysis.Status.COMPLETED,
-        profile_revision__version=F("profile__revision_number"),
-    ).order_by("-created_at", "-pk").values("pk")[:1]
-    analyses = list(
-        VacancyAnalysis.objects.filter(
-            profile=profile,
-            status=VacancyAnalysis.Status.COMPLETED,
-            profile_revision__version=profile.revision_number,
-            score_stars__isnull=False,
-        )
-        .exclude(score_breakdown={})
-        .annotate(latest_result_id=Subquery(latest_result))
-        .filter(pk=F("latest_result_id"))
-        .select_related("vacancy", "organization")
-        .order_by("-score_stars", "-created_at")
-    )
-    archived_vacancy_ids = set(
-        VacancyFollowUp.objects.filter(profile=profile, archived_at__isnull=False)
-        .values_list("vacancy_id", flat=True)
-    )
-    if revision:
-        analyses = [
-            analysis for analysis in analyses
-            if analysis.vacancy_id not in archived_vacancy_ids
-            and vacancy_location_is_eligible(analysis.vacancy, revision)
-        ]
-    return analyses, revision, archived_vacancy_ids
+    return current_score_analyses(profile)
 
 
 @login_required
@@ -90,18 +57,11 @@ def home(request):
         score_filter = requested_score_filter
         score_filter_options = []
         analyses, revision, archived_vacancy_ids = _current_score_analyses(profile)
-        follow_up_rows = VacancyFollowUp.objects.filter(profile=profile)
+        follow_up_counts, follow_ups = dashboard_follow_up_summary(profile, analyses)
         score_summary = build_score_summary(
             (analysis.score_stars for analysis in analyses),
             minimum_score=profile.min_score_stars or 0,
         )
-        follow_ups = {
-            follow_up.vacancy_id: follow_up
-            for follow_up in follow_up_rows.filter(
-                vacancy_id__in=[analysis.vacancy_id for analysis in analyses],
-                archived_at__isnull=True,
-            )
-        }
         now = timezone.now()
         for analysis in analyses:
             follow_up = follow_ups.get(analysis.vacancy_id)
@@ -126,7 +86,6 @@ def home(request):
                 analysis.state_age = relative_age(follow_up.state_changed_at, now=now)
                 analysis.state_age_prefix = state_prefix
                 analysis.state_changed_at = follow_up.state_changed_at
-            follow_up_counts[analysis.follow_up_status] += 1
             next_statuses = {
                 VacancyFollowUp.Status.PENDING: [(VacancyFollowUp.Status.APPLIED, "Marcar como aplicada")],
                 VacancyFollowUp.Status.APPLIED: [

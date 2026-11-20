@@ -23,7 +23,7 @@ class PrivateResponseCacheControlMiddleware:
         response = self.get_response(request)
         current_user = getattr(request, "user", None)
         if was_authenticated or (current_user and current_user.is_authenticated):
-            response["Cache-Control"] = "private, no-store, max-age=0"
+            response["Cache-Control"] = "private, no-store"
         return response
 
 

@@ -50,11 +50,11 @@ class ChromeInstallabilityTests(TestCase):
 
         private_page = self.client.get("/")
         self.assertEqual(private_page.status_code, 200)
-        self.assertEqual(private_page["Cache-Control"], "private, no-store, max-age=0")
+        self.assertEqual(private_page["Cache-Control"], "private, no-store")
 
         logout = self.client.post(reverse("logout"))
         self.assertEqual(logout.status_code, 302)
-        self.assertEqual(logout["Cache-Control"], "private, no-store, max-age=0")
+        self.assertEqual(logout["Cache-Control"], "private, no-store")
         self.assertRedirects(self.client.get("/"), f"{reverse('login')}?next=/", fetch_redirect_response=False)
 
     def test_switching_accounts_opens_only_the_new_account(self):
@@ -69,12 +69,12 @@ class ChromeInstallabilityTests(TestCase):
         self.client.force_login(first_user)
         first_page = self.client.get("/")
         self.assertContains(first_page, "Hola, Cuenta A")
-        self.assertEqual(first_page["Cache-Control"], "private, no-store, max-age=0")
+        self.assertEqual(first_page["Cache-Control"], "private, no-store")
 
         self.client.post(reverse("logout"))
         self.client.force_login(second_user)
         second_page = self.client.get("/")
         self.assertContains(second_page, "Hola, Cuenta B")
         self.assertNotContains(second_page, "Hola, Cuenta A")
-        self.assertEqual(second_page["Cache-Control"], "private, no-store, max-age=0")
+        self.assertEqual(second_page["Cache-Control"], "private, no-store")
 

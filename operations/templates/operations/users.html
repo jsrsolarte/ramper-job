@@ -43,6 +43,7 @@
         <td>{% if account.is_active %}Activa{% elif account.latest_status_action == 'account_auto_deactivated' %}Desactivada por inactividad{% else %}Desactivada{% endif %}</td>
         <td>{{ account.last_login|date:"Y-m-d H:i"|default:"—" }}</td>
         <td class="admin-actions">
+          {% if account.is_active %}<a class="button button-secondary" href="{% url 'operations:applicant_statistics' account.pk %}">Ver estadísticas</a>{% endif %}
           <form method="post" action="{% url 'operations:toggle_user' account.pk %}">{% csrf_token %}<input type="hidden" name="active" value="{% if account.is_active %}false{% else %}true{% endif %}"><button class="button button-secondary" type="submit">{% if account.is_active %}Desactivar{% else %}Reactivar{% endif %}</button></form>
           {% if account.is_active and account.has_usable_password %}
           <form method="post" action="{% url 'operations:request_password_reset' account.pk %}">{% csrf_token %}<button class="button button-secondary" type="submit">Generar enlace</button></form>

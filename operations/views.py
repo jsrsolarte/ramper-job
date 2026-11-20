@@ -22,6 +22,7 @@ from django.views.decorators.http import require_POST
 from jobs.models import JobSourceStatus, ManualVacancySubmission
 from jobs.tasks import process_manual_vacancy_submission
 from matching.models import AICallAttempt, VacancyAnalysis
+from profiles.models import Profile
 
 from .decorators import platform_admin_required
 from .forms import (
@@ -61,6 +62,7 @@ from .parameters import (
 )
 from .platform_statistics import build_platform_statistics
 from .scheduling import next_periodic_refresh_schedule
+from .user_statistics import build_applicant_statistics
 
 PERIODS = {"24h": ("24 horas", timedelta(hours=24)), "7d": ("7 días", timedelta(days=7)), "30d": ("30 días", timedelta(days=30))}
 ALLOWED_COMMANDS = {"refresh_sources": "Actualizar fuentes ahora"}
@@ -155,6 +157,33 @@ def users(request):
         "now": timezone.now(),
         "audit_events": AdminAuditEvent.objects.select_related("actor", "target")[:30],
     })
+
+
+@platform_admin_required
+def applicant_statistics(request, user_id):
+    User = get_user_model()
+    account = User.objects.filter(
+        pk=user_id,
+        is_active=True,
+        is_staff=False,
+        is_superuser=False,
+    ).first()
+    if account is None:
+        response = render(request, "operations/user_statistics.html", {
+            "unavailable": True,
+        }, status=404)
+    else:
+        profile = Profile.objects.filter(owner=account).first()
+        response = render(request, "operations/user_statistics.html", {
+            "unavailable": False,
+            "account": account,
+            "profile": profile,
+            "statistics": build_applicant_statistics(profile),
+        })
+    response["Cache-Control"] = "private, no-store"
+    response["Referrer-Policy"] = "no-referrer"
+    response["X-Robots-Tag"] = "noindex, nofollow"
+    return response
 
 
 @platform_admin_required

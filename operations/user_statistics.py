@@ -1,6 +1,6 @@
 """Read-only per-applicant statistics for the administration area."""
 
-from django.db.models import Count, Exists, F, Max, OuterRef, Subquery
+from django.db.models import Count, F, Max, OuterRef, Subquery
 from django.utils import timezone
 
 from dashboard.models import VacancyFollowUp
@@ -36,31 +36,19 @@ def build_applicant_statistics(profile, *, now=None):
             archived_at__isnull=False,
         ).count()
 
-        latest_analysis = VacancyAnalysis.objects.filter(
-            profile=OuterRef("profile"),
-            vacancy=OuterRef("vacancy"),
-            profile_revision__version=F("profile__revision_number"),
-            status__in=(VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED),
-        ).order_by("-created_at", "-pk").values("pk")[:1]
-        completed_for_pair = VacancyAnalysis.objects.filter(
-            profile_id=OuterRef("profile_id"), vacancy_id=OuterRef("vacancy_id"),
-            status=VacancyAnalysis.Status.COMPLETED,
-        )
         if revision:
+            latest_analysis = VacancyAnalysis.objects.filter(
+                profile=profile,
+                vacancy=OuterRef("vacancy"),
+                profile_revision=revision,
+            ).order_by("-created_at", "-pk").values("pk")[:1]
             current_analyses = VacancyAnalysis.objects.filter(
                 profile=profile,
                 profile_revision=revision,
-                status__in=(VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED),
-            ).annotate(
-                latest_id=Subquery(latest_analysis),
-                has_completed=Exists(completed_for_pair),
-            ).filter(pk=F("latest_id"), has_completed=False)
+            ).annotate(latest_id=Subquery(latest_analysis)).filter(pk=F("latest_id"))
             for row in current_analyses.values("status").annotate(total=Count("pk")):
                 if row["status"] in analysis_counts:
                     analysis_counts[row["status"]] = row["total"]
-        analysis_counts[VacancyAnalysis.Status.COMPLETED] = VacancyAnalysis.objects.filter(
-            profile=profile, status=VacancyAnalysis.Status.COMPLETED,
-        ).values("vacancy_id").distinct().count()
 
         discovery_summary = ProfileVacancyDiscovery.objects.filter(profile=profile).aggregate(
             total=Count("pk"),

@@ -125,4 +125,5 @@ class StarScoreMigrationTests(__import__('django.test', fromlist=['TransactionTe
             self.assertEqual(restored.score, Decimal('6.5'))
             self.assertEqual(restored.score_breakdown, {'evidence': 'sintética'})
         finally:
-            MigrationExecutor(connection).migrate(current)
+            restore = MigrationExecutor(connection)
+            restore.migrate(restore.loader.graph.leaf_nodes())

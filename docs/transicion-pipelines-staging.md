@@ -12,18 +12,11 @@ Este documento describe el flujo propuesto para el cambio `separar-pipelines-sta
 
 ## Producción y reversión
 
-Los PR utilizan `pr-validation.yml` con permisos de lectura. Al integrar mediante PR un
-candidato probado desde `staging` a `main`, `production.yml` valida el commit y consulta
-el PR fusionado para rechazar pushes directos y PRs de otro origen. Verifica que el
-código de aplicación coincide con el SHA fijado en el overlay de staging y que la imagen
-inmutable está disponible en GHCR. Si todo pasa, actualiza automáticamente el overlay de
-producción al mismo SHA de imagen. Las fallas o los candidatos obsoletos conservan el pin
-actual. El commit del pin no vuelve a iniciar el pipeline.
+Los PR utilizan `pr-validation.yml` con permisos de lectura. `production.yml` valida cada push a `main` y publica una imagen etiquetada con el SHA del commit, pero no cambia el pin productivo en ese evento. Tras aprobar el staging, la promoción se inicia manualmente desde `main`, escribiendo `PROMOVER` como confirmación. El workflow verifica que el código de aplicación de `main` coincide con el candidato fijado en staging, que la imagen del commit de `main` ya fue publicada y que el SHA ejecutado sigue siendo la cabeza de `main`; después actualiza el pin de prod en Git. Flux realiza el despliegue. La promoción puede construir una imagen distinta y tener otro SHA de merge, siempre que el código de aplicación sea el aprobado en staging.
 
-El merge del PR de staging es la autorización explícita para esa versión. La etiqueta de
-versión que crea `release.yml` registra metadatos del artefacto y no cambia el pin por sí
-sola. Para revertir un despliegue, restaura mediante Git el SHA anterior en el overlay de
-producción y deja que Flux reconcilie; la reversión requiere una decisión explícita.
+`release.yml` sigue creando metadatos de versión cuando se publica un tag `v*`; ese registro no actualiza por sí solo el pin de producción. La confirmación manual del workflow es la autorización explícita para modificar el pin productivo.
+
+Para revertir la transición, deshabilitar `staging.yml` y esperar a que terminen sus ejecuciones. Confirmar que ya no puede escribir el pin antes de volver a habilitar `ci.yml`; restaurar el pin inmutable anterior mediante Git si corresponde y comprobar la validación de PR. No modificar producción sin autorización específica.
 
 ## Comprobación previa del 16 de noviembre de 2026
 

@@ -53,6 +53,7 @@ def finish_run(
     title_discarded_count=None,
     details_requested_count=None,
     details_received_count=None,
+    details_reused_count=None,
     title_input_tokens=None,
     listing_fetch_duration_ms=None,
     title_preselection_duration_ms=None,
@@ -74,6 +75,7 @@ def finish_run(
     run.title_discarded_count = title_discarded_count
     run.details_requested_count = details_requested_count
     run.details_received_count = details_received_count
+    run.details_reused_count = details_reused_count
     run.title_input_tokens = title_input_tokens
     run.listing_fetch_duration_ms = listing_fetch_duration_ms
     run.title_preselection_duration_ms = title_preselection_duration_ms
@@ -89,7 +91,7 @@ def finish_run(
     run.save(update_fields=(
         "status", "item_count", "new_count", "known_count", "known_updated_count",
         "known_unchanged_count", "listing_count", "title_kept_count", "title_discarded_count",
-        "details_requested_count", "details_received_count", "title_input_tokens",
+        "details_requested_count", "details_received_count", "details_reused_count", "title_input_tokens",
         "listing_fetch_duration_ms", "title_preselection_duration_ms", "detail_fetch_duration_ms",
         "finished_at", "duration_ms", "error_category", "error_summary",
     ))

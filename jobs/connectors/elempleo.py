@@ -14,7 +14,7 @@ from django.utils.text import slugify
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
-from .base import JobListing, SourceUnavailable
+from .base import JobListing, SourceUnavailable, mark_details_confirmed
 from jobs.identity import vacancy_dedupe_key
 from profiles.locations import BOGOTA_AREA, MEDELLIN_AREA
 
@@ -197,7 +197,7 @@ class ElempleoConnector:
             except (ValueError, TypeError, AttributeError):
                 detail_errors.append(f"No se pudo interpretar la ficha de «{listing.title}».")
                 continue
-            listings[index] = self._merge_listing_details(listing, enriched)
+            listings[index] = mark_details_confirmed(self._merge_listing_details(listing, enriched))
 
         self.status_message = " ".join(filter(None, (self.status_message, *detail_errors)))[:300]
         return listings

@@ -3,7 +3,7 @@ import logging
 from celery import shared_task
 from django.utils import timezone
 
-from .connectors.base import JobListing
+from .connectors.base import JobListing, mark_details_confirmed
 from .registry import configured_connectors  # compatibility for callers patching the task module
 from .models import ManualVacancySubmission
 from profiles.models import Profile
@@ -16,6 +16,8 @@ from operations.services import (
     start_admin_command,
 )
 from operations.parameters import processing_is_paused
+from operations.scheduling import automatic_searches_paused
+from .services import claim_detail_fetch, confirmed_listing_details, normalized_url_hash, release_detail_fetch_leases
 
 logger = logging.getLogger(__name__)
 
@@ -54,32 +56,31 @@ def refresh_profile_sources(profile_id, command_run_id=None, lease_token=None):
     if not lease_token or not claim_refresh_lease(lease_key, lease_token):
         return {"skipped": "already_running"}
     renew_refresh_lease(lease_key, lease_token, ttl_seconds=24 * 60 * 60)
-    try:
-        prepare_refresh_batch.delay(
-            {str(profile_id): lease_token},
-            command_run_id=command_run_id,
-            leases_already_claimed=True,
-        )
-    except Exception:
-        release_refresh_lease(lease_key, lease_token)
-        raise
+    prepare_refresh_batch.delay(
+        {str(profile_id): lease_token},
+        command_run_id=command_run_id,
+        leases_already_claimed=True,
+        origin="automatic",
+    )
     return {"scheduled_profiles": 1}
 
 
 @shared_task(name="jobs.tasks.refresh_shared_sources")
-def refresh_shared_sources(profile_leases, command_run_id=None):
+def refresh_shared_sources(profile_leases, command_run_id=None, origin="manual"):
     """Compatibility entry point for queued jobs; route them through resumable work."""
     from .resumable import prepare_refresh_batch
 
-    prepare_refresh_batch.delay(profile_leases, command_run_id=command_run_id)
+    prepare_refresh_batch.delay(profile_leases, command_run_id=command_run_id, origin=origin)
     return {"scheduled_profiles": len(profile_leases or {})}
 
 
 @shared_task(name="jobs.tasks.refresh_sources")
-def refresh_sources(command_run_id=None):
+def refresh_sources(command_run_id=None, origin="manual"):
     if processing_is_paused():
-        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id, "origin": origin}, countdown=60)
         return {"deferred": "processing_paused"}
+    if origin == "automatic" and automatic_searches_paused():
+        return {"deferred": "automatic_search_schedule"}
     profiles = Profile.objects.filter(
         owner__is_active=True,
         search_enabled=True,
@@ -103,7 +104,7 @@ def refresh_sources(command_run_id=None):
         profile_leases[str(profile_id)] = lease_token
     if profile_leases:
         try:
-            refresh_shared_sources.delay(profile_leases, command_run_id=command_run_id)
+            refresh_shared_sources.delay(profile_leases, command_run_id=command_run_id, origin=origin)
         except Exception:
             for profile_id, lease_token in profile_leases.items():
                 release_refresh_lease(f"profile-refresh:{profile_id}", lease_token)
@@ -116,12 +117,16 @@ def refresh_sources(command_run_id=None):
 
 @shared_task(name="jobs.tasks.refresh_periodic_sources")
 def refresh_periodic_sources():
-    """Mark and run only the global automatic source-refresh cycle scheduled by Celery Beat."""
-    if not processing_is_paused():
-        from operations.scheduling import record_periodic_refresh_start
+    """Mark and run only the global automatic cycle scheduled by Celery Beat."""
+    if processing_is_paused():
+        return {"deferred": "processing_paused"}
+    if automatic_searches_paused():
+        return {"deferred": "automatic_search_schedule"}
+    from operations.scheduling import claim_periodic_refresh_start
 
-        record_periodic_refresh_start()
-    return refresh_sources()
+    if claim_periodic_refresh_start() is None:
+        return {"skipped": "cycle_not_due"}
+    return refresh_sources(origin="automatic")
 
 
 # Register the resumable worker tasks with Celery's task autodiscovery.
@@ -145,11 +150,28 @@ def process_manual_vacancy_submission(submission_id):
     if submission is None:
         return {"skipped": "missing_submission"}
 
+    detail_lease_token = ""
+    detail_lease_hash = ""
     try:
         from .connectors.elempleo import resolve_vacancy_url_provider
 
         connector = resolve_vacancy_url_provider(submission.original_url)
-        listing = connector.fetch_vacancy_url(submission.original_url)
+        candidate = JobListing(
+            source=connector.source, external_id="", title="", company=None, location=None,
+            description=None, original_url=submission.original_url,
+        )
+        listing = confirmed_listing_details(candidate)
+        if listing is None:
+            lease_state, detail_lease_token = claim_detail_fetch(connector.source, submission.original_url)
+            if lease_state == "busy":
+                submission.status = ManualVacancySubmission.Status.QUEUED
+                submission.result_message = "La ficha ya está en consulta; el registro se reintentará automáticamente."
+                submission.save(update_fields=("status", "result_message", "updated_at"))
+                process_manual_vacancy_submission.apply_async(args=(submission.pk,), countdown=300)
+                return {"deferred": "detail_fetch_in_progress"}
+            detail_lease_hash = normalized_url_hash(submission.original_url)
+            listing = connector.fetch_vacancy_url(submission.original_url)
+            listing = mark_details_confirmed(listing, requested_url=submission.original_url)
         submission.title = listing.title
         submission.source = listing.source
         submission.company = listing.company or ""
@@ -176,10 +198,11 @@ def process_manual_vacancy_submission(submission_id):
         from .services import save_listing
         from matching.tasks import schedule_vacancy_analysis
 
-        vacancy, created = save_listing(listing)
+        vacancy, created = save_listing(listing, details_confirmed=True)
         materially_changed = getattr(vacancy, "_materially_changed", created)
         schedule_vacancy_analysis.delay(vacancy.pk, force_reanalysis=materially_changed)
     except Exception as exc:
+        release_detail_fetch_leases(token=detail_lease_token, url_hashes=[detail_lease_hash])
         submission.status = ManualVacancySubmission.Status.FAILED
         submission.result_message = (
             "No fue posible guardar la vacante o programar el análisis. Puedes volver a enviarla para reintentar."
@@ -191,6 +214,8 @@ def process_manual_vacancy_submission(submission_id):
             type(exc).__name__,
         )
         return {"status": submission.status}
+
+    release_detail_fetch_leases(token=detail_lease_token, url_hashes=[detail_lease_hash])
 
     submission.vacancy = vacancy
     submission.status = ManualVacancySubmission.Status.SCHEDULED

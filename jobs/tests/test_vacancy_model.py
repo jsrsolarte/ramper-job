@@ -125,7 +125,7 @@ class VacancyNormalizationTests(TestCase):
         self.assertEqual(updated.raw_data["details"]["city"], "Envigado")
         self.assertEqual(updated.raw_data["details"]["salary_periodicity"], "mensual")
 
-    def test_same_source_job_with_changed_url_reuses_vacancy_and_tracks_alternate_url(self):
+    def test_distinct_paths_remain_distinct_even_with_same_source_identifier(self):
         first = JobListing(
             source="elempleo_co", external_id="12345", title="Analista de procesos",
             company="Empresa", location="Soacha", description="Descripción",
@@ -141,14 +141,12 @@ class VacancyNormalizationTests(TestCase):
         repeated, created_again = save_listing(second)
 
         self.assertTrue(created)
-        self.assertFalse(created_again)
-        self.assertEqual(Vacancy.objects.count(), 1)
-        self.assertEqual(repeated.pk, original.pk)
-        self.assertEqual(repeated.original_url, first.original_url)
-        self.assertEqual(repeated.raw_data["alternate_urls"], [second.original_url])
+        self.assertTrue(created_again)
+        self.assertEqual(Vacancy.objects.count(), 2)
+        self.assertNotEqual(repeated.pk, original.pk)
         self.assertEqual(repeated.description, "Actualización")
 
-    def test_fingerprint_reuses_vacancy_when_source_has_no_stable_numeric_id(self):
+    def test_similar_fingerprint_does_not_merge_distinct_paths(self):
         first = JobListing(
             source="elempleo_co", external_id="analista-de-procesos", title="Analista de procesos",
             company="Empresa Ejemplo", location="Bogotá D.C.", description=None,
@@ -164,6 +162,6 @@ class VacancyNormalizationTests(TestCase):
         saved_second, created_again = save_listing(second)
 
         self.assertTrue(created)
-        self.assertFalse(created_again)
-        self.assertEqual(Vacancy.objects.filter(source="elempleo_co").count(), 1)
-        self.assertEqual(saved_second.pk, saved_first.pk)
+        self.assertTrue(created_again)
+        self.assertEqual(Vacancy.objects.filter(source="elempleo_co").count(), 2)
+        self.assertNotEqual(saved_second.pk, saved_first.pk)

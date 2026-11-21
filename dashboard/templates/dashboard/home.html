@@ -16,6 +16,8 @@
 <section class="notice" aria-label="Horario de búsqueda automática">
   {% if automatic_refresh_schedule.status == "paused" %}
     <strong>Las búsquedas automáticas están pausadas.</strong>
+  {% elif automatic_refresh_schedule.quiet_window %}
+    La pausa horaria está activa. Las búsquedas automáticas pendientes se reanudarán al terminar la ventana.{% if automatic_refresh_schedule.next_at %} Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).{% endif %}
   {% elif automatic_refresh_schedule.next_at %}
     Próxima búsqueda automática estimada: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).
   {% else %}

@@ -36,12 +36,12 @@ def build_applicant_statistics(profile, *, now=None):
             archived_at__isnull=False,
         ).count()
 
-        latest_analysis = VacancyAnalysis.objects.filter(
-            profile=profile,
-            profile_revision=OuterRef("profile_revision"),
-            vacancy=OuterRef("vacancy"),
-        ).order_by("-created_at", "-pk").values("pk")[:1]
         if revision:
+            latest_analysis = VacancyAnalysis.objects.filter(
+                profile=profile,
+                vacancy=OuterRef("vacancy"),
+                profile_revision=revision,
+            ).order_by("-created_at", "-pk").values("pk")[:1]
             current_analyses = VacancyAnalysis.objects.filter(
                 profile=profile,
                 profile_revision=revision,

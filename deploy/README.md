@@ -86,6 +86,17 @@ comprobarse antes de reconciliar, pues el uso del namespace puede cambiar.
 - `/readyz` comprueba PostgreSQL y Redis.
 - El worker verifica su respuesta a un ping Celery; Beat verifica sus dependencias y proceso.
 
+Las sondas HTTP de Kubernetes reciben directamente el estado de `/healthz` y `/readyz`,
+sin seguir redirecciones HTTPS. Las demás rutas conservan la redirección segura cuando está
+habilitada. Si falla PostgreSQL o Redis, `/readyz` responde 503 genérico sin exponer el error
+interno.
+
+La reconciliación de ingestas corre cada cinco minutos. Una unidad en ejecución se recupera
+cuando lleva más de 20 minutos sin heartbeat y su lease expiró o falta. Se reencola hasta
+agotar cuatro intentos totales; al agotarlos, la unidad y sus ejecuciones asociadas se cierran
+con la categoría segura `execution_interrupted`, se libera el lease del perfil y se conserva
+el historial. Un heartbeat reciente con lease vigente conserva la unidad en ejecución.
+
 ## Versiones y liberaciones
 
 Las pruebas de staging siguen identificándose por el SHA de la imagen y no reciben una versión de producto. Las liberaciones aprobadas usan etiquetas Git anotadas `vMAJOR.MINOR.PATCH`; la primera versión de producción es `v1.0.0`. La validación rechaza formatos inválidos, ceros iniciales, versiones ya existentes y actualizaciones de una etiqueta publicada.

@@ -20,4 +20,4 @@
 ## 4. Integrar antes de stage
 
 - [x] 4.1 Verificar el flujo completo de búsqueda compartida, deduplicación y análisis/seguimiento por perfil con los cambios prerrequisito integrados.
-- [ ] 4.2 Antes de cualquier despliegue a stage, confirmar que `busquedas-compartidas-por-perfil` esté completo e integrado en el commit candidato; verificar que la compuerta de despliegue lo incluya.
+- [x] 4.2 Antes de cualquier despliegue a stage, confirmar que `busquedas-compartidas-por-perfil` esté completo e integrado en el commit candidato; verificar que la compuerta de despliegue lo incluya.

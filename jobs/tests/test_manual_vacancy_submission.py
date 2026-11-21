@@ -53,7 +53,26 @@ class ManualVacancySubmissionTaskTests(TestCase):
         self.assertEqual(submission.vacancy, vacancy)
         self.assertEqual(submission.status, ManualVacancySubmission.Status.SCHEDULED)
         self.assertIn("Vacante nueva guardada", submission.result_message)
+        self.assertEqual(vacancy.details_status, Vacancy.DetailStatus.CONFIRMED)
         schedule.assert_called_once_with(vacancy.pk, force_reanalysis=True)
+
+    @patch("matching.tasks.schedule_vacancy_analysis.delay")
+    def test_manual_url_reuses_confirmed_details_without_fetching_again(self, schedule):
+        vacancy = Vacancy.objects.create(
+            source="elempleo_co", external_id="123", title="Analista de procesos",
+            company="Empresa de prueba", location="Medellín", description="Detalle completo.",
+            original_url="https://www.elempleo.com/co/ofertas-trabajo/analista-123",
+            details_status=Vacancy.DetailStatus.CONFIRMED,
+        )
+        submission = self.create_submission(original_url=f"{vacancy.original_url}/?ref=manual")
+
+        result = process_manual_vacancy_submission.run(submission.pk)
+
+        self.assertEqual(result["status"], ManualVacancySubmission.Status.SCHEDULED)
+        self.fetch_mock.assert_not_called()
+        self.assertEqual(Vacancy.objects.count(), 1)
+        self.assertEqual(Vacancy.objects.get().description, "Detalle completo.")
+        schedule.assert_called_once_with(vacancy.pk, force_reanalysis=False)
 
     @patch("matching.tasks.schedule_vacancy_analysis.delay")
     def test_existing_canonical_url_is_updated_without_creating_another_vacancy(self, schedule):

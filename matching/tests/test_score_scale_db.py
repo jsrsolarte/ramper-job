@@ -84,9 +84,17 @@ class StarScoreMigrationTests(__import__('django.test', fromlist=['TransactionTe
         from django.db.migrations.executor import MigrationExecutor
 
         executor = MigrationExecutor(connection)
-        other_leaves = [node for node in executor.loader.graph.leaf_nodes() if node[0] != 'matching']
-        previous = other_leaves + [('matching', '0013_analysis_source_query')]
-        current = other_leaves + [('matching', '0014_vacancyanalysis_score_stars')]
+        other_leaves = [node for node in executor.loader.graph.leaf_nodes() if node[0] not in {'matching', 'jobs'}]
+        # jobs.0009 depends on matching.0015, so hold both apps at a compatible
+        # pre-score state while testing this single-column migration.
+        previous = other_leaves + [
+            ('jobs', '0008_alter_manualvacancysubmission_source_and_more'),
+            ('matching', '0013_analysis_source_query'),
+        ]
+        current = other_leaves + [
+            ('jobs', '0008_alter_manualvacancysubmission_source_and_more'),
+            ('matching', '0014_vacancyanalysis_score_stars'),
+        ]
         executor.migrate(previous)
         old_apps = executor.loader.project_state(previous).apps
         User = old_apps.get_model('auth', 'User')
@@ -117,4 +125,5 @@ class StarScoreMigrationTests(__import__('django.test', fromlist=['TransactionTe
             self.assertEqual(restored.score, Decimal('6.5'))
             self.assertEqual(restored.score_breakdown, {'evidence': 'sintética'})
         finally:
-            MigrationExecutor(connection).migrate(current)
+            restore = MigrationExecutor(connection)
+            restore.migrate(restore.loader.graph.leaf_nodes())

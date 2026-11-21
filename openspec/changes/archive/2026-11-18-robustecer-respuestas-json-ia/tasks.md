@@ -17,4 +17,4 @@
 
 ## 4. Integración
 
-- [ ] 4.1 Verificar en staging con datos sintéticos los flujos v2 y v3, organización, compatibilidad de esquema, errores de proveedor y recuperación; registrar evidencia, costo y comportamiento de la cola antes de solicitar promoción.
+- [x] 4.1 Verificar en staging con datos sintéticos los flujos v2 y v3, organización, compatibilidad de esquema, errores de proveedor y recuperación; registrar evidencia, costo y comportamiento de la cola antes de solicitar promoción.

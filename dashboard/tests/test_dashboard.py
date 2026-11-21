@@ -487,10 +487,10 @@ class DashboardPrivacyTests(TestCase):
         response = self.client.get(reverse("dashboard:home"))
         analysis_page = self.client.get(reverse("dashboard:analysis"))
 
-        self.assertEqual(response.context["score_distribution_sample_size"], 6)
-        self.assertEqual([band["count"] for band in response.context["score_distribution"]], [1, 1, 0, 1, 3])
+        self.assertEqual(response.context["score_distribution_sample_size"], 7)
+        self.assertEqual([band["count"] for band in response.context["score_distribution"]], [1, 1, 0, 1, 4])
         self.assertEqual(response.context["score_recommended_min"], Decimal("4"))
-        self.assertEqual(response.context["score_recommended_count"], 3)
+        self.assertEqual(response.context["score_recommended_count"], 4)
         self.assertFalse(response.context["score_recommendation_below_profile"])
         self.assertContains(analysis_page, "Distribución de puntajes")
         self.assertContains(analysis_page, "Puedes usarlo como filtro temporal del estado actual")

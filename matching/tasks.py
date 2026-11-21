@@ -38,6 +38,13 @@ def create_analysis(
     profile = Profile.objects.select_for_update().filter(pk=profile.pk).first()
     if profile is None:
         return None
+    completed = VacancyAnalysis.objects.filter(
+        profile=profile,
+        vacancy=vacancy,
+        status=VacancyAnalysis.Status.COMPLETED,
+    ).order_by("-completed_at", "-created_at", "-pk").first()
+    if completed:
+        return completed if include_existing else None
     if not profile.cv_file or profile.revision_number == 0:
         return None
     revision = profile.revisions.filter(version=profile.revision_number).first()
@@ -54,21 +61,24 @@ def create_analysis(
         return None
     config = config or get_active_matching_config()
     prior = VacancyAnalysis.objects.filter(
-        profile=profile,
-        vacancy=vacancy,
-        profile_revision=revision,
-        matching_config=config,
+        profile=profile, vacancy=vacancy, profile_revision=revision, matching_config=config,
     )
-    if not force:
-        completed = prior.filter(status=VacancyAnalysis.Status.COMPLETED).first()
-        if completed:
-            return completed if include_existing else None
-        failed = prior.filter(status=VacancyAnalysis.Status.FAILED).first()
-        if failed:
-            return failed if include_existing else None
-    pending = prior.filter(status=VacancyAnalysis.Status.PENDING).first()
+    failed = prior.filter(status=VacancyAnalysis.Status.FAILED).order_by("-created_at", "-pk").first()
+    if failed and not force:
+        return failed if include_existing else None
+    pending = prior.filter(status=VacancyAnalysis.Status.PENDING).order_by("-created_at", "-pk").first()
     if pending:
         return pending
+    VacancyAnalysis.objects.filter(
+        profile=profile,
+        vacancy=vacancy,
+        status=VacancyAnalysis.Status.PENDING,
+    ).exclude(profile_revision=revision, matching_config=config).update(
+        status=VacancyAnalysis.Status.SUPERSEDED,
+        error_message="Se reemplazó por una evaluación pendiente con la revisión y configuración vigentes.",
+        processing_started_at=None,
+        updated_at=timezone.now(),
+    )
     return VacancyAnalysis.objects.create(
         profile=profile,
         profile_revision=revision,
@@ -100,12 +110,6 @@ def schedule_vacancy_analysis(
         logger.info("Se omite el análisis de la vacante %s: no existe o está inactiva.", vacancy_id)
         return []
     config = get_active_matching_config()
-    if expected_matching_config_id is not None and config.pk != int(expected_matching_config_id):
-        logger.info(
-            "Se omite el análisis compartido de vacante %s: cambió la configuración de búsqueda.",
-            vacancy_id,
-        )
-        return []
     queued = []
     selected_profile_ids = None if profile_ids is None else {int(value) for value in profile_ids}
     if selected_profile_ids is not None and force_reanalysis:
@@ -115,18 +119,7 @@ def schedule_vacancy_analysis(
     profiles = Profile.objects.select_related("owner").filter(cv_file__gt="", owner__is_active=True)
     if selected_profile_ids is not None:
         profiles = profiles.filter(pk__in=selected_profile_ids)
-    expected_revision_ids = expected_revision_ids or {}
     for profile in profiles:
-        expected_revision_id = expected_revision_ids.get(str(profile.pk))
-        if expected_revision_id is not None:
-            current_revision_id = profile.revisions.filter(version=profile.revision_number).values_list("pk", flat=True).first()
-            if current_revision_id != int(expected_revision_id):
-                logger.info(
-                    "Se omite análisis compartido de vacante %s para perfil %s: cambió la revisión.",
-                    vacancy_id,
-                    profile.pk,
-                )
-                continue
         analysis = create_analysis(
             profile,
             vacancy,
@@ -167,37 +160,27 @@ def schedule_profile_analyses(profile_id):
 
 @shared_task(name="matching.tasks.schedule_legacy_analyses")
 def schedule_legacy_analyses(batch_size=50, repair_pending=False):
-    """Queue current-profile analyses that still use an obsolete rubric or prompt."""
+    """Move incomplete legacy work to the current profile/config; never re-score a completion."""
     if processing_is_paused():
         return []
     config = get_active_matching_config()
     if config.rubric_version != RUBRIC_VERSION:
         return []
-    current_result = VacancyAnalysis.objects.filter(
+    completed_for_pair = VacancyAnalysis.objects.filter(
         profile_id=OuterRef("profile_id"),
         vacancy_id=OuterRef("vacancy_id"),
-        profile_revision__version=F("profile__revision_number"),
-        matching_config__rubric_version=config.rubric_version,
-        matching_config__prompt_version=config.prompt_version,
-    )
-    active_result = VacancyAnalysis.objects.filter(
-        profile_id=OuterRef("profile_id"), vacancy_id=OuterRef("vacancy_id"),
-        profile_revision__version=F("profile__revision_number"), matching_config=config,
+        status=VacancyAnalysis.Status.COMPLETED,
     )
     legacy = (
         VacancyAnalysis.objects.filter(
-            profile_revision__version=F("profile__revision_number"),
+            status__in=[VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED],
             profile__owner__is_active=True,
             profile__cv_file__gt="",
             vacancy__is_active=True,
         )
-        .annotate(has_current_result=Exists(current_result), has_active_result=Exists(active_result))
-        .filter(
-            Q(status=VacancyAnalysis.Status.COMPLETED,
-              matching_config__rubric_version__lt=config.rubric_version, has_current_result=False)
-            | (Q(status__in=[VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED], has_active_result=False)
-               & ~Q(matching_config=config))
-        )
+        .annotate(has_completed=Exists(completed_for_pair))
+        .filter(has_completed=False)
+        .filter(~Q(profile_revision__version=F("profile__revision_number")) | ~Q(matching_config=config))
         .select_related("profile", "vacancy")
         .order_by("created_at")
     )
@@ -209,84 +192,39 @@ def schedule_legacy_analyses(batch_size=50, repair_pending=False):
             profile = Profile.objects.select_for_update().filter(pk=previous.profile_id).first()
             if profile is None:
                 continue
-            existing = VacancyAnalysis.objects.filter(
-                profile=profile,
-                vacancy_id=previous.vacancy_id,
-                profile_revision__version=profile.revision_number,
-                matching_config=config,
-            ).first()
-            if existing:
-                if previous.status == VacancyAnalysis.Status.PENDING:
+            if VacancyAnalysis.objects.filter(
+                profile=profile, vacancy_id=previous.vacancy_id, status=VacancyAnalysis.Status.COMPLETED,
+            ).exists():
+                if previous.status in (VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED):
                     previous.status = VacancyAnalysis.Status.SUPERSEDED
-                    previous.error_message = _replacement_reason(config)
+                    previous.error_message = "Se conservó el análisis completado existente."
                     previous.save(update_fields=["status", "error_message", "updated_at"])
                 continue
-            analysis = create_analysis(profile, previous.vacancy, config=config)
-            if previous.status == VacancyAnalysis.Status.PENDING:
+            revision = profile.revisions.filter(version=profile.revision_number).first()
+            if not revision or not profile.cv_file or not profile.owner.is_active:
+                continue
+            if not vacancy_location_is_eligible(previous.vacancy, revision):
+                previous.status = VacancyAnalysis.Status.SUPERSEDED
+                previous.error_message = "El perfil vigente ya no es elegible para esta vacante."
+                previous.save(update_fields=["status", "error_message", "updated_at"])
+                continue
+            analysis = VacancyAnalysis.objects.filter(
+                profile=profile, vacancy_id=previous.vacancy_id,
+                profile_revision=revision, matching_config=config,
+                status=VacancyAnalysis.Status.PENDING,
+            ).order_by("-created_at", "-pk").first()
+            if analysis is None:
+                analysis = create_analysis(
+                    profile, previous.vacancy, config=config,
+                    force=previous.status == VacancyAnalysis.Status.FAILED,
+                )
+            if analysis and previous.pk != analysis.pk:
                 previous.status = VacancyAnalysis.Status.SUPERSEDED
                 previous.error_message = _replacement_reason(config)
                 previous.save(update_fields=["status", "error_message", "updated_at"])
         if analysis and enqueue_analysis(analysis.pk):
             queued.append(analysis.pk)
-
-    malformed = VacancyAnalysis.objects.filter(
-        matching_config=config,
-        profile_revision__version=F("profile__revision_number"),
-        profile__owner__is_active=True,
-        profile__cv_file__gt="",
-        vacancy__is_active=True,
-    ).filter(
-        Q(status=VacancyAnalysis.Status.COMPLETED, score__gt=10)
-        | Q(status=VacancyAnalysis.Status.COMPLETED, score_breakdown={})
-    ).select_related("profile", "vacancy").order_by("created_at")
-    for previous in malformed.iterator(chunk_size=200):
-        if len(queued) >= batch_size:
-            break
-        queued_analysis = _replace_malformed_current_analysis(previous, config)
-        if queued_analysis:
-            queued.append(queued_analysis.pk)
-
-    if repair_pending and len(queued) < batch_size:
-        pending_without_breakdown = VacancyAnalysis.objects.filter(
-            matching_config=config,
-            profile_revision__version=F("profile__revision_number"),
-            profile__owner__is_active=True,
-            profile__cv_file__gt="",
-            vacancy__is_active=True,
-            status=VacancyAnalysis.Status.PENDING,
-            score_breakdown={},
-        ).select_related("profile", "vacancy").order_by("created_at")
-        for previous in pending_without_breakdown.iterator(chunk_size=200):
-            if len(queued) >= batch_size:
-                break
-            queued_analysis = _replace_malformed_current_analysis(previous, config)
-            if queued_analysis:
-                queued.append(queued_analysis.pk)
     return queued
-
-
-def _replace_malformed_current_analysis(previous, config):
-    with transaction.atomic():
-        profile = Profile.objects.select_for_update().filter(pk=previous.profile_id).first()
-        if profile is None:
-            return None
-        current = VacancyAnalysis.objects.filter(
-            profile=profile,
-            vacancy_id=previous.vacancy_id,
-            profile_revision__version=profile.revision_number,
-            matching_config=config,
-        ).exclude(pk=previous.pk)
-        if current.filter(status=VacancyAnalysis.Status.COMPLETED, score__lte=10).exclude(score_breakdown={}).exists():
-            replacement = None
-        else:
-            pending = current.filter(status=VacancyAnalysis.Status.PENDING).first()
-            replacement = pending or create_analysis(profile, previous.vacancy, config=config, force=True)
-        previous.status = VacancyAnalysis.Status.SUPERSEDED
-        previous.error_message = f"Reemplazado por un análisis válido de {_replacement_reason(config).lower()}"
-        previous.save(update_fields=["status", "error_message", "updated_at"])
-    if replacement:
-        enqueue_analysis(replacement.pk)
-    return replacement
 
 
 def _replacement_reason(config):
@@ -305,6 +243,8 @@ def analyze_vacancy_for_profile(self, analysis_id):
         VacancyAnalysis.objects.select_related("profile_revision", "profile", "vacancy", "matching_config"),
         pk=analysis_id,
     )
+    if analysis.status == VacancyAnalysis.Status.COMPLETED:
+        return analysis.pk
     if (
         analysis.matching_config.rubric_version != RUBRIC_VERSION
         or analysis.matching_config.prompt_version < PROMPT_VERSION
@@ -327,8 +267,6 @@ def analyze_vacancy_for_profile(self, analysis_id):
     if not vacancy_location_is_eligible(analysis.vacancy, analysis.profile_revision):
         logger.info("Se omite el análisis %s porque la ubicación no es compatible.", analysis_id)
         return None
-    if analysis.status == VacancyAnalysis.Status.COMPLETED:
-        return analysis.pk
     analysis = claim_analysis(analysis_id)
     if analysis is None:
         logger.info("Se omite la entrega duplicada o no elegible del análisis %s.", analysis_id)

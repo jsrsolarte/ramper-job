@@ -19,7 +19,7 @@ El centro de administración está en `/admin/operaciones/`; el acceso técnico 
 
 En **Administración → Agregar desde una URL** se pega únicamente el enlace público de una vacante de El Empleo. El worker extrae los datos disponibles, guarda o actualiza la publicación global y programa evaluaciones independientes para perfiles elegibles. La página muestra el estado y resultado de los registros recientes; si permanecen en cola, revisa que Celery Worker esté activo.
 
-Por ahora se admiten fichas HTTPS de El Empleo bajo `/co/ofertas-trabajo/`. Para incorporar otra bolsa, añade su regla explícita de host y ruta en `jobs/connectors/elempleo.py` o extrae el resolvedor a un registro de proveedores, implementa un extractor que entregue `JobListing` y agrega pruebas para redirecciones, hosts públicos y datos incompletos. La carga no sigue redirecciones a otros hosts ni consulta URLs arbitrarias.
+La carga administrativa mediante URL admite fichas HTTPS de El Empleo bajo `/co/ofertas-trabajo/`. Las búsquedas automáticas de Computrabajo usan su conector separado y no amplían los hosts admitidos por esa carga manual. Las fichas se consultan con redirecciones limitadas a dominios públicos permitidos.
 
 La administración puede generar un enlace de restablecimiento para una cuenta activa y compartirlo manualmente. El enlace se muestra una sola vez, es de un solo uso y vence según `PASSWORD_RESET_TIMEOUT` (3 días por defecto); el sistema no envía correos ni guarda el token en auditoría o logs. La administración nunca consulta ni establece la contraseña nueva.
 
@@ -34,6 +34,8 @@ uv run celery -A config call jobs.tasks.refresh_sources
 El worker deriva las palabras clave del CV y los criterios del perfil con la configuración activa de OmniRoute. Cuando varios perfiles activos generan los mismos términos, ubicaciones y modalidad para una fuente, comparte una sola consulta pública y reparte las vacantes encontradas entre ellos. Cada perfil conserva su propio análisis, puntaje y seguimiento en el dashboard. El prompt de búsqueda y los demás parámetros de coincidencia se pueden versionar desde `/admin/`.
 
 Elempleo se consulta desde páginas públicas. Después de deduplicar resultados, el conector abre una vez la ficha de cada vacante para obtener sus condiciones y datos de ubicación; si la estructura cambia, actualiza los casos de referencia en `jobs/tests/test_elempleo.py` y ejecuta `.venv/bin/python manage.py test jobs.tests.test_elempleo`.
+
+Computrabajo Colombia usa `COMPUTRABAJO_USER_AGENT` en las consultas públicas de listados y fichas. El valor inicial identifica Chrome 157 en Linux y se puede cambiar en `.env` local o en el ConfigMap del entorno; si la fuente responde 401, 403 o 429, la consulta a Computrabajo se detiene para esa ejecución y no se intenta evadir el bloqueo. La carga administrativa mediante URL continúa limitada a El Empleo.
 
 ## Puntaje y etapas de IA
 

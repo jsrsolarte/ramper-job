@@ -4,7 +4,6 @@ from django.utils import timezone
 
 from dashboard.models import VacancyFollowUp
 from matching.models import ProfileVacancyDiscovery, VacancyAnalysis
-from profiles.locations import vacancy_location_is_eligible
 
 
 def current_score_analyses(profile):
@@ -17,13 +16,11 @@ def current_score_analyses(profile):
         profile=OuterRef("profile"),
         vacancy=OuterRef("vacancy"),
         status=VacancyAnalysis.Status.COMPLETED,
-        profile_revision__version=F("profile__revision_number"),
-    ).order_by("-created_at", "-pk").values("pk")[:1]
+    ).order_by("-completed_at", "-created_at", "-pk").values("pk")[:1]
     analyses = list(
         VacancyAnalysis.objects.filter(
             profile=profile,
             status=VacancyAnalysis.Status.COMPLETED,
-            profile_revision__version=profile.revision_number,
             score_stars__isnull=False,
         )
         .exclude(score_breakdown={})
@@ -36,12 +33,7 @@ def current_score_analyses(profile):
         VacancyFollowUp.objects.filter(profile=profile, archived_at__isnull=False)
         .values_list("vacancy_id", flat=True)
     )
-    if revision:
-        analyses = [
-            analysis for analysis in analyses
-            if analysis.vacancy_id not in archived_vacancy_ids
-            and vacancy_location_is_eligible(analysis.vacancy, revision)
-        ]
+    analyses = [analysis for analysis in analyses if analysis.vacancy_id not in archived_vacancy_ids]
     return analyses, revision, archived_vacancy_ids
 
 

@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.db import DatabaseError, transaction
 from django.utils import timezone
+from datetime import time
 
-from .models import AdminAuditEvent, OperationalParameter, OperationalParameterChange
+from .models import (AdminAuditEvent, AutomaticSearchSchedule, AutomaticSearchScheduleChange,
+                     OperationalParameter, OperationalParameterChange)
 
 REFRESH_INTERVAL_KEY = "source_refresh_minutes"
 AUTO_DISCARD_DAYS_KEY = "auto_discard_days"
@@ -14,6 +16,8 @@ MIN_RETENTION_DAYS = 1
 MAX_RETENTION_DAYS = 365
 DEFAULT_AUTO_DISCARD_DAYS = 7
 DEFAULT_FOLLOW_UP_ARCHIVE_DAYS = 30
+DEFAULT_SEARCH_PAUSE_START = time(21, 0)
+DEFAULT_SEARCH_PAUSE_END = time(7, 0)
 
 
 def initial_refresh_interval_minutes():
@@ -38,6 +42,41 @@ def processing_is_paused():
         return bool(current_parameter_value(PROCESSING_PAUSED_KEY, 0))
     except DatabaseError:
         return False
+
+
+def automatic_search_schedule():
+    """Return persisted schedule, defaulting safely when no row exists."""
+    try:
+        row = AutomaticSearchSchedule.objects.filter(pk=1).first()
+    except DatabaseError:
+        row = None
+    return {
+        "enabled": row.enabled if row else True,
+        "starts_at": row.starts_at if row else DEFAULT_SEARCH_PAUSE_START,
+        "ends_at": row.ends_at if row else DEFAULT_SEARCH_PAUSE_END,
+    }
+
+
+@transaction.atomic
+def save_automatic_search_schedule(*, actor, enabled, starts_at, ends_at):
+    if starts_at == ends_at:
+        raise ValueError("La hora de inicio y fin no pueden ser iguales.")
+    current = automatic_search_schedule()
+    row, _ = AutomaticSearchSchedule.objects.select_for_update().get_or_create(
+        pk=1,
+        defaults={"enabled": bool(enabled), "starts_at": starts_at, "ends_at": ends_at},
+    )
+    if (current["enabled"], current["starts_at"], current["ends_at"]) != (bool(enabled), starts_at, ends_at):
+        AutomaticSearchScheduleChange.objects.create(
+            actor=actor,
+            previous_enabled=current["enabled"], previous_starts_at=current["starts_at"],
+            previous_ends_at=current["ends_at"], new_enabled=bool(enabled),
+            new_starts_at=starts_at, new_ends_at=ends_at,
+        )
+        row.enabled, row.starts_at, row.ends_at = bool(enabled), starts_at, ends_at
+        row.updated_at = timezone.now()
+        row.save(update_fields=("enabled", "starts_at", "ends_at", "updated_at"))
+    return row
 
 
 @transaction.atomic

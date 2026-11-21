@@ -29,11 +29,11 @@ El panel SHALL mostrar conteos globales por estado personal de seguimiento, calc
 - **THEN** el panel muestra cero para ese estado sin omitirlo
 
 ### Requirement: Consultar la distribución global de puntuaciones
-El panel SHALL mostrar la distribución agregada de los puntajes vigentes de compatibilidad, conservando su precisión decimal y señalando el tamaño y periodo de la muestra.
+El panel SHALL mostrar la distribución agregada de los puntajes vigentes de compatibilidad, usando estrellas visuales para puntuaciones y medianas de cero a cinco en incrementos de 0,5, con etiquetas accesibles para su valor exacto, y señalando el tamaño y periodo de la muestra.
 
 #### Scenario: Hay puntajes vigentes en el periodo
 - **WHEN** la persona administradora selecciona un periodo con análisis vigentes
-- **THEN** el panel muestra conteos por intervalos de puntaje, la mediana y el número de resultados considerados
+- **THEN** el panel muestra conteos por puntuaciones de estrellas, la mediana y el número de resultados considerados
 
 #### Scenario: No hay puntajes vigentes en el periodo
 - **WHEN** el periodo seleccionado no tiene puntajes válidos vigentes
@@ -45,7 +45,7 @@ El panel SHALL mostrar la distribución agregada de los puntajes vigentes de com
 
 #### Scenario: Hay puntajes de varias versiones de rúbrica
 - **WHEN** existen resultados vigentes calculados con distintas versiones de rúbrica
-- **THEN** el panel los presenta por versión y no combina sus puntajes en una sola distribución
+- **THEN** el panel los presenta por versión y mantiene su origen identificable y no confunde escalas ni versiones
 
 ### Requirement: Indicar periodo y cobertura de las puntuaciones
 El panel SHALL permitir filtrar las estadísticas de puntuación por periodos definidos y señalar desde cuándo existe cobertura confiable.
@@ -90,3 +90,10 @@ El sistema SHALL mostrar estadísticas agregadas sin incluir perfiles identifica
 #### Scenario: Se muestra una distribución o conteo
 - **WHEN** el panel presenta estados o puntajes
 - **THEN** muestra totales agregados sin enlaces a registros individuales ni atributos que identifiquen a una persona
+
+### Requirement: Preservar la coherencia de estadísticas tras la conversión
+Las estadísticas SHALL usar la escala de estrellas y conservar el periodo, la muestra, la privacidad y la procedencia de la rúbrica.
+
+#### Scenario: Se consultan resultados históricos convertidos
+- **WHEN** el periodo incluye resultados convertidos y resultados nuevos
+- **THEN** sus puntuaciones se muestran en la misma escala sin tratarlos como análisis nuevos ni duplicar resultados

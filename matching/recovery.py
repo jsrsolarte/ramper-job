@@ -4,7 +4,7 @@ from functools import partial
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F, Q, OuterRef, Subquery
+from django.db.models import Exists, F, Q, OuterRef, Subquery
 from django.utils import timezone
 
 from matching.models import ProfileVacancyDiscovery, VacancyAnalysis
@@ -26,7 +26,6 @@ def expire_discovery_if_due(discovery, profile, vacancy, now):
     follow_up = VacancyFollowUp.objects.select_for_update().filter(profile=profile, vacancy=vacancy).first()
     completed = VacancyAnalysis.objects.filter(
         profile=profile, vacancy=vacancy, status=VacancyAnalysis.Status.COMPLETED,
-        profile_revision__version=profile.revision_number,
     ).exists()
     if not completed and (follow_up is None or follow_up.status == VacancyFollowUp.Status.PENDING):
         discard_follow_up(profile, vacancy, now=now)
@@ -129,6 +128,10 @@ def reconcile_pending_analyses(batch_size=None):
         profile_id=OuterRef("profile_id"), vacancy_id=OuterRef("vacancy_id"),
         profile_revision_id=OuterRef("profile_revision_id"), matching_config_id=OuterRef("matching_config_id"),
     ).order_by("-created_at", "-pk").values("pk")[:1]
+    completed_for_pair = VacancyAnalysis.objects.filter(
+        profile_id=OuterRef("profile_id"), vacancy_id=OuterRef("vacancy_id"),
+        status=VacancyAnalysis.Status.COMPLETED,
+    )
     candidates = list(
         VacancyAnalysis.objects.filter(
             status__in=[VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED],
@@ -139,6 +142,7 @@ def reconcile_pending_analyses(batch_size=None):
             matching_config=config,
         )
         .annotate(latest_id=Subquery(latest)).filter(pk=F("latest_id"))
+        .annotate(has_completed=Exists(completed_for_pair)).filter(has_completed=False)
         .filter(Q(processing_started_at__isnull=True) | Q(processing_started_at__lt=lease_cutoff))
         .select_related("profile", "profile_revision", "vacancy")
         .order_by("created_at")[:candidate_limit]

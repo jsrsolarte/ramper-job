@@ -9,6 +9,7 @@
     <link rel="icon" type="image/svg+xml" href="{% static 'brand/jobs/favicon.svg' %}">
     <link rel="manifest" href="{% static 'manifest.json' %}?v=jobs-1">
     <link rel="stylesheet" href="/static/app.css?v=27">
+    <script src="{% static 'connectivity.js' %}?v=1" defer></script>
   </head>
   <body class="auth-page">
     <main class="auth-layout">
@@ -28,6 +29,7 @@
         <p class="eyebrow">Bienvenido</p>
         <h2 id="login-title">Ingresa a tu cuenta</h2>
         <p class="muted">Usa los datos de acceso que te suministró el administrador.</p>
+        <div id="connection-status" class="connection-status" hidden role="status" aria-live="polite" aria-atomic="true"></div>
         {% if form.non_field_errors %}{% for error in form.non_field_errors %}<p class="form-error" role="alert">{{ error }}</p>{% endfor %}{% endif %}
         <form method="post">
           {% csrf_token %}

@@ -1,5 +1,6 @@
 from django.db import DatabaseError, connection
 from django.http import JsonResponse
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_GET
 from redis import Redis
 from redis.exceptions import RedisError
@@ -8,6 +9,7 @@ from django.conf import settings
 
 
 @require_GET
+@never_cache
 def healthz(request):
     return JsonResponse({"status": "ok"})
 

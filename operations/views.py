@@ -34,6 +34,7 @@ from .forms import (
 from .models import (
     ApplicantActivity,
     AdminAuditEvent,
+    AutomaticSearchScheduleChange,
     AdminCommandRun,
     OperationalParameterChange,
     OperationalRun,
@@ -59,6 +60,8 @@ from .parameters import (
     save_parameter,
     set_processing_paused,
     save_refresh_interval,
+    automatic_search_schedule,
+    save_automatic_search_schedule,
 )
 from .platform_statistics import build_platform_statistics
 from .scheduling import next_periodic_refresh_schedule
@@ -504,8 +507,29 @@ def run_command(request):
 def parameters(request):
     error = ""
     if request.method == "POST":
-        if set(request.POST.keys()) - {"parameter", "value", "action", "csrfmiddlewaretoken"}:
+        allowed = {"parameter", "value", "action", "csrfmiddlewaretoken", "pause_enabled", "pause_start", "pause_end"}
+        if set(request.POST.keys()) - allowed:
             error = "La solicitud contiene campos que no están habilitados."
+        elif request.POST.get("parameter") == "automatic_search_schedule":
+            from django.utils.dateparse import parse_time
+
+            starts_at = parse_time(request.POST.get("pause_start", ""))
+            ends_at = parse_time(request.POST.get("pause_end", ""))
+            if starts_at is None or ends_at is None:
+                error = "Ingresa horas válidas para el inicio y el fin de la pausa."
+            elif starts_at == ends_at:
+                error = "La hora de inicio y fin no pueden ser iguales."
+            elif request.POST.get("action") != "save":
+                error = "Selecciona una acción disponible."
+            else:
+                save_automatic_search_schedule(
+                    actor=request.user,
+                    enabled=request.POST.get("pause_enabled") == "on",
+                    starts_at=starts_at.replace(second=0, microsecond=0),
+                    ends_at=ends_at.replace(second=0, microsecond=0),
+                )
+                messages.success(request, "Se guardó el horario. El trabajo automático pendiente se reanudará al terminar la ventana.")
+                return redirect("operations:parameters")
         elif request.POST.get("parameter") not in {
             REFRESH_INTERVAL_KEY, AUTO_DISCARD_DAYS_KEY, FOLLOW_UP_ARCHIVE_DAYS_KEY,
         }:
@@ -551,6 +575,8 @@ def parameters(request):
         "max_retention_days": MAX_RETENTION_DAYS,
         "history": OperationalParameterChange.objects.select_related("changed_by")[:20],
         "error": error,
+        "automatic_search_schedule": automatic_search_schedule(),
+        "schedule_history": AutomaticSearchScheduleChange.objects.select_related("actor")[:20],
     })
     return render(request, "operations/parameters.html", context, status=400 if error else 200)
 
@@ -571,7 +597,7 @@ def dashboard(request):
         "started_at", "source", "status", "item_count", "new_count", "known_count",
         "known_updated_count", "known_unchanged_count", "duration_ms",
         "listing_count", "title_kept_count", "title_discarded_count",
-        "details_requested_count", "details_received_count", "title_input_tokens",
+        "details_requested_count", "details_received_count", "details_reused_count", "title_input_tokens",
         "listing_fetch_duration_ms", "title_preselection_duration_ms", "detail_fetch_duration_ms",
         "error_category", "error_summary",
     ).order_by("-started_at", "-pk")
@@ -740,6 +766,7 @@ def dashboard(request):
             titles_discarded=Sum("title_discarded_count"),
             details_requested=Sum("details_requested_count"),
             details_received=Sum("details_received_count"),
+            details_reused=Sum("details_reused_count"),
             title_input_tokens=Sum("title_input_tokens"),
         )
         summary.update({

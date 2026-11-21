@@ -12,7 +12,7 @@ from django.utils.text import slugify
 
 from jobs.identity import vacancy_dedupe_key
 
-from .base import JobListing, SourcePartiallyUnavailable, SourceUnavailable
+from .base import JobListing, SourcePartiallyUnavailable, SourceUnavailable, mark_details_confirmed
 
 
 COMPUTRABAJO_HOSTS = {"co.computrabajo.com", "www.computrabajo.com.co"}
@@ -132,7 +132,9 @@ class ComputrabajoConnector:
             except (ValueError, TypeError, AttributeError):
                 detail_errors.append(f"No se pudo interpretar la ficha de «{listing.title}».")
                 continue
-            listings[index] = self._merge_details(listing, details, final_url)
+            listings[index] = mark_details_confirmed(
+                self._merge_details(listing, details, final_url), requested_url=listing.original_url,
+            )
         self.status_message = " ".join(filter(None, (self.status_message, *detail_errors)))[:300]
         return listings
 

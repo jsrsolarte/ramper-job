@@ -67,7 +67,7 @@ El sistema SHALL permitir a una persona administradora ajustar y versionar los p
 - **THEN** el sistema crea un nuevo análisis con las versiones vigentes del perfil y la configuración, y conserva el resultado previo para trazabilidad
 
 ### Requirement: Evaluación con una rúbrica fija y versionada
-El sistema SHALL enviar al modelo una rúbrica común y versionada, y exigir una evaluación por criterio con puntaje de hasta una cifra decimal, estado de evidencia y soporte basado en el CV y la vacante.
+El sistema SHALL enviar al modelo una rúbrica común y versionada, y exigir una evaluación por criterio con puntaje de precisión definida en la rúbrica, estado de evidencia y soporte basado en el CV y la vacante.
 
 #### Scenario: Se evalúa una vacante elegible
 - **WHEN** el sistema solicita un análisis de compatibilidad
@@ -75,7 +75,7 @@ El sistema SHALL enviar al modelo una rúbrica común y versionada, y exigir una
 
 #### Scenario: Se evalúa una habilidad o experiencia requerida
 - **WHEN** el modelo evalúa los criterios de la rúbrica
-- **THEN** asigna hasta una cifra decimal dentro de los máximos de cada criterio: 4 para competencias y habilidades, 2 para experiencia, 2 para alineación, 1 para educación requerida y 1 para otros criterios explícitos, excluyendo ubicación y modalidad
+- **THEN** asigna precisión definida en la rúbrica dentro de los máximos de cada criterio: 2 para competencias y habilidades, 1 para experiencia, 1 para alineación, 0,5 para educación requerida y 0,5 para otros criterios explícitos, excluyendo ubicación y modalidad
 
 #### Scenario: Criterio no requerido o no aplicable
 - **WHEN** la vacante no establece un requisito educativo ni existe otro criterio explícito del perfil que corresponda evaluar
@@ -94,18 +94,18 @@ El sistema SHALL enviar al modelo una rúbrica común y versionada, y exigir una
 - **THEN** no añade ni resta puntos por ubicación o modalidad en la rúbrica
 
 ### Requirement: Puntaje final calculado por el sistema
-El sistema SHALL calcular el puntaje final como la suma de los puntos por criterio menos las deducciones críticas configuradas, limitado al intervalo de 0.0 a 10.0 y con una cifra decimal.
+El sistema SHALL calcular el puntaje final como la suma de los puntos por criterio menos las deducciones críticas configuradas, limitado al intervalo de 0 a 5, redondeado al medio punto más cercano, con empates hacia arriba.
 
 #### Scenario: Suma válida
 - **WHEN** el modelo devuelve puntajes válidos dentro de los límites de cada criterio
-- **THEN** el puntaje guardado es la suma de los criterios menos las deducciones y se encuentra entre 0.0 y 10.0 con una cifra decimal
+- **THEN** el puntaje guardado es la suma de los criterios menos las deducciones y se encuentra entre 0 y 5 en incrementos de 0,5
 
 #### Scenario: Desglose inválido
 - **WHEN** el modelo omite un criterio, devuelve puntos fuera de sus límites o un estado no admitido
 - **THEN** el sistema rechaza el análisis como inválido y no guarda un puntaje parcial
 
 #### Scenario: Puntaje o deducción inválidos
-- **WHEN** un puntaje o deducción tiene más de una cifra decimal o excede los límites versionados
+- **WHEN** un puntaje o deducción tiene una precisión no admitida o excede los límites versionados
 - **THEN** el sistema rechaza el análisis y no guarda un puntaje parcial
 
 ### Requirement: Conservar la versión de rúbrica aplicada
@@ -172,14 +172,14 @@ El sistema SHALL conservar por llamada de puntuación u organización la etapa, 
 - **THEN** pueden agruparse por etapa y resultado sin acceder a datos personales, prompts o respuestas completas
 
 ### Requirement: Reanalizar resultados vigentes con una nueva rúbrica
-El sistema SHALL reprocesar en segundo plano los análisis vigentes cuando se introduzca una nueva escala y rúbrica, conservando los análisis anteriores para trazabilidad.
+El sistema SHALL convertir los análisis vigentes al introducir la escala de cinco estrellas sin solicitar un nuevo análisis, conservando los análisis anteriores para trazabilidad.
 
 #### Scenario: Reprocesamiento de resultados existentes
 - **WHEN** se activa el cambio a la nueva rúbrica
-- **THEN** cada combinación vigente de perfil y vacante con análisis completo se programa para un nuevo análisis y el análisis previo permanece consultable
+- **THEN** cada resultado existente se convierte sin reanálisis y conserva su versión, evidencia y trazabilidad original
 
 #### Scenario: Reprocesamiento aún pendiente
-- **WHEN** el nuevo análisis de una combinación todavía no termina
+- **WHEN** la conversión de una combinación todavía no termina
 - **THEN** el sistema conserva el resultado previo y no lo presenta como si hubiera sido calculado con la nueva rúbrica
 
 ### Requirement: Solicitar evidencia principal en la explicación del puntaje
@@ -200,6 +200,21 @@ El sistema SHALL solicitar al modelo solo las evidencias y razones principales n
 #### Scenario: Se verifica el consumo de salida
 - **WHEN** se compara la nueva instrucción con la versión anterior en una muestra representativa de análisis
 - **THEN** el formato requerido sigue siendo válido y el consumo medio de tokens de salida disminuye sin pérdida de evidencia necesaria para puntuar
+
+### Requirement: Convertir resultados históricos a la escala de estrellas
+El sistema SHALL convertir cada resultado histórico de 0–10 dividiendo su valor entre dos y redondeando al medio punto más cercano, con empates hacia arriba, sin solicitar nuevos análisis ni perder trazabilidad.
+
+#### Scenario: Convertir un resultado entre dos medias estrellas
+- **WHEN** un resultado antiguo equivale a 3,25 estrellas
+- **THEN** el resultado convertido es 3,5 estrellas y conserva su origen, desglose y evidencia
+
+#### Scenario: Repetir o interrumpir la conversión
+- **WHEN** la migración se reintenta o se interrumpe
+- **THEN** cada resultado se convierte como máximo una vez y puede recuperarse sin mezclar escalas
+
+#### Scenario: Activar la nueva escala
+- **WHEN** se activa la nueva rúbrica
+- **THEN** no se generan nuevos análisis de IA solo por la conversión y los resultados existentes siguen accesibles con su versión de origen
 
 ### Requirement: Interpretar respuestas JSON delimitadas
 El sistema SHALL aceptar para puntuación y organización un objeto JSON válido directamente o contenido íntegramente en un único bloque Markdown de código sin texto externo, y SHALL aplicar la validación vigente antes de guardar resultados.
@@ -241,3 +256,14 @@ Si el contenido directo o el interior de un único bloque Markdown inequívoco s
 #### Scenario: Error de transporte
 - **WHEN** la llamada original falla por timeout, conexión o error HTTP
 - **THEN** el sistema aplica la recuperación existente sin solicitar reparación de una respuesta inexistente
+
+### Requirement: Ajustar la salida de requisitos críticos al formato validado
+Las instrucciones de análisis SHALL exigir requisitos críticos y evidencia dentro de los límites de texto que acepta el validador, y el sistema SHALL rechazar de forma segura cualquier salida que los exceda.
+
+#### Scenario: El modelo devuelve un requisito crítico válido
+- **WHEN** el modelo describe un requisito crítico
+- **THEN** el texto del requisito tiene como máximo 180 caracteres, el estado usa un valor admitido y la evidencia tiene como máximo 240 caracteres
+
+#### Scenario: La salida supera el límite de texto
+- **WHEN** el requisito crítico o su evidencia exceden el límite
+- **THEN** el sistema no guarda un análisis parcial, registra solo la categoría segura de validación y mantiene genérico el mensaje visible a la persona usuaria

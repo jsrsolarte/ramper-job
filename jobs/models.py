@@ -8,6 +8,10 @@ class Vacancy(models.Model):
         CLOSED = "closed", "Cerrada"
         UNKNOWN = "unknown", "Desconocida"
 
+    class DetailStatus(models.TextChoices):
+        UNKNOWN = "unknown", "Desconocido"
+        CONFIRMED = "confirmed", "Ficha confirmada"
+
     source = models.CharField(max_length=80)
     external_id = models.CharField(max_length=160, blank=True, null=True)
     dedupe_key = models.CharField(max_length=64, blank=True)
@@ -18,6 +22,10 @@ class Vacancy(models.Model):
     salary = models.CharField(max_length=200, blank=True, null=True)
     contract_type = models.CharField(max_length=200, blank=True, null=True)
     original_url = models.URLField(max_length=1000)
+    normalized_url = models.CharField(max_length=1000, null=True, blank=True)
+    normalized_url_hash = models.CharField(max_length=64, null=True, blank=True)
+    details_status = models.CharField(max_length=12, choices=DetailStatus.choices, default=DetailStatus.UNKNOWN)
+    details_confirmed_at = models.DateTimeField(null=True, blank=True)
     published_at = models.DateTimeField(blank=True, null=True)
     raw_data = models.JSONField(default=dict, blank=True)
     availability_status = models.CharField(
@@ -34,7 +42,7 @@ class Vacancy(models.Model):
         ordering = ["-last_seen_at"]
         constraints = [
             models.UniqueConstraint(fields=["source", "original_url"], name="unique_source_vacancy_url"),
-            models.UniqueConstraint(fields=["source", "dedupe_key"], name="unique_source_vacancy_identity"),
+            models.UniqueConstraint(fields=["source", "normalized_url_hash"], name="unique_source_normalized_vacancy_url"),
         ]
         indexes = [models.Index(fields=["source", "is_active"])]
         verbose_name = "vacante"
@@ -44,18 +52,43 @@ class Vacancy(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
-        if not self.dedupe_key:
-            from .identity import vacancy_dedupe_key
+        from .identity import normalize_vacancy_url, normalized_url_hash, vacancy_dedupe_key
 
-            self.dedupe_key = vacancy_dedupe_key(
-                self.source,
-                self.external_id,
-                self.title,
-                self.company,
-                self.location,
-                self.original_url,
-            )
+        self.normalized_url = normalize_vacancy_url(self.original_url)
+        self.normalized_url_hash = normalized_url_hash(self.normalized_url)
+        self.original_url = self.normalized_url
+        self.dedupe_key = vacancy_dedupe_key(
+            self.source, self.external_id, self.title, self.company, self.location, self.normalized_url,
+        )
+        update_fields = kwargs.get("update_fields")
+        if update_fields is not None:
+            kwargs["update_fields"] = set(update_fields) | {
+                "original_url", "normalized_url", "normalized_url_hash", "dedupe_key",
+            }
         super().save(*args, **kwargs)
+
+
+class VacancyURLAlias(models.Model):
+    vacancy = models.ForeignKey(Vacancy, on_delete=models.CASCADE, related_name="url_aliases")
+    source = models.CharField(max_length=80)
+    normalized_url = models.CharField(max_length=1000)
+    normalized_url_hash = models.CharField(max_length=64)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["source", "normalized_url_hash"], name="unique_source_vacancy_url_alias")]
+
+
+class VacancyDetailLease(models.Model):
+    source = models.CharField(max_length=80)
+    normalized_url = models.CharField(max_length=1000)
+    normalized_url_hash = models.CharField(max_length=64)
+    token = models.CharField(max_length=120, blank=True)
+    expires_at = models.DateTimeField(null=True, blank=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=["source", "normalized_url_hash"], name="unique_vacancy_detail_lease")]
 
 
 class JobSourceStatus(models.Model):

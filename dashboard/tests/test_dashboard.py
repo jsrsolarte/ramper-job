@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 8807)
-Total output lines: 638
-
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
@@ -217,7 +214,205 @@ class DashboardPrivacyTests(TestCase):
 
         self.assertContains(applied, "Aplicada hace 3 días")
         self.assertContains(applied, 'aria-label="Aplicada ')
-        self.as…2807 tokens truncated…")
+        self.assertNotContains(applied, "Analizada hace")
+        self.assertEqual(follow_up.state_changed_at, now - timedelta(days=3))
+
+    def test_dashboard_score_filter_is_independent_of_profile_discard_threshold(self):
+        self.first_profile.min_score = 8
+        self.first_profile.save(update_fields=["min_score"])
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"), {"score_min": "5"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item.pk for item in response.context["analyses"]], [self.best.pk, self.lower.pk])
+        self.assertEqual(self.first_profile.min_score, 8)
+
+    def test_invalid_dashboard_score_filter_is_omitted_independently_of_profile_threshold(self):
+        self.first_profile.min_score = 8
+        self.first_profile.save(update_fields=["min_score"])
+        self.client.force_login(self.first)
+
+        for score_filter in ("-1", "11", "invalid", "1.5"):
+            with self.subTest(score_filter=score_filter):
+                response = self.client.get(reverse("dashboard:home"), {"score_min": score_filter})
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual([item.pk for item in response.context["analyses"]], [self.best.pk, self.lower.pk])
+                self.assertIsNone(response.context["score_filter"])
+
+    def test_missing_dashboard_score_filter_shows_all_recommendations(self):
+        self.first_profile.min_score = 8
+        self.first_profile.save(update_fields=["min_score"])
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"))
+
+        self.assertEqual([item.pk for item in response.context["analyses"]], [self.best.pk, self.lower.pk])
+        self.assertIsNone(response.context["score_filter"])
+
+    def test_dashboard_score_star_options_are_independent_of_profile_threshold(self):
+        self.first_profile.min_score = 8
+        self.first_profile.save(update_fields=["min_score"])
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"))
+
+        self.assertContains(response, 'aria-label="Puntaje exacto de compatibilidad"')
+        self.assertContains(response, 'aria-label="Mostrar todas"')
+        self.assertContains(response, 'aria-label="Mostrar puntajes exactos de 4,5 estrellas"')
+        self.assertContains(response, 'href="?state=pending&amp;score_min=all"')
+        self.assertNotContains(response, 'type="range" name="score_min"')
+        self.assertNotContains(response, 'Mínimo de tu perfil: 4 estrellas')
+        self.assertEqual(response.context["score_filter_value"], "all")
+
+        response = self.client.get(reverse("dashboard:home"), {"score_min": "4.5"})
+        self.assertContains(response, 'score_min=4.5" aria-current="true" aria-label="Mostrar puntajes exactos de 4,5 estrellas"')
+        self.assertEqual(response.context["score_filter_value"], Decimal("4.5"))
+
+    def test_dashboard_score_filter_is_preserved_when_paginating(self):
+        for index in range(21):
+            self._vacancy(
+                f"Vacante adicional {index}",
+                f"https://jobs.example.test/additional-{index}",
+                8,
+                self.first_profile,
+                self.first_revision,
+            )
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"), {"score_min": "4"})
+
+        self.assertContains(response, "?score_min=4&amp;page=2")
+        self.assertEqual(response.context["analyses"].paginator.count, 21)
+        self.assertEqual(self.first_profile.min_score, 0)
+
+        second_page = self.client.get(reverse("dashboard:home"), {"score_min": "4", "page": "2"})
+
+        self.assertEqual(second_page.status_code, 200)
+        self.assertEqual(second_page.context["score_filter"], Decimal("4"))
+        self.assertEqual(second_page.context["analyses"].paginator.count, 21)
+
+    def test_exact_score_options_are_private_and_specific_to_each_follow_up_state(self):
+        applied_high = self._vacancy("Aplicada alta", "https://jobs.example.test/applied-high", 9, self.first_profile, self.first_revision)
+        applied_low = self._vacancy("Aplicada baja", "https://jobs.example.test/applied-low", 8, self.first_profile, self.first_revision)
+        discarded = self._vacancy("Descartada", "https://jobs.example.test/discarded-score", 9, self.first_profile, self.first_revision)
+        VacancyFollowUp.objects.create(profile=self.first_profile, vacancy=applied_high.vacancy, status=VacancyFollowUp.Status.APPLIED)
+        VacancyFollowUp.objects.create(profile=self.first_profile, vacancy=applied_low.vacancy, status=VacancyFollowUp.Status.APPLIED)
+        VacancyFollowUp.objects.create(profile=self.first_profile, vacancy=discarded.vacancy, status=VacancyFollowUp.Status.DISCARDED)
+        foreign = self._vacancy("Puntaje ajeno", "https://jobs.example.test/private-score", 10, self.second_profile, self.second_revision)
+        self.client.force_login(self.first)
+
+        pending = self.client.get(reverse("dashboard:home"), {"state": "pending"})
+        applied = self.client.get(reverse("dashboard:home"), {"state": "applied"})
+        discarded_response = self.client.get(reverse("dashboard:home"), {"state": "discarded"})
+        applied_exact = self.client.get(reverse("dashboard:home"), {"state": "applied", "score_min": "4"})
+        stale = self.client.get(reverse("dashboard:home"), {"state": "applied", "score_min": "3.5"})
+
+        self.assertEqual({option["value"] for option in pending.context["score_filter_options"]}, {"all", "3.5", "4.5"})
+        self.assertEqual({option["value"] for option in applied.context["score_filter_options"]}, {"all", "4", "4.5"})
+        self.assertEqual({option["value"] for option in discarded_response.context["score_filter_options"]}, {"all", "4.5"})
+        self.assertEqual([item.vacancy_id for item in applied_exact.context["analyses"]], [applied_low.vacancy_id])
+        self.assertIsNone(stale.context["score_filter"])
+        self.assertEqual(stale.context["analyses"].paginator.count, 2)
+        self.assertNotIn("5", {option["value"] for option in applied.context["score_filter_options"]})
+
+    def test_elided_pagination_at_start_middle_and_end_preserves_filters(self):
+        vacancies = [Vacancy(source="elempleo_co", title=f"Vacante {i}",
+                    original_url=f"https://jobs.example.test/long-{i}", dedupe_key=f"long-{i}") for i in range(220)]
+        Vacancy.objects.bulk_create(vacancies)
+        VacancyAnalysis.objects.bulk_create([
+            VacancyAnalysis(profile=self.first_profile, profile_revision=self.first_revision,
+                vacancy=vacancy, matching_config=self.config, status=VacancyAnalysis.Status.COMPLETED,
+                score=9, score_breakdown={"skills": {"score": 3}})
+            for vacancy in vacancies
+        ])
+        self.client.force_login(self.first)
+        for page_number in (1, 6, 12):
+            response = self.client.get(reverse("dashboard:home"), {"state": "pending", "score_min": "4.5", "page": page_number})
+            navigation = response.context["page_navigation"]
+            numbers = [item["number"] for item in navigation if "number" in item]
+            self.assertIn(1, numbers)
+            self.assertIn(12, numbers)
+            self.assertIn(page_number, numbers)
+            self.assertTrue(any(item.get("ellipsis") for item in navigation))
+            for item in navigation:
+                if "querystring" in item:
+                    self.assertIn("state=pending", item["querystring"])
+                    self.assertIn("score_min=4.5", item["querystring"])
+            self.assertEqual(next(item for item in navigation if item.get("current"))["number"], page_number)
+    def test_empty_dashboard_score_filter_has_a_clear_action(self):
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"), {"score_min": "5"})
+
+        self.assertContains(response, 'aria-label="Mostrar todas"')
+        self.assertContains(response, 'score_min=all" aria-current="true"')
+        self.assertNotContains(response, "Quitar filtro del listado")
+        self.assertEqual(self.first_profile.min_score, 0)
+
+    def test_dashboard_hides_completed_vacancy_outside_profile_locations(self):
+        self.first_profile.locations = ["Medellín"]
+        self.first_profile.save(update_fields=["locations"])
+        self.first_revision.locations = ["Medellín"]
+        self.first_revision.save(update_fields=["locations"])
+        vacancy = Vacancy.objects.create(
+            source="elempleo_co", title="Vacante en Bogotá", location="Bogotá · Av. 68",
+            raw_data={"details": {"city": "Bogotá", "modality": "presencial"}},
+            original_url="https://jobs.example.test/bogota",
+        )
+        VacancyAnalysis.objects.create(
+            profile=self.first_profile, profile_revision=self.first_revision, vacancy=vacancy,
+            matching_config=self.config, status=VacancyAnalysis.Status.COMPLETED, score=99,
+        )
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, "Vacante en Bogotá")
+
+    def test_pending_count_excludes_a_vacancy_outside_profile_locations(self):
+        self.first_profile.locations = ["Medellín"]
+        self.first_profile.save(update_fields=["locations"])
+        self.first_revision.locations = ["Medellín"]
+        self.first_revision.save(update_fields=["locations"])
+        vacancy = Vacancy.objects.create(
+            source="elempleo_co", title="Pendiente en Bogotá", location="Bogotá",
+            raw_data={"details": {"city": "Bogotá", "modality": "presencial"}},
+            original_url="https://jobs.example.test/pending-bogota",
+        )
+        VacancyAnalysis.objects.create(
+            profile=self.first_profile, profile_revision=self.first_revision, vacancy=vacancy,
+            matching_config=self.config,
+        )
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"))
+
+        self.assertEqual(response.context["pending_count"], 0)
+        self.assertNotContains(response, "pendiente")
+
+    def test_anonymous_user_must_sign_in(self):
+        response = self.client.get(reverse("dashboard:home"))
+
+        self.assertRedirects(response, f"{reverse('login')}?next=/", fetch_redirect_response=False)
+
+    def test_pending_or_invalid_analysis_is_not_shown(self):
+        pending_vacancy = Vacancy.objects.create(
+            source="elempleo_co", title="Pendiente", original_url="https://jobs.example.test/pending"
+        )
+        VacancyAnalysis.objects.create(
+            profile=self.first_profile,
+            profile_revision=self.first_revision,
+            vacancy=pending_vacancy,
+            matching_config=self.config,
+        )
+        self.client.force_login(self.first)
+
+        response = self.client.get(reverse("dashboard:home"))
+
+        self.assertNotContains(response, "<h2>Pendiente</h2>")
+        self.assertContains(response, "1 vacante pendiente de análisis")
 
     def test_pending_view_only_includes_current_revision_for_signed_in_profile(self):
         current_revision = ProfileRevision.objects.create(profile=self.first_profile, version=2)

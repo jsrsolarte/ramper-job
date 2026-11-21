@@ -105,10 +105,10 @@ class RefreshTasksTests(TestCase):
             original_url="https://jobs.example.test/vacancy/123",
         )
 
-    def _advance_batch_to_work_item(self, profile_leases, command_id=None):
+    def _advance_batch_to_work_item(self, profile_leases, command_id=None, origin=RefreshBatch.Origin.MANUAL):
         from jobs.resumable import prepare_refresh_batch, prepare_refresh_profile, plan_refresh_batch
 
-        prepare_refresh_batch.run(profile_leases, command_run_id=command_id)
+        prepare_refresh_batch.run(profile_leases, command_run_id=command_id, origin=origin)
         batch = RefreshBatch.objects.latest("pk")
         batch_profile = RefreshBatchProfile.objects.get(batch=batch, profile=self.profile)
         prepare_refresh_profile.run(batch_profile.pk)
@@ -463,7 +463,9 @@ class RefreshTasksTests(TestCase):
         configured.return_value = [Mock(source="test-source")]
         refresh_sources.run(origin="automatic")
         profile_leases = dispatch.call_args.args[0]
-        _, _, work_items = self._advance_batch_to_work_item(profile_leases)
+        _, _, work_items = self._advance_batch_to_work_item(
+            profile_leases, origin=RefreshBatch.Origin.AUTOMATIC,
+        )
 
         with patch("operations.scheduling.automatic_searches_paused", return_value=True):
             result = process_refresh_work_item.run(work_items[0].pk)

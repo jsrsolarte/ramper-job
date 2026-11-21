@@ -17,15 +17,12 @@ def current_score_analyses(profile):
         vacancy=OuterRef("vacancy"),
         status=VacancyAnalysis.Status.COMPLETED,
     ).order_by("-completed_at", "-created_at", "-pk").values("pk")[:1]
-    current_results = VacancyAnalysis.objects.filter(
+    analyses = list(
+        VacancyAnalysis.objects.filter(
             profile=profile,
             status=VacancyAnalysis.Status.COMPLETED,
             score_stars__isnull=False,
         )
-    if revision:
-        current_results = current_results.filter(profile_revision=revision)
-    analyses = list(
-        current_results
         .exclude(score_breakdown={})
         .annotate(latest_result_id=Subquery(latest_result))
         .filter(pk=F("latest_result_id"))

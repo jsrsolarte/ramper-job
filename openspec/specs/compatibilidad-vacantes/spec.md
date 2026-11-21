@@ -267,3 +267,7 @@ Las instrucciones de análisis SHALL exigir requisitos críticos y evidencia den
 #### Scenario: La salida supera el límite de texto
 - **WHEN** el requisito crítico o su evidencia exceden el límite
 - **THEN** el sistema no guarda un análisis parcial, registra solo la categoría segura de validación y mantiene genérico el mensaje visible a la persona usuaria
+
+### Requirement: Preservar literales durante la comprobación de reparaciones
+
+### Requirement: Usar solo la rúbrica vigente en análisis nuevos

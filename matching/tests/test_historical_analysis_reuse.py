@@ -21,10 +21,10 @@ class HistoricalAnalysisReuseTests(TestCase):
             profile=self.profile, version=2, cv_file_path="profiles/history/cv.pdf",
         )
         self.old_config = MatchingConfig.objects.create(
-            version=1, rubric_version=2, analysis_prompt="old", organization_prompt="old",
+            version=1, rubric_version=2, analysis_prompt="old", organization_prompt="old", is_active=False,
         )
         self.current_config = MatchingConfig.objects.create(
-            version=2, rubric_version=3, analysis_prompt="current", organization_prompt="current",
+            version=2, rubric_version=3, analysis_prompt="current", organization_prompt="current", is_active=False,
         )
         self.vacancy = Vacancy.objects.create(
             source="elempleo_co", title="Analista", location="Bogotá",

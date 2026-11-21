@@ -97,5 +97,5 @@ class RetryUntilExpiryTests(TestCase):
         self.assertEqual(replacement.matching_config, new_config)
         self.assertEqual(replacement.status, VacancyAnalysis.Status.PENDING)
         self.analysis.refresh_from_db()
-        self.assertEqual(self.analysis.status, VacancyAnalysis.Status.FAILED)
+        self.assertEqual(self.analysis.status, VacancyAnalysis.Status.SUPERSEDED)
         dispatch.assert_called_once_with(replacement.pk)

@@ -136,7 +136,7 @@ class VersionedConfigAdminTests(TestCase):
         self.assertEqual(config.search_prompt, DEFAULT_SEARCH_PROMPT)
 
     @patch("matching.tasks.analyze_vacancy_for_profile.delay")
-    def test_reprocessing_creates_new_result_with_current_profile_and_config(self, queue):
+    def test_reprocessing_keeps_completed_result_and_does_not_queue_duplicate_analysis(self, queue):
         user = get_user_model().objects.create_user("member")
         profile = Profile.objects.create(owner=user, cv_file="profiles/1/cv/v1.pdf", revision_number=1)
         revision = ProfileRevision.objects.create(profile=profile, version=1, cv_file_path=profile.cv_file.name)
@@ -168,7 +168,7 @@ class VersionedConfigAdminTests(TestCase):
 
         reprocess_selected_analyses(analysis_admin, self.request, queryset)
 
-        new = VacancyAnalysis.objects.exclude(pk=previous.pk).get()
-        self.assertEqual(new.matching_config, new_config)
-        self.assertEqual(new.status, VacancyAnalysis.Status.PENDING)
-        self.assertEqual(new.profile_revision, revision)
+        self.assertEqual(VacancyAnalysis.objects.filter(profile=profile, vacancy=vacancy).count(), 1)
+        previous.refresh_from_db()
+        self.assertEqual(previous.status, VacancyAnalysis.Status.COMPLETED)
+        queue.assert_not_called()

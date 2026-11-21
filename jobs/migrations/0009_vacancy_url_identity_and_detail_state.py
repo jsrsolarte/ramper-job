@@ -158,6 +158,11 @@ def consolidate_exact_url_duplicates(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
+    # The consolidation RunPython updates rows across tables with deferred FK
+    # triggers. PostgreSQL cannot add the final unique constraint while those
+    # trigger events are pending in the same atomic transaction.
+    atomic = False
+
     dependencies = [
         ("jobs", "0008_alter_manualvacancysubmission_source_and_more"),
         ("matching", "0015_aicallattempt_format_action_and_repair_stages"),

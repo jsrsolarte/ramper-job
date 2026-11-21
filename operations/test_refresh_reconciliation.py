@@ -14,6 +14,7 @@ from operations.models import (
 )
 from operations.tasks import reconcile_refresh_work
 from profiles.models import Profile
+from jobs.resumable import MAX_WORK_ATTEMPTS
 
 
 class RefreshWorkReconciliationTests(TestCase):
@@ -132,3 +133,29 @@ class RefreshWorkReconciliationTests(TestCase):
         self.assertEqual(item.status, RefreshWorkItem.Status.RUNNING)
         self.assertEqual(source_run.status, OperationalRun.Status.RUNNING)
         dispatch.assert_not_called()
+
+    @patch("jobs.resumable.process_refresh_work_item.delay")
+    def test_interrupted_automatic_unit_is_preserved_during_quiet_window_then_dispatched_once(self, dispatch):
+        item, source_run, _profile_run, _batch_profile = self.make_running_item(
+            attempts=MAX_WORK_ATTEMPTS - 1,
+        )
+        item.batch.origin = RefreshBatch.Origin.AUTOMATIC
+        item.batch.save(update_fields=("origin",))
+
+        with patch("operations.scheduling.automatic_searches_paused", return_value=True):
+            paused_result = reconcile_refresh_work.run()
+
+        item.refresh_from_db()
+        source_run.refresh_from_db()
+        self.assertEqual(paused_result["recovered_units"], 1)
+        self.assertEqual(item.status, RefreshWorkItem.Status.QUEUED)
+        self.assertEqual(item.attempts, MAX_WORK_ATTEMPTS - 1)
+        self.assertEqual(item.error_category, "")
+        self.assertEqual(source_run.status, OperationalRun.Status.RUNNING)
+        dispatch.assert_not_called()
+
+        with patch("operations.scheduling.automatic_searches_paused", return_value=False):
+            reconcile_refresh_work.run()
+            reconcile_refresh_work.run()
+
+        dispatch.assert_called_once_with(item.pk)

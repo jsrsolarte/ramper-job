@@ -118,6 +118,19 @@ class MatchingProcessingTests(TestCase):
         self.assertEqual(request.call_args.kwargs["vacancy"]["details"]["education"], "Universitaria")
         self.assertEqual(request.call_args.kwargs["vacancy"]["description"], "Experiencia con SQL")
 
+    @patch("operations.scheduling.automatic_searches_paused", return_value=True)
+    @patch("matching.tasks.request_model_analysis")
+    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    def test_pending_analysis_continues_during_automatic_search_quiet_window(self, extract, request, quiet):
+        request.return_value = self._valid_payload()
+
+        result = analyze_vacancy_for_profile.apply(args=(self.analysis.pk,), throw=True)
+
+        self.analysis.refresh_from_db()
+        self.assertEqual(result.result, self.analysis.pk)
+        self.assertEqual(self.analysis.status, VacancyAnalysis.Status.COMPLETED)
+        request.assert_called_once()
+
     @override_settings(
         OMNIROUTE_BASE_URL="http://omniroute.internal/v1",
         OMNIROUTE_MODEL="auto",

@@ -93,6 +93,8 @@ class RefreshTasksTests(TestCase):
         refresh_profile_sources.run(self.profile.pk)
 
         self.assertEqual(PeriodicRefreshState.objects.get(pk=1).last_started_at, previous_start)
+        prepare_batch.assert_called_once()
+        self.assertEqual(prepare_batch.call_args.kwargs["origin"], RefreshBatch.Origin.AUTOMATIC)
 
     def _listing(self):
         return JobListing(
@@ -138,6 +140,7 @@ class RefreshTasksTests(TestCase):
 
         self.assertEqual(result, {"scheduled_profiles": 2})
         refresh_shared.assert_called_once()
+        self.assertEqual(refresh_shared.call_args.kwargs["origin"], RefreshBatch.Origin.MANUAL)
         leases = refresh_shared.call_args.args[0]
         self.assertEqual({int(profile_id) for profile_id in leases}, {self.profile.pk, second_profile.pk})
         self.assertEqual(set(RefreshLease.objects.values_list("token", flat=True)), set(leases.values()))
@@ -475,3 +478,57 @@ class RefreshTasksTests(TestCase):
         work_items[0].refresh_from_db()
         self.assertEqual(work_items[0].status, RefreshWorkItem.Status.QUEUED)
         configured.assert_not_called()
+
+    @patch("jobs.tasks.automatic_searches_paused", return_value=False)
+    @patch("jobs.tasks.configured_connectors")
+    @patch("jobs.tasks.refresh_shared_sources.delay")
+    def test_automatic_work_saves_titles_but_does_not_start_details_when_window_begins(
+        self, dispatch, configured, task_quiet,
+    ):
+        from jobs.resumable import process_refresh_work_item
+
+        connector = Mock(source="test-source")
+        connector.fetch_titles.return_value = [self._listing()]
+        configured.return_value = [connector]
+        refresh_sources.run(origin="automatic")
+        profile_leases = dispatch.call_args.args[0]
+        _, _, work_items = self._advance_batch_to_work_item(
+            profile_leases, origin=RefreshBatch.Origin.AUTOMATIC,
+        )
+        item = work_items[0]
+        configured.reset_mock()
+
+        quiet_checks = iter((False, False, True))
+        with patch("operations.scheduling.automatic_searches_paused", side_effect=lambda **_kwargs: next(quiet_checks)), \
+             patch("matching.services.preselect_listing_titles") as preselect:
+            preselect.return_value = Mock(listings=[self._listing()], discarded_count=0, input_tokens=0)
+            result = process_refresh_work_item.run(item.pk)
+
+        self.assertEqual(result, {"deferred": "automatic_search_schedule", "phase": "details"})
+        item.refresh_from_db()
+        self.assertEqual(item.status, RefreshWorkItem.Status.QUEUED)
+        self.assertEqual(item.phase, RefreshWorkItem.Phase.DETAILS)
+        self.assertEqual(item.cursor, 0)
+        connector.fetch_titles.assert_called_once()
+        connector.fetch_details.assert_not_called()
+
+    @patch("jobs.tasks.configured_connectors")
+    @patch("jobs.tasks.refresh_shared_sources.delay")
+    def test_manual_durable_work_can_run_during_automatic_quiet_window(self, dispatch, configured):
+        from jobs.resumable import process_refresh_work_item
+
+        connector = Mock(source="test-source")
+        connector.fetch_titles.return_value = []
+        configured.return_value = [connector]
+        refresh_sources.run(origin="manual")
+        profile_leases = dispatch.call_args.args[0]
+        _, _, work_items = self._advance_batch_to_work_item(
+            profile_leases, origin=RefreshBatch.Origin.MANUAL,
+        )
+
+        with patch("operations.scheduling.automatic_searches_paused", return_value=True):
+            result = process_refresh_work_item.run(work_items[0].pk)
+
+        self.assertEqual(result, {"completed": True, "listings": 0})
+        connector.fetch_titles.assert_called_once()
+        self.assertEqual(work_items[0].batch.origin, RefreshBatch.Origin.MANUAL)

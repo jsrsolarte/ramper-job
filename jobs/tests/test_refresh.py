@@ -466,6 +466,7 @@ class RefreshTasksTests(TestCase):
         _, _, work_items = self._advance_batch_to_work_item(
             profile_leases, origin=RefreshBatch.Origin.AUTOMATIC,
         )
+        configured.reset_mock()
 
         with patch("operations.scheduling.automatic_searches_paused", return_value=True):
             result = process_refresh_work_item.run(work_items[0].pk)

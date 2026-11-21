@@ -11,8 +11,9 @@
     <link rel="stylesheet" href="/static/app.css?v=27">
     <script src="/static/score-range.js?v=3" defer></script>
     <script src="{% static 'table-scroll.js' %}" defer></script>
+    <script src="{% static 'connectivity.js' %}?v=1" defer></script>
     {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
-      <script src="{% static 'tour.js' %}?v=4" defer></script>
+      <script src="{% static 'tour.js' %}?v=5" defer></script>
     {% endif %}
   </head>
   <body>
@@ -30,6 +31,7 @@
         </nav>
       {% endif %}
     </header>
+    <div id="connection-status" class="connection-status" hidden role="status" aria-live="polite" aria-atomic="true"></div>
     {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
       <form id="tour-csrf" hidden>{% csrf_token %}</form>
       <aside id="tour-offer" class="tour-offer panel" hidden aria-labelledby="tour-offer-title">

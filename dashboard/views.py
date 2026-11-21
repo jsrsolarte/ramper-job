@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count, F, Max, OuterRef, Subquery
+from django.db.models import Count, Exists, F, Max, OuterRef, Subquery
 from decimal import Decimal, InvalidOperation
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
@@ -338,12 +338,10 @@ def pending(request):
                 profile=OuterRef("profile"),
                 vacancy=OuterRef("vacancy"),
                 status=VacancyAnalysis.Status.COMPLETED,
-                profile_revision__version=F("profile__revision_number"),
-            ).order_by("-created_at", "-pk").values("pk")[:1]
+            ).order_by("-completed_at", "-created_at", "-pk").values("pk")[:1]
             completed = VacancyAnalysis.objects.filter(
                 profile=profile,
                 status=VacancyAnalysis.Status.COMPLETED,
-                profile_revision=revision,
                 score_stars__isnull=False,
             ).exclude(score_breakdown={}).annotate(latest_result_id=Subquery(latest_result))
             completed = completed.filter(pk=F("latest_result_id")).select_related("vacancy")
@@ -361,10 +359,7 @@ def pending(request):
                 archived_at__isnull=False,
             ).values_list("vacancy_id", flat=True))
             for analysis in completed:
-                if (
-                    analysis.vacancy_id not in archived_vacancy_ids
-                    and vacancy_location_is_eligible(analysis.vacancy, revision)
-                ):
+                if analysis.vacancy_id not in archived_vacancy_ids:
                     status = follow_up_statuses.get(analysis.vacancy_id, VacancyFollowUp.Status.PENDING)
                     follow_up_counts[status] += 1
             latest_pending = VacancyAnalysis.objects.filter(
@@ -376,7 +371,13 @@ def pending(request):
                 profile=profile,
                 profile_revision=revision,
                 status__in=[VacancyAnalysis.Status.PENDING, VacancyAnalysis.Status.FAILED],
-            ).annotate(latest_pending_id=Subquery(latest_pending))
+            ).annotate(
+                latest_pending_id=Subquery(latest_pending),
+                has_completed=Exists(VacancyAnalysis.objects.filter(
+                    profile=OuterRef("profile"), vacancy=OuterRef("vacancy"),
+                    status=VacancyAnalysis.Status.COMPLETED,
+                )),
+            ).filter(has_completed=False)
             candidates = candidates.filter(pk=F("latest_pending_id")).select_related("vacancy")
             analyses = [
                 analysis
@@ -438,12 +439,10 @@ def update_follow_up(request, vacancy_id):
     if status not in VacancyFollowUp.Status.values and status != "restore":
         return HttpResponseBadRequest("El estado de seguimiento no es válido.")
 
-    revision = profile.revisions.filter(version=profile.revision_number).first()
     analysis = get_object_or_404(
         VacancyAnalysis.objects.filter(
             profile=profile,
             status=VacancyAnalysis.Status.COMPLETED,
-            profile_revision__version=profile.revision_number,
             score_stars__isnull=False,
         )
         .exclude(score_breakdown={})
@@ -453,16 +452,12 @@ def update_follow_up(request, vacancy_id):
                     profile=OuterRef("profile"),
                     vacancy=OuterRef("vacancy"),
                     status=VacancyAnalysis.Status.COMPLETED,
-                    profile_revision__version=F("profile__revision_number"),
-                ).order_by("-created_at", "-pk").values("pk")[:1]
+                ).order_by("-completed_at", "-created_at", "-pk").values("pk")[:1]
             )
         )
         .select_related("vacancy"),
         vacancy_id=vacancy_id,
     )
-    if revision and not vacancy_location_is_eligible(analysis.vacancy, revision):
-        return HttpResponseBadRequest("La vacante no está disponible para este perfil.")
-
     follow_up = VacancyFollowUp.objects.filter(profile=profile, vacancy=analysis.vacancy).first()
     current_status = follow_up.status if follow_up else VacancyFollowUp.Status.PENDING
     if status == VacancyFollowUp.Status.DISCARDED:

@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let highlightedElement = null;
   let returnFocus = null;
   let activeState = null;
+  let actionPending = false;
 
   const removeHighlight = () => {
     highlightedElement?.classList.remove("tour-highlight");
@@ -109,6 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const perform = async (action) => {
+    if (actionPending) return;
+    actionPending = true;
     try {
       const state = await postAction(action);
       if (action === "close") {
@@ -121,8 +124,10 @@ document.addEventListener("DOMContentLoaded", () => {
         offer.hidden = true;
       }
     } catch (_error) {
-      progressLabel.textContent = "No se pudo guardar el recorrido. Inténtalo de nuevo.";
+      progressLabel.textContent = "No pudimos confirmar si se guardó el recorrido. Comprueba su estado antes de repetir la acción.";
       progressLabel.setAttribute("role", "alert");
+    } finally {
+      actionPending = false;
     }
   };
 

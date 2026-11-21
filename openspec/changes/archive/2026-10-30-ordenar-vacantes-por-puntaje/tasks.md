@@ -13,4 +13,4 @@
 ## 3. Integrar antes de stage
 
 - [x] 3.1 Verificar conjuntamente puntajes y orden cronológico en cada pestaña, junto con seguimiento por perfil y fechas de estado.
-- [ ] 3.2 Antes de cualquier despliegue a stage, confirmar que `ordenar-vacantes-por-puntaje` esté completo e integrado en el commit candidato; verificar que la compuerta de despliegue lo incluya.
+- [x] 3.2 Antes de cualquier despliegue a stage, confirmar que `ordenar-vacantes-por-puntaje` esté completo e integrado en el commit candidato; verificar que la compuerta de despliegue lo incluya.

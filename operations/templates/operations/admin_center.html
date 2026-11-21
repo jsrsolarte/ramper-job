@@ -47,6 +47,8 @@
     <h2>Próximo ciclo</h2>
     {% if automatic_refresh_schedule.status == "paused" %}
     <p><strong>Las búsquedas están pausadas.</strong></p>
+    {% elif automatic_refresh_schedule.quiet_window %}
+    <p><strong>Pausa horaria activa.</strong> El trabajo automático se conserva y se reanuda al terminar la ventana.{% if automatic_refresh_schedule.next_at %} Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).{% endif %}</p>
     {% elif automatic_refresh_schedule.next_at %}
     <p>Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).</p>
     {% else %}

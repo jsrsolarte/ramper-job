@@ -431,6 +431,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .notice-error { border-color: #f2d0c9; color: var(--danger); background: var(--danger-bg); }
 .notice-success { border-color: #d0e6d9; color: #285846; background: #edf7ef; }
 
+.connection-status { margin: 12px auto; width: min(1100px, calc(100% - 48px)); padding: 13px 16px; border: 1px solid #f2d0c9; border-radius: 12px; color: var(--danger); background: var(--danger-bg); font-size: 13px; font-weight: 650; line-height: 1.55; }
+.connection-status[data-state="recovered"] { border-color: #d0e6d9; color: #285846; background: #edf7ef; }
+.connection-status[hidden] { display: none; }
+.auth-card .connection-status { width: 100%; margin: 12px 0; }
 
 .pagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; margin-top: 27px; color: var(--muted); font-size: 12px; }
 .pagination a { color: var(--green); font-weight: 700; text-decoration: none; }

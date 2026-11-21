@@ -26,11 +26,11 @@ Cada lanzamiento aprobado a producción SHALL recibir una versión `MAJOR.MINOR.
 - **THEN** se incrementa MAJOR y MINOR y PATCH vuelven a cero
 
 ### Requirement: Asociar cada versión al artefacto liberado
-El sistema SHALL relacionar cada versión de producción con una etiqueta inmutable, el SHA del commit fuente y el digest de la imagen publicada, y SHALL desplegar exactamente ese artefacto.
+El sistema SHALL relacionar cada versión de producción con una etiqueta inmutable, el SHA del commit fuente y el digest de la imagen publicada, y SHALL desplegar exactamente el artefacto validado en staging.
 
 #### Scenario: Se publica una versión a producción
-- **WHEN** una versión se aprueba para producción
-- **THEN** su etiqueta, SHA y digest identifican el mismo código que se validó en staging
+- **WHEN** una versión se integra a `main` después de validarse en staging
+- **THEN** su etiqueta, SHA y digest identifican el mismo código y la misma imagen que se probaron en staging
 
 #### Scenario: Se prepara una prueba de staging
 - **WHEN** se construye una imagen de staging desde una rama o commit candidato

@@ -281,15 +281,15 @@ class VacancyFollowUpActionTests(TestCase):
         response = self.client.get(reverse("dashboard:home"), {"state": "discarded"})
         self.assertEqual(response.context["follow_up_counts"]["applied"], 0)
         self.assertEqual(response.context["follow_up_counts"]["discarded"], 1)
-        self.assertContains(response, "Descartadas")
         self.assertContains(response, "Restaurar vacante")
+        self.assertContains(response, "Descartadas")
 
         restored = self.client.post(
             reverse("dashboard:update_follow_up", args=[self.vacancy.pk]), {"status": "restore"}
         )
         self.assertRedirects(restored, "/?state=applied", fetch_redirect_response=False)
-        restored_page = self.client.get(reverse("dashboard:home"), {"state": "applied"})
-        self.assertNotContains(restored_page, "Descartadas")
+        response = self.client.get(reverse("dashboard:home"), {"state": "applied"})
+        self.assertNotContains(response, "Descartadas")
 
     def test_recommendations_are_sorted_by_full_decimal_score(self):
         self.profile.min_score = 8

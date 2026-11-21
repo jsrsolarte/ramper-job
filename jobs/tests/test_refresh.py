@@ -8,7 +8,7 @@ from django.utils import timezone
 from jobs.connectors.base import JobListing
 from jobs.models import JobSourceStatus, Vacancy
 from jobs.tasks import refresh_periodic_sources, refresh_profile_sources, refresh_sources
-from matching.models import PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, ProfileSearchTerms
+from matching.models import PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, ProfileSearchTerms, ProfileVacancyDiscovery
 from operations.models import (
     AdminCommandRun,
     OperationalRun,
@@ -16,6 +16,7 @@ from operations.models import (
     RefreshBatchProfile,
     RefreshLease,
     RefreshWorkItem,
+    RefreshWorkProfile,
     PeriodicRefreshState,
 )
 from profiles.models import Profile, ProfileRevision
@@ -53,47 +54,45 @@ class RefreshTasksTests(TestCase):
         )
 
     @patch("jobs.tasks.refresh_sources")
-    def test_periodic_refresh_records_its_start(self, run_refresh):
+    @patch("jobs.tasks.automatic_searches_paused", return_value=False)
+    def test_periodic_cycle_records_start_and_runs_global_refresh(self, is_quiet, run_refresh):
         started_at = timezone.now()
         with patch("operations.scheduling.timezone.now", return_value=started_at):
-            refresh_periodic_sources.run()
+            result = refresh_periodic_sources.run()
+
+        run_refresh.assert_called_once_with(origin="automatic")
+        self.assertEqual(result, run_refresh.return_value)
         self.assertEqual(PeriodicRefreshState.objects.get(pk=1).last_started_at, started_at)
-        run_refresh.assert_called_once_with()
 
     @patch("jobs.tasks.refresh_sources")
     @patch("jobs.tasks.processing_is_paused", return_value=True)
-    def test_periodic_refresh_keeps_last_start_unchanged_when_paused(self, is_paused, run_refresh):
-        last_started_at = timezone.now() - timedelta(hours=1)
-        PeriodicRefreshState.objects.create(pk=1, last_started_at=last_started_at)
-        refresh_periodic_sources.run()
-        self.assertEqual(PeriodicRefreshState.objects.get(pk=1).last_started_at, last_started_at)
-        run_refresh.assert_called_once_with()
+    def test_periodic_cycle_does_not_advance_timestamp_while_globally_paused(self, is_paused, run_refresh):
+        previous_start = timezone.now() - timedelta(hours=1)
+        PeriodicRefreshState.objects.create(pk=1, last_started_at=previous_start)
 
-    @patch("jobs.tasks.refresh_shared_sources.delay")
-    def test_bulk_refresh_excludes_profiles_with_search_paused(self, refresh_shared):
-        paused_owner = get_user_model().objects.create_user("paused-member")
-        paused_profile = Profile.objects.create(
-            owner=paused_owner,
-            search_enabled=False,
-            cv_file="profiles/paused/cv/v1.pdf",
-            revision_number=1,
-        )
-        ProfileRevision.objects.create(profile=paused_profile, version=1, cv_file_path=paused_profile.cv_file.name)
-        result = refresh_sources.run()
-        self.assertEqual(result["scheduled_profiles"], 1)
-        leases = refresh_shared.call_args.args[0]
-        self.assertEqual({int(profile_id) for profile_id in leases}, {self.profile.pk})
+        refresh_periodic_sources.run()
+
+        is_paused.assert_called_once_with()
+        run_refresh.assert_not_called()
+        self.assertEqual(PeriodicRefreshState.objects.get(pk=1).last_started_at, previous_start)
 
     @patch("jobs.resumable.prepare_refresh_batch.delay")
-    def test_profile_refresh_skips_a_paused_profile_without_lease(self, prepare_batch):
-        self.profile.search_enabled = False
-        self.profile.save(update_fields=("search_enabled",))
-        self.assertEqual(
-            refresh_profile_sources.run(self.profile.pk),
-            {"skipped": "profile_search_paused_or_incomplete"},
-        )
-        prepare_batch.assert_not_called()
-        self.assertFalse(RefreshLease.objects.filter(key=f"profile-refresh:{self.profile.pk}").exists())
+    def test_manual_refresh_does_not_advance_periodic_timestamp(self, prepare_batch):
+        previous_start = timezone.now() - timedelta(hours=1)
+        PeriodicRefreshState.objects.create(pk=1, last_started_at=previous_start)
+
+        refresh_sources.run()
+
+        self.assertEqual(PeriodicRefreshState.objects.get(pk=1).last_started_at, previous_start)
+
+    @patch("jobs.resumable.prepare_refresh_batch.delay")
+    def test_profile_refresh_does_not_advance_periodic_timestamp(self, prepare_batch):
+        previous_start = timezone.now() - timedelta(hours=1)
+        PeriodicRefreshState.objects.create(pk=1, last_started_at=previous_start)
+
+        refresh_profile_sources.run(self.profile.pk)
+
+        self.assertEqual(PeriodicRefreshState.objects.get(pk=1).last_started_at, previous_start)
 
     def _listing(self):
         return JobListing(
@@ -105,55 +104,6 @@ class RefreshTasksTests(TestCase):
             description="Descripción de la vacante",
             original_url="https://jobs.example.test/vacancy/123",
         )
-
-    def test_prepared_profile_waits_for_batch_planning_before_completion(self):
-        from jobs.resumable import _finish_batch_profile
-        from operations.services import acquire_refresh_lease, claim_refresh_lease
-
-        key = f"profile-refresh:{self.profile.pk}"
-        token = acquire_refresh_lease(key)
-        self.assertTrue(claim_refresh_lease(key, token))
-        batch = RefreshBatch.objects.create(status=RefreshBatch.Status.RUNNING)
-        run = OperationalRun.objects.create(
-            kind=OperationalRun.Kind.INGESTION,
-            operation="profile_refresh",
-            status=OperationalRun.Status.RUNNING,
-        )
-        batch_profile = RefreshBatchProfile.objects.create(
-            batch=batch,
-            profile=self.profile,
-            profile_run=run,
-            lease_token=token,
-            prepared_at=timezone.now(),
-        )
-
-        self.assertFalse(_finish_batch_profile(batch_profile.pk))
-        batch_profile.refresh_from_db()
-        batch.refresh_from_db()
-        run.refresh_from_db()
-        self.assertIsNone(batch_profile.finished_at)
-        self.assertIsNone(batch.finished_at)
-        self.assertEqual(run.status, OperationalRun.Status.RUNNING)
-        self.assertTrue(RefreshLease.objects.filter(key=key, token=token).exists())
-
-        batch.planned_at = timezone.now()
-        batch.save(update_fields=("planned_at",))
-        self.assertTrue(_finish_batch_profile(batch_profile.pk))
-        batch_profile.refresh_from_db()
-        self.assertIsNotNone(batch_profile.finished_at)
-        self.assertFalse(RefreshLease.objects.filter(key=key).exists())
-
-    @patch("jobs.resumable.prepare_refresh_batch.delay")
-    def test_profile_dispatch_failure_releases_lease_and_allows_retry(self, prepare_batch):
-        prepare_batch.side_effect = RuntimeError("broker unavailable")
-        with self.assertRaisesRegex(RuntimeError, "broker unavailable"):
-            refresh_profile_sources.run(self.profile.pk)
-
-        key = f"profile-refresh:{self.profile.pk}"
-        self.assertFalse(RefreshLease.objects.filter(key=key).exists())
-
-        prepare_batch.side_effect = None
-        self.assertEqual(refresh_profile_sources.run(self.profile.pk), {"scheduled_profiles": 1})
 
     def _advance_batch_to_work_item(self, profile_leases, command_id=None):
         from jobs.resumable import prepare_refresh_batch, prepare_refresh_profile, plan_refresh_batch
@@ -191,6 +141,233 @@ class RefreshTasksTests(TestCase):
         leases = refresh_shared.call_args.args[0]
         self.assertEqual({int(profile_id) for profile_id in leases}, {self.profile.pk, second_profile.pk})
         self.assertEqual(set(RefreshLease.objects.values_list("token", flat=True)), set(leases.values()))
+
+    @patch("jobs.tasks.refresh_shared_sources.delay")
+    def test_scheduled_refresh_excludes_paused_profiles(self, refresh_shared):
+        paused_user = get_user_model().objects.create_user("paused-member")
+        paused_profile = Profile.objects.create(
+            owner=paused_user,
+            cv_file="profiles/paused/cv/v1.pdf",
+            revision_number=1,
+            search_enabled=False,
+        )
+        ProfileRevision.objects.create(profile=paused_profile, version=1, cv_file_path=paused_profile.cv_file.name)
+
+        result = refresh_sources.run()
+
+        self.assertEqual(result, {"scheduled_profiles": 1})
+        leases = refresh_shared.call_args.args[0]
+        self.assertEqual({int(profile_id) for profile_id in leases}, {self.profile.pk})
+        self.assertFalse(RefreshLease.objects.filter(key=f"profile-refresh:{paused_profile.pk}").exists())
+
+    @patch("jobs.tasks.refresh_sources.apply_async")
+    @patch("jobs.tasks.processing_is_paused", return_value=True)
+    def test_global_pause_still_defers_the_whole_search_cycle(self, is_paused, defer_cycle):
+        result = refresh_sources.run()
+
+        self.assertEqual(result, {"deferred": "processing_paused"})
+        defer_cycle.assert_called_once()
+        self.assertFalse(RefreshLease.objects.exists())
+
+    @patch("jobs.tasks.automatic_searches_paused", return_value=True)
+    @patch("jobs.tasks.refresh_shared_sources.delay")
+    def test_automatic_cycle_is_deferred_in_quiet_window_but_manual_is_allowed(self, dispatch, is_quiet):
+        automatic = refresh_sources.run(origin="automatic")
+        self.assertEqual(automatic, {"deferred": "automatic_search_schedule"})
+        dispatch.assert_not_called()
+
+        manual = refresh_sources.run(origin="manual")
+        self.assertEqual(manual["scheduled_profiles"], 1)
+        dispatch.assert_called_once()
+        self.assertEqual(dispatch.call_args.kwargs["origin"], "manual")
+
+    @patch("jobs.resumable.prepare_refresh_batch.delay")
+    def test_paused_profile_refresh_task_skips_before_acquiring_a_lease(self, prepare_batch):
+        self.profile.search_enabled = False
+        self.profile.save(update_fields=("search_enabled",))
+
+        result = refresh_profile_sources.run(self.profile.pk)
+
+        self.assertEqual(result, {"skipped": "profile_search_paused_or_incomplete"})
+        prepare_batch.assert_not_called()
+        self.assertFalse(RefreshLease.objects.filter(key=f"profile-refresh:{self.profile.pk}").exists())
+
+    @patch("jobs.resumable.plan_refresh_batch.delay")
+    @patch("jobs.resumable.get_profile_search_terms")
+    def test_profile_paused_before_preparation_is_skipped_without_search_terms(self, get_terms, plan_batch):
+        from django.utils import timezone
+        from jobs.resumable import prepare_refresh_profile
+
+        self.profile.search_enabled = False
+        self.profile.save(update_fields=("search_enabled",))
+        now = timezone.now()
+        batch = RefreshBatch.objects.create(status=RefreshBatch.Status.RUNNING, started_at=now)
+        profile_run = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="profile_refresh",
+            status=OperationalRun.Status.RUNNING,
+            started_at=now,
+        )
+        batch_profile = RefreshBatchProfile.objects.create(
+            batch=batch,
+            profile=self.profile,
+            profile_run=profile_run,
+            lease_token="paused-profile-lease",
+        )
+
+        result = prepare_refresh_profile.run(batch_profile.pk)
+
+        batch_profile.refresh_from_db()
+        self.assertEqual(result, {"skipped": "profile_search_paused_or_inactive"})
+        self.assertTrue(batch_profile.prepared_at)
+        self.assertEqual(batch_profile.search_request, {})
+        get_terms.assert_not_called()
+        plan_batch.assert_called_once_with(batch.pk)
+
+    @patch("jobs.resumable.process_refresh_work_item.apply_async")
+    @patch("operations.parameters.processing_is_paused", return_value=True)
+    @patch("jobs.resumable._configured_connectors")
+    def test_queued_work_for_paused_profile_finishes_without_query_or_requeue_during_global_pause(
+        self, configured, is_paused, requeue,
+    ):
+        from django.utils import timezone
+        from jobs.resumable import process_refresh_work_item
+
+        self.profile.search_enabled = False
+        self.profile.save(update_fields=("search_enabled",))
+        now = timezone.now()
+        batch = RefreshBatch.objects.create(
+            status=RefreshBatch.Status.RUNNING,
+            started_at=now,
+            planned_at=now,
+        )
+        profile_run = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="profile_refresh",
+            status=OperationalRun.Status.RUNNING,
+            started_at=now,
+        )
+        batch_profile = RefreshBatchProfile.objects.create(
+            batch=batch,
+            profile=self.profile,
+            profile_run=profile_run,
+            lease_token="paused-profile-lease",
+            prepared_at=now,
+        )
+        source_run = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="source_query",
+            source="test-source",
+            status=OperationalRun.Status.RUNNING,
+            started_at=now,
+        )
+        item = RefreshWorkItem.objects.create(
+            batch=batch,
+            source_run=source_run,
+            source="test-source",
+            identity="paused-query",
+            status=RefreshWorkItem.Status.QUEUED,
+        )
+        from operations.models import RefreshWorkProfile
+        RefreshWorkProfile.objects.create(work_item=item, batch_profile=batch_profile, revision_id=self.revision.pk)
+
+        result = process_refresh_work_item.run(item.pk)
+
+        item.refresh_from_db()
+        self.assertEqual(result, {"skipped": "all_profiles_search_paused"})
+        self.assertEqual(item.status, RefreshWorkItem.Status.SUCCEEDED)
+        configured.assert_not_called()
+        requeue.assert_not_called()
+
+    @patch("matching.tasks.schedule_vacancy_analysis.delay")
+    @patch("jobs.resumable.save_listings")
+    def test_shared_query_results_are_not_associated_to_profile_paused_mid_query(
+        self, save_listings, schedule_analysis,
+    ):
+        from types import SimpleNamespace
+        from django.utils import timezone
+        from jobs.resumable import _persist_listing_chunk
+
+        paused_user = get_user_model().objects.create_user("paused-shared-member")
+        paused_profile = Profile.objects.create(
+            owner=paused_user,
+            cv_file="profiles/paused-shared/cv/v1.pdf",
+            revision_number=1,
+            search_enabled=False,
+        )
+        paused_revision = ProfileRevision.objects.create(
+            profile=paused_profile,
+            version=1,
+            locations=["Medellín"],
+            cv_file_path=paused_profile.cv_file.name,
+        )
+        now = timezone.now()
+        batch = RefreshBatch.objects.create(
+            status=RefreshBatch.Status.RUNNING,
+            started_at=now,
+            planned_at=now,
+        )
+        batch_profiles = []
+        for profile, revision, token in (
+            (self.profile, self.revision, "active-profile-lease"),
+            (paused_profile, paused_revision, "paused-profile-lease"),
+        ):
+            profile_run = OperationalRun.objects.create(
+                kind=OperationalRun.Kind.INGESTION,
+                operation="profile_refresh",
+                status=OperationalRun.Status.RUNNING,
+                started_at=now,
+            )
+            batch_profiles.append(RefreshBatchProfile.objects.create(
+                batch=batch,
+                profile=profile,
+                profile_run=profile_run,
+                lease_token=token,
+                prepared_at=now,
+            ))
+        source_run = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="source_query",
+            source="test-source",
+            status=OperationalRun.Status.RUNNING,
+            started_at=now,
+        )
+        item = RefreshWorkItem.objects.create(
+            batch=batch,
+            source_run=source_run,
+            source="test-source",
+            identity="shared-query",
+            status=RefreshWorkItem.Status.RUNNING,
+            lease_token="active-work-lease",
+            lease_expires_at=now + timedelta(minutes=10),
+            search_request={"matching_config_id": self.config.pk},
+        )
+        RefreshWorkProfile.objects.create(work_item=item, batch_profile=batch_profiles[0], revision_id=self.revision.pk)
+        RefreshWorkProfile.objects.create(work_item=item, batch_profile=batch_profiles[1], revision_id=paused_revision.pk)
+        vacancy = Vacancy.objects.create(
+            source="test-source",
+            external_id="shared-1",
+            title="Analista de procesos",
+            company="Empresa",
+            location="Medellín",
+            original_url="https://jobs.example.test/vacancy/shared-1",
+        )
+        save_listings.return_value = SimpleNamespace(
+            vacancies=[vacancy],
+            new_count=1,
+            known_count=0,
+            known_updated_count=0,
+            known_unchanged_count=0,
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            result = _persist_listing_chunk(item.pk, "active-work-lease", 0, [self._listing()])
+
+        self.assertTrue(result)
+        self.assertTrue(ProfileVacancyDiscovery.objects.filter(profile=self.profile, vacancy=vacancy).exists())
+        self.assertFalse(ProfileVacancyDiscovery.objects.filter(profile=paused_profile, vacancy=vacancy).exists())
+        schedule_analysis.assert_called_once()
+        self.assertEqual(schedule_analysis.call_args.kwargs["profile_ids"], [self.profile.pk])
 
     @patch("matching.tasks.schedule_vacancy_analysis.delay")
     @patch("matching.services.request_model_title_preselection")
@@ -255,6 +432,7 @@ class RefreshTasksTests(TestCase):
         prepare_batch.assert_called_once()
         profile_leases = prepare_batch.call_args.args[0]
         self.assertEqual(set(profile_leases), {str(self.profile.pk)})
+        self.assertEqual(prepare_batch.call_args.kwargs["origin"], RefreshBatch.Origin.AUTOMATIC)
         self.assertTrue(RefreshLease.objects.filter(key=f"profile-refresh:{self.profile.pk}").exists())
 
     @patch("jobs.resumable.prepare_refresh_batch.delay")
@@ -270,3 +448,21 @@ class RefreshTasksTests(TestCase):
         self.assertEqual(result, {"skipped": "already_running"})
         prepare_batch.assert_not_called()
         self.assertEqual(RefreshLease.objects.get(key=key).token, token)
+
+    @patch("operations.scheduling.automatic_searches_paused", return_value=True)
+    @patch("jobs.tasks.automatic_searches_paused", return_value=False)
+    @patch("jobs.tasks.configured_connectors")
+    @patch("jobs.tasks.refresh_shared_sources.delay")
+    def test_automatic_durable_unit_waits_in_quiet_window(self, dispatch, configured, task_quiet, worker_quiet):
+        from jobs.resumable import process_refresh_work_item
+
+        refresh_sources.run(origin="automatic")
+        profile_leases = dispatch.call_args.args[0]
+        _, _, work_items = self._advance_batch_to_work_item(profile_leases)
+
+        result = process_refresh_work_item.run(work_items[0].pk)
+
+        self.assertEqual(result, {"deferred": "automatic_search_schedule"})
+        work_items[0].refresh_from_db()
+        self.assertEqual(work_items[0].status, RefreshWorkItem.Status.QUEUED)
+        configured.assert_not_called()

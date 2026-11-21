@@ -33,12 +33,14 @@ from .models import JobSourceStatus
 from .connectors.base import JobListing, SourcePartiallyUnavailable, SourceUnavailable
 from .search_groups import group_search_requests, search_request_identity
 from .services import save_listings
+from .services import claim_detail_fetch, confirmed_listing_details, normalized_url_hash, release_detail_fetch_leases
 
 logger = logging.getLogger(__name__)
 
 WORK_LEASE_SECONDS = settings.REFRESH_WORK_LEASE_SECONDS
 DETAIL_BATCH_SIZE = settings.REFRESH_DETAIL_BATCH_SIZE
 LOCATION_BATCH_SIZE = settings.REFRESH_LOCATION_BATCH_SIZE
+MAX_WORK_ATTEMPTS = 4
 
 
 def _configured_connectors():
@@ -68,6 +70,12 @@ def _listing_from_json(value):
 
 
 def _enqueue_work_item(work_item_id):
+    from operations.scheduling import automatic_searches_paused
+    from operations.models import RefreshWorkItem
+
+    item = RefreshWorkItem.objects.select_related("batch").filter(pk=work_item_id).first()
+    if item is None or (item.batch.origin == RefreshBatch.Origin.AUTOMATIC and automatic_searches_paused()):
+        return False
     now = timezone.now()
     updated = RefreshWorkItem.objects.filter(
         pk=work_item_id,
@@ -75,6 +83,7 @@ def _enqueue_work_item(work_item_id):
     ).update(last_dispatched_at=now)
     if updated:
         process_refresh_work_item.delay(work_item_id)
+    return bool(updated)
 
 
 def _finish_batch_profile(batch_profile_id, *, failed=False, stale=False):
@@ -85,7 +94,7 @@ def _finish_batch_profile(batch_profile_id, *, failed=False, stale=False):
         ).filter(pk=batch_profile_id).first()
         if batch_profile is None or batch_profile.finished_at:
             return False
-        if not batch_profile.prepared_at or not batch_profile.batch.planned_at:
+        if not batch_profile.prepared_at and not batch_profile.batch.planned_at:
             return False
 
         unfinished = batch_profile.work_links.exclude(
@@ -183,6 +192,7 @@ def _record_work_failure(item, *, status, error_category):
         title_discarded_count=item.title_discarded_count,
         details_requested_count=item.details_requested_count,
         details_received_count=item.details_received_count,
+            details_reused_count=item.details_reused_count,
         title_input_tokens=item.title_input_tokens,
         error_category=error_category,
     )
@@ -209,7 +219,7 @@ def _retry_work_item(item_id, token, error_category):
         if item is None:
             return False
         item.attempts += 1
-        if item.attempts >= 4:
+        if item.attempts >= MAX_WORK_ATTEMPTS:
             item.error_category = error_category[:80]
             item.save(update_fields=("attempts", "error_category"))
             terminal = True
@@ -233,7 +243,7 @@ def _retry_work_item(item_id, token, error_category):
 
 
 @shared_task(name="jobs.resumable.prepare_refresh_batch")
-def prepare_refresh_batch(profile_leases, command_run_id=None, leases_already_claimed=False):
+def prepare_refresh_batch(profile_leases, command_run_id=None, leases_already_claimed=False, origin=RefreshBatch.Origin.MANUAL):
     from jobs.tasks import refresh_sources
     from operations.parameters import processing_is_paused
 
@@ -247,7 +257,7 @@ def prepare_refresh_batch(profile_leases, command_run_id=None, leases_already_cl
     if processing_is_paused():
         for profile_id, token in profile_leases.items():
             release_refresh_lease(f"profile-refresh:{int(profile_id)}", token)
-        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id}, countdown=60)
+        refresh_sources.apply_async(kwargs={"command_run_id": command_run_id, "origin": origin}, countdown=60)
         return {"deferred": "processing_paused"}
 
     claimed = {}
@@ -281,6 +291,7 @@ def prepare_refresh_batch(profile_leases, command_run_id=None, leases_already_cl
 
     batch = RefreshBatch.objects.create(
         command_id=command_run_id,
+        origin=origin,
         status=RefreshBatch.Status.RUNNING,
         started_at=timezone.now(),
     )
@@ -335,6 +346,7 @@ def prepare_refresh_profile(self, batch_profile_id):
         batch_profile.save(update_fields=("search_request", "prepared_at"))
         plan_refresh_batch.delay(batch_profile.batch_id)
         return {"skipped": "profile_search_paused_or_inactive"}
+
     if processing_is_paused():
         RefreshBatch.objects.filter(pk=batch_profile.batch_id).update(heartbeat_at=timezone.now())
         renew_refresh_lease(
@@ -501,22 +513,27 @@ def _claim_work_item(work_item_id):
         return item, token
 
 
-def _increment_run_metrics(item, saved, detail_ms=0):
+def _increment_run_metrics(item, saved, detail_ms=0, *, detail_requested_count=0, detail_received_count=0, detail_reused_count=0):
     run = OperationalRun.objects.select_for_update().get(pk=item.source_run_id)
     run.item_count += len(saved.vacancies)
     run.new_count = (run.new_count or 0) + saved.new_count
     run.known_count = (run.known_count or 0) + saved.known_count
     run.known_updated_count = (run.known_updated_count or 0) + saved.known_updated_count
     run.known_unchanged_count = (run.known_unchanged_count or 0) + saved.known_unchanged_count
-    run.details_received_count = (run.details_received_count or 0) + len(saved.vacancies)
+    run.details_requested_count = (run.details_requested_count or 0) + detail_requested_count
+    run.details_received_count = (run.details_received_count or 0) + detail_received_count
+    run.details_reused_count = (run.details_reused_count or 0) + detail_reused_count
     run.detail_fetch_duration_ms = (run.detail_fetch_duration_ms or 0) + max(0, int(detail_ms))
     run.save(update_fields=(
         "item_count", "new_count", "known_count", "known_updated_count", "known_unchanged_count",
-        "details_received_count", "detail_fetch_duration_ms",
+        "details_requested_count", "details_received_count", "details_reused_count", "detail_fetch_duration_ms",
     ))
 
 
-def _persist_listing_chunk(item_id, token, start, listings, *, detail_ms=0, available=True):
+def _persist_listing_chunk(
+    item_id, token, start, listings, *, detail_ms=0, available=True,
+    detail_requested_count=0, detail_received_count=0, detail_reused_count=0, detail_lease_hashes=None,
+):
     from matching.tasks import schedule_vacancy_analysis
 
     with transaction.atomic():
@@ -587,14 +604,25 @@ def _persist_listing_chunk(item_id, token, start, listings, *, detail_ms=0, avai
 
         item.cursor = start + len(listings)
         item.available = item.available and available
-        item.details_received_count += len(saved.vacancies)
+        item.details_requested_count += detail_requested_count
+        item.details_received_count += detail_received_count
+        item.details_reused_count += detail_reused_count
         item.heartbeat_at = timezone.now()
         item.lease_expires_at = item.heartbeat_at + timedelta(seconds=WORK_LEASE_SECONDS)
         item.batch.heartbeat_at = item.heartbeat_at
         item.batch.save(update_fields=("heartbeat_at",))
-        _increment_run_metrics(item, saved, detail_ms=detail_ms)
+        _increment_run_metrics(
+            item, saved, detail_ms=detail_ms,
+            detail_requested_count=detail_requested_count,
+            detail_received_count=detail_received_count,
+            detail_reused_count=detail_reused_count,
+        )
         item.attempts = 0
-        item.save(update_fields=("cursor", "available", "details_received_count", "heartbeat_at", "lease_expires_at", "attempts"))
+        item.save(update_fields=(
+            "cursor", "available", "details_requested_count", "details_received_count", "details_reused_count",
+            "heartbeat_at", "lease_expires_at", "attempts",
+        ))
+        release_detail_fetch_leases(token=token, url_hashes=detail_lease_hashes or [])
     return True
 
 
@@ -631,6 +659,7 @@ def _finish_work_item(item_id, token, *, status):
             title_discarded_count=item.title_discarded_count,
             details_requested_count=item.details_requested_count,
             details_received_count=item.details_received_count,
+            details_reused_count=item.details_reused_count,
             title_input_tokens=item.title_input_tokens,
             error_category=item.error_category if run_status != OperationalRun.Status.SUCCEEDED else "",
         )
@@ -648,9 +677,28 @@ def _finish_work_item(item_id, token, *, status):
         _finish_batch_profile(profile_id, failed=status != RefreshWorkItem.Status.SUCCEEDED)
 
 
+def _defer_automatic_work_item(item_id, token):
+    """Release a claimed automatic unit without treating the quiet window as failure."""
+    from operations.scheduling import automatic_searches_paused
+
+    item = RefreshWorkItem.objects.select_related("batch").filter(pk=item_id).first()
+    if item is None or item.batch.origin != RefreshBatch.Origin.AUTOMATIC or not automatic_searches_paused():
+        return False
+    RefreshWorkItem.objects.filter(
+        pk=item_id, status=RefreshWorkItem.Status.RUNNING, lease_token=token,
+    ).update(
+        status=RefreshWorkItem.Status.QUEUED,
+        lease_token="",
+        lease_expires_at=None,
+        last_dispatched_at=timezone.now(),
+    )
+    return True
+
+
 @shared_task(name="jobs.resumable.process_refresh_work_item")
 def process_refresh_work_item(work_item_id):
     from operations.parameters import processing_is_paused
+    from operations.scheduling import automatic_searches_paused
 
     eligible_profiles = RefreshWorkProfile.objects.filter(
         work_item_id=work_item_id,
@@ -672,6 +720,12 @@ def process_refresh_work_item(work_item_id):
         )
         process_refresh_work_item.apply_async(args=(work_item_id,), countdown=60)
         return {"deferred": "processing_paused"}
+    work = RefreshWorkItem.objects.select_related("batch").filter(pk=work_item_id).first()
+    if work and work.batch.origin == RefreshBatch.Origin.AUTOMATIC and automatic_searches_paused():
+        RefreshWorkItem.objects.filter(pk=work_item_id, status=RefreshWorkItem.Status.QUEUED).update(
+            last_dispatched_at=timezone.now(),
+        )
+        return {"deferred": "automatic_search_schedule"}
     claim = _claim_work_item(work_item_id)
     if claim is None:
         return {"skipped": "already_claimed_or_finished"}
@@ -685,13 +739,17 @@ def process_refresh_work_item(work_item_id):
     if not has_enabled_profile:
         _finish_work_item(item.pk, token, status=RefreshWorkItem.Status.SUCCEEDED)
         return {"skipped": "all_profiles_search_paused"}
+
     connector = next((item_type for item_type in _configured_connectors() if item_type.source == item.source), None)
     if connector is None:
         _record_work_failure(item, status=RefreshWorkItem.Status.FAILED, error_category="source_error")
         return {"failed": "connector_missing"}
 
+    claimed_detail_hashes = []
     try:
         if item.phase == RefreshWorkItem.Phase.TITLES:
+            if _defer_automatic_work_item(item.pk, token):
+                return {"deferred": "automatic_search_schedule", "phase": "titles"}
             listing_started = time.perf_counter()
             try:
                 titles = connector.fetch_titles(
@@ -712,7 +770,7 @@ def process_refresh_work_item(work_item_id):
             run.listing_count = len(titles)
             run.title_kept_count = len(preselected.listings)
             run.title_discarded_count = preselected.discarded_count
-            run.details_requested_count = len(preselected.listings)
+            run.details_requested_count = 0
             run.title_input_tokens = preselected.input_tokens
             run.listing_fetch_duration_ms = listing_ms
             run.title_preselection_duration_ms = preselection_ms
@@ -724,7 +782,7 @@ def process_refresh_work_item(work_item_id):
             item.listing_count = len(titles)
             item.title_kept_count = len(preselected.listings)
             item.title_discarded_count = preselected.discarded_count
-            item.details_requested_count = len(preselected.listings)
+            item.details_requested_count = 0
             item.title_input_tokens = preselected.input_tokens
             item.available = available
             item.phase = RefreshWorkItem.Phase.DETAILS
@@ -742,19 +800,70 @@ def process_refresh_work_item(work_item_id):
                     status=RefreshWorkItem.Status.SUCCEEDED if available else RefreshWorkItem.Status.PARTIAL,
                 )
                 return {"completed": True, "listings": 0}
+            if item.batch.origin == RefreshBatch.Origin.AUTOMATIC and automatic_searches_paused():
+                item.status = RefreshWorkItem.Status.QUEUED
+                item.lease_token = ""
+                item.lease_expires_at = None
+                item.last_dispatched_at = timezone.now()
+                item.save(update_fields=("status", "lease_token", "lease_expires_at", "last_dispatched_at"))
+                return {"deferred": "automatic_search_schedule", "phase": "details"}
 
         item.refresh_from_db()
         batch = item.listings[item.cursor:item.cursor + DETAIL_BATCH_SIZE]
-        listings = [_listing_from_json(value) for value in batch]
+        original_listings = [_listing_from_json(value) for value in batch]
+        if _defer_automatic_work_item(item.pk, token):
+            return {"deferred": "automatic_search_schedule", "phase": "details"}
+        listings = list(original_listings)
+        to_fetch = []
+        details_reused = 0
+        for index, listing in enumerate(original_listings):
+            cached = confirmed_listing_details(listing)
+            if cached is not None:
+                listings[index] = cached
+                details_reused += 1
+                continue
+            if not item.available:
+                continue
+            state, _lease_token = claim_detail_fetch(item.source, listing.original_url, token=token)
+            if state == "busy":
+                release_detail_fetch_leases(token=token, url_hashes=claimed_detail_hashes)
+                item.status = RefreshWorkItem.Status.QUEUED
+                item.lease_token = ""
+                item.lease_expires_at = None
+                item.last_dispatched_at = timezone.now()
+                item.save(update_fields=("status", "lease_token", "lease_expires_at", "last_dispatched_at"))
+                return {"deferred": "detail_fetch_in_progress"}
+            claimed_detail_hashes.append(normalized_url_hash(listing.original_url))
+            to_fetch.append((index, listing))
         detail_started = time.perf_counter()
-        try:
-            detailed = connector.fetch_details(listings) if item.available else listings
-            detail_available = item.available
-        except SourcePartiallyUnavailable as exc:
-            detailed = exc.listings
-            detail_available = False
+        detail_requested = len(to_fetch)
+        detail_available = item.available
+        detail_received = 0
+        if to_fetch:
+            try:
+                fetched = connector.fetch_details([listing for _index, listing in to_fetch])
+            except SourcePartiallyUnavailable as exc:
+                fetched = exc.listings
+                detail_available = False
+            for (index, _original), detailed_listing in zip(to_fetch, fetched):
+                listings[index] = detailed_listing
+            detail_received = sum(
+                1 for listing in fetched
+                if (listing.raw_data or {}).get("details_fetch", {}).get("status") == "confirmed"
+            )
         detail_ms = max(0, int((time.perf_counter() - detail_started) * 1000))
-        _persist_listing_chunk(item.pk, token, item.cursor, detailed, detail_ms=detail_ms, available=detail_available)
+        persisted = _persist_listing_chunk(
+            item.pk, token, item.cursor, listings,
+            detail_ms=detail_ms,
+            available=detail_available,
+            detail_requested_count=detail_requested,
+            detail_received_count=detail_received,
+            detail_reused_count=details_reused,
+            detail_lease_hashes=claimed_detail_hashes,
+        )
+        if not persisted:
+            release_detail_fetch_leases(token=token, url_hashes=claimed_detail_hashes)
+            return {"skipped": "work_item_changed"}
 
         item.refresh_from_db()
         if item.cursor < len(item.listings):
@@ -763,8 +872,13 @@ def process_refresh_work_item(work_item_id):
             item.lease_expires_at = None
             item.last_dispatched_at = timezone.now()
             item.save(update_fields=("status", "lease_token", "lease_expires_at", "last_dispatched_at"))
-            process_refresh_work_item.apply_async(args=(item.pk,))
-            return {"continued": True, "cursor": item.cursor, "total": len(item.listings)}
+            dispatched = _enqueue_work_item(item.pk)
+            return {
+                "continued": dispatched,
+                "deferred": None if dispatched else "automatic_search_schedule",
+                "cursor": item.cursor,
+                "total": len(item.listings),
+            }
 
         status = RefreshWorkItem.Status.SUCCEEDED if item.available else RefreshWorkItem.Status.PARTIAL
         item.error_category = "" if item.available else "source_partially_unavailable"
@@ -772,10 +886,12 @@ def process_refresh_work_item(work_item_id):
         _finish_work_item(item.pk, token, status=status)
         return {"completed": True, "cursor": item.cursor}
     except SourceUnavailable:
+        release_detail_fetch_leases(token=token, url_hashes=claimed_detail_hashes)
         _retry_work_item(item.pk, token, "source_unavailable")
         logger.info("refresh_work_source_unavailable source=%s", item.source)
         return {"retrying": "source_unavailable"}
     except Exception as exc:
+        release_detail_fetch_leases(token=token, url_hashes=claimed_detail_hashes)
         _retry_work_item(item.pk, token, "source_error")
         logger.error("refresh_work_failed source=%s exception_type=%s", item.source, type(exc).__name__)
         return {"retrying": "source_error"}

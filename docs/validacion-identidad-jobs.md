@@ -1,6 +1,6 @@
 # Validación local de identidad Jobs
 
-Fecha: 20 de noviembre de 2026. Las revisiones visuales registradas corresponden al árbol local de desarrollo; validar también esta integración separada sobre staging. Entorno sintético temporal: Python 3.12, Django 5.2.19 y PostgreSQL 17 en localhost; dependencias resueltas dentro de los rangos de `pyproject.toml`, no desde `uv.lock`. Sin trabajadores, Beat ni datos reales. La configuración temporal deshabilitó el correo externo y usó broker en memoria; las pruebas Python bloquearon conexiones de socket no locales.
+Fecha: 20 de noviembre de 2026. Entorno sintético temporal: Python 3.12, Django 5.2.19 y PostgreSQL 17 en localhost; dependencias resueltas dentro de los rangos de `pyproject.toml`, no desde `uv.lock`. Sin trabajadores, Beat ni datos reales. La configuración temporal deshabilitó el correo externo y usó broker en memoria; las pruebas Python bloquearon conexiones de socket no locales.
 
 - Suite Django: 383 pruebas aprobadas después de corregir la extracción del enlace en las pruebas de invitación.
 - Tras ajustar las estrellas se repitieron 54 pruebas de panel, seguimiento e instalación: todas aprobadas.
@@ -27,8 +27,8 @@ Fecha: 20 de noviembre de 2026. Las revisiones visuales registradas corresponden
 
 ## Validación con versiones fijadas
 
-- La copia candidata separada, basada en staging `cdd5e041ecc4065747a0a6911a26604497f83629`, pasó 377 pruebas Django y `collectstatic` con Python 3.12 y el `uv.lock` del proyecto.
-- El árbol local de desarrollo, que contiene además cambios de otras funcionalidades, pasó 383 pruebas con el mismo `uv.lock`.
+- El árbol local pasó 383 pruebas Django con Python 3.12 y las versiones exactas de `uv.lock`.
+- Una copia candidata separada, basada en staging `cdd5e041ecc4065747a0a6911a26604497f83629` e integrada solo con identidad y accesibilidad, pasó 377 pruebas y `collectstatic` con el mismo `uv.lock`. La diferencia en el número de pruebas refleja cambios locales de otras funcionalidades que no están en staging.
 
 - La copia candidata basada en staging se revisó en el navegador integrado con datos ficticios: ingreso y panel pasaron axe-core en escritorio; el panel pasó a 320 px sin desbordamiento horizontal del documento.
 

@@ -1,3 +1,5 @@
+from datetime import time
+
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
@@ -7,6 +9,29 @@ class PeriodicRefreshState(models.Model):
     """Timestamp of the latest global automatic source-refresh cycle."""
 
     last_started_at = models.DateTimeField()
+
+
+class AutomaticSearchSchedule(models.Model):
+    """Global quiet window for automatic vacancy searches (Bogota local time)."""
+
+    enabled = models.BooleanField(default=True)
+    starts_at = models.TimeField(default=time(21, 0))
+    ends_at = models.TimeField(default=time(7, 0))
+    updated_at = models.DateTimeField(default=timezone.now)
+
+
+class AutomaticSearchScheduleChange(models.Model):
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    changed_at = models.DateTimeField(default=timezone.now)
+    previous_enabled = models.BooleanField()
+    previous_starts_at = models.TimeField()
+    previous_ends_at = models.TimeField()
+    new_enabled = models.BooleanField()
+    new_starts_at = models.TimeField()
+    new_ends_at = models.TimeField()
+
+    class Meta:
+        ordering = ["-changed_at"]
 
 
 class OperationalRun(models.Model):
@@ -36,6 +61,7 @@ class OperationalRun(models.Model):
     title_discarded_count = models.PositiveIntegerField(null=True, blank=True)
     details_requested_count = models.PositiveIntegerField(null=True, blank=True)
     details_received_count = models.PositiveIntegerField(null=True, blank=True)
+    details_reused_count = models.PositiveIntegerField(null=True, blank=True)
     title_input_tokens = models.PositiveIntegerField(null=True, blank=True)
     listing_fetch_duration_ms = models.PositiveIntegerField(null=True, blank=True)
     title_preselection_duration_ms = models.PositiveIntegerField(null=True, blank=True)
@@ -105,6 +131,10 @@ class RefreshLease(models.Model):
 
 
 class RefreshBatch(models.Model):
+    class Origin(models.TextChoices):
+        AUTOMATIC = "automatic", "Automática"
+        MANUAL = "manual", "Manual"
+
     class Status(models.TextChoices):
         QUEUED = "queued", "En cola"
         RUNNING = "running", "En curso"
@@ -115,6 +145,8 @@ class RefreshBatch(models.Model):
     command = models.ForeignKey(
         AdminCommandRun, null=True, blank=True, on_delete=models.SET_NULL, related_name="refresh_batches",
     )
+    # Existing batches are treated conservatively as automatic by the migration.
+    origin = models.CharField(max_length=12, choices=Origin.choices, default=Origin.AUTOMATIC, db_index=True)
     status = models.CharField(max_length=16, choices=Status.choices, default=Status.QUEUED)
     created_at = models.DateTimeField(default=timezone.now)
     started_at = models.DateTimeField(null=True, blank=True)
@@ -169,6 +201,7 @@ class RefreshWorkItem(models.Model):
     title_discarded_count = models.PositiveIntegerField(default=0)
     details_requested_count = models.PositiveIntegerField(default=0)
     details_received_count = models.PositiveIntegerField(default=0)
+    details_reused_count = models.PositiveIntegerField(default=0)
     title_input_tokens = models.PositiveIntegerField(null=True, blank=True)
     available = models.BooleanField(default=True)
     error_category = models.CharField(max_length=80, blank=True)

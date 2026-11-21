@@ -1,4 +1,4 @@
-name: CI and immutable images
+name: CI and staging image
 
 on:
   pull_request:

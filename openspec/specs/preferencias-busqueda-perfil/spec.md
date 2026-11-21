@@ -55,10 +55,10 @@ El sistema SHALL servir la hoja de vida únicamente a su propietario autenticado
 - **THEN** el sistema no revela ni entrega el archivo
 
 ### Requirement: Definir un puntaje mínimo por perfil
-El sistema SHALL permitir que cada aspirante seleccione y guarde un puntaje entero entre 0 y 10 como umbral de descarte automático para vacantes descubiertas en adelante.
+El sistema SHALL permitir que cada aspirante seleccione y guarde un puntaje entero entre 0 y 5 como umbral de descarte automático para vacantes descubiertas en adelante.
 
 #### Scenario: Guardar el puntaje mínimo
-- **WHEN** el aspirante selecciona un valor entre 0 y 10 y guarda el perfil
+- **WHEN** el aspirante selecciona un valor entre 0 y 5 y guarda el perfil
 - **THEN** el sistema conserva ese umbral para aplicarlo a vacantes que se descubran posteriormente para ese perfil
 
 #### Scenario: Perfil sin umbral configurado
@@ -70,8 +70,8 @@ El sistema SHALL permitir que cada aspirante seleccione y guarde un puntaje ente
 - **THEN** el sistema no descarta vacantes por puntaje
 
 #### Scenario: Valor fuera de rango
-- **WHEN** se intenta guardar un valor menor que 0, mayor que 10 o no entero
-- **THEN** el sistema rechaza el valor e informa que el umbral debe ser un entero de 0 a 10
+- **WHEN** se intenta guardar un valor menor que 0, mayor que 5 o no entero
+- **THEN** el sistema rechaza el valor e informa que el umbral debe ser un entero de 0 a 5
 
 #### Scenario: El análisis nuevo queda por debajo del umbral
 - **WHEN** se completa el análisis de una vacante descubierta después de guardar el umbral y su puntaje es menor que el valor guardado al descubrirla
@@ -93,7 +93,7 @@ El sistema SHALL aplicar el puntaje guardado al descubrir una vacante para el pe
 - **THEN** la vacante permanece descartada y no se reactiva automáticamente
 
 ### Requirement: Seleccionar el puntaje mínimo con estrellas
-Mi perfil SHALL permitir seleccionar el umbral de descarte automático con opciones representadas con estrellas, desde cero hasta cinco estrellas, y comunicar que los puntajes inferiores se descartan automáticamente para vacantes nuevas.
+Mi perfil SHALL permitir seleccionar el umbral de descarte automático con opciones representadas únicamente por estrellas visuales, con las seis opciones enteras 0, 1, 2, 3, 4 y 5, incluida la opción visual de cero estrellas, y comunicar mediante accesibilidad que los puntajes inferiores se descartan automáticamente para vacantes nuevas.
 
 #### Scenario: Cambiar el mínimo guardado
 - **WHEN** la persona selecciona una opción de estrellas y guarda el perfil
@@ -114,3 +114,33 @@ Mi perfil SHALL permitir seleccionar el umbral de descarte automático con opcio
 #### Scenario: Cambiar un umbral con vacantes existentes
 - **WHEN** la persona guarda un umbral distinto
 - **THEN** el sistema no cambia los estados existentes y no reactiva vacantes descartadas
+
+### Requirement: Pausar o reanudar la búsqueda automática del perfil
+«Mi perfil» SHALL permitir a la persona propietaria pausar o reanudar las búsquedas automáticas de su perfil, sin desactivar su cuenta ni modificar sus demás datos.
+
+#### Scenario: Perfil nuevo o existente sin configuración de búsqueda
+- **WHEN** el sistema crea un perfil o encuentra uno que todavía no tiene un estado de búsqueda guardado
+- **THEN** considera habilitada la búsqueda automática para conservar el comportamiento vigente
+
+#### Scenario: La persona pausa la búsqueda de su perfil
+- **WHEN** la persona desactiva el control de búsqueda en «Mi perfil» y guarda el cambio
+- **THEN** el sistema conserva esa preferencia, muestra que la búsqueda está pausada y mantiene disponibles la cuenta, el CV, las preferencias y los resultados guardados
+
+#### Scenario: La persona reanuda la búsqueda de su perfil
+- **WHEN** la persona activa el control de búsqueda en «Mi perfil» y guarda el cambio
+- **THEN** el sistema conserva la preferencia habilitada y comunica que el perfil volverá a participar en las siguientes búsquedas automáticas
+
+#### Scenario: Cambiar solo el estado de búsqueda
+- **WHEN** la persona cambia el control de búsqueda sin modificar otros datos del perfil
+- **THEN** el sistema no crea una nueva revisión del CV o de preferencias ni encola una búsqueda inmediata
+
+### Requirement: Convertir los umbrales históricos del perfil
+El sistema SHALL convertir los mínimos históricos a estrellas y redondear hacia el entero superior, sin cambiar los estados existentes.
+
+#### Scenario: Mínimo histórico de media estrella
+- **WHEN** un perfil tiene un mínimo antiguo equivalente a 2,5 estrellas
+- **THEN** su nuevo mínimo es 3 estrellas y se aplica solo a las vacantes descubiertas en adelante
+
+#### Scenario: Reintentar la migración
+- **WHEN** se repite la conversión
+- **THEN** no se convierte otra vez el umbral ya migrado ni se reevalúan vacantes existentes

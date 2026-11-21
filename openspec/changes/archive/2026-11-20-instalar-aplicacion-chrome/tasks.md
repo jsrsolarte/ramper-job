@@ -10,5 +10,5 @@
 ## 2. Instalación y acceso
 
 - [x] 2.1 Verificar que la apertura inicial respeta redirecciones, inicio y cierre de sesión y aislamiento de cuentas; cubrirlo con pruebas de acceso y comprobar que no se almacenan respuestas privadas para uso sin conexión.
-- [ ] 2.2 Probar instalación, apertura independiente y navegación en Chrome de computador y Android, en entorno seguro con datos sintéticos; registrar versiones, resultados y cualquier restricción del navegador.
-- [ ] 2.3 Comprobar cancelación, uso normal sin instalación, actualización de nombre e iconos de una instalación existente sin duplicados y comportamiento sin conexión; registrar resultados de las pruebas manuales.
+- [x] 2.2 Probar instalación, apertura independiente y navegación en Chrome de computador y Android, en entorno seguro con datos sintéticos; registrar versiones, resultados y cualquier restricción del navegador.
+- [x] 2.3 Comprobar cancelación, uso normal sin instalación, actualización de nombre e iconos de una instalación existente sin duplicados y comportamiento sin conexión; registrar resultados de las pruebas manuales.

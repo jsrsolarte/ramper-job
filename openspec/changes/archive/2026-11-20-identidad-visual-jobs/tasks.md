@@ -15,6 +15,6 @@
 
 ## 3. Integración y accesibilidad
 
-- [ ] 3.1 Coordinar con `instalar-aplicacion-chrome` nombre, colores e iconos oficiales, conservando `id`, inicio y alcance; ejecutar sus verificaciones de recursos e instalación sin duplicar tareas.
-- [ ] 3.2 Comprobar contraste de texto y componentes, foco visible, estados que no dependan solo del color, teclado y presentación en móvil y escritorio; registrar resultados y corregir fallos.
+- [x] 3.1 Coordinar con `instalar-aplicacion-chrome` nombre, colores e iconos oficiales, conservando `id`, inicio y alcance; ejecutar sus verificaciones de recursos e instalación sin duplicar tareas.
+- [x] 3.2 Comprobar contraste de texto y componentes, foco visible, estados que no dependan solo del color, teclado y presentación en móvil y escritorio; registrar resultados y corregir fallos.
 - [x] 3.3 Ejecutar pruebas relevantes y revisión visual con datos sintéticos en entorno aislado; registrar resultados y limitaciones antes de proponer staging.

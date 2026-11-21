@@ -40,9 +40,11 @@ Fecha: 20 de noviembre de 2026. Las revisiones visuales registradas corresponden
 
 ## Confirmación de escritorio y caché del manifiesto
 
-- La persona usuaria informó que probó Chrome de escritorio manualmente y que todo funcionó; no se recibieron detalles por caso. El Chrome Flatpak instalado en el equipo figura como 158.0.8127.36. No se atribuyen a esa confirmación pasos específicos no descritos.
+- La persona usuaria confirmó que probó manualmente en Chrome de escritorio la instalación de Jobs, su apertura en ventana independiente, la navegación y el comportamiento sin conexión. El Chrome Flatpak instalado en el equipo figura como 158.0.8127.36; no se confirmó la versión utilizada en la prueba.
 - Para evitar reutilizar una respuesta condicional antigua, el enlace al manifiesto incorpora `?v=jobs-1`; el `id`, `start_url` y `scope` siguen siendo `/`. Las cuatro pruebas PWA del candidato pasaron después de este cambio. Falta observar la actualización de identidad de la instalación anterior y comprobar ausencia de duplicados.
 
-## Pendiente
+## Validación posterior en staging
 
-No se dispuso de Chrome de escritorio ni de dispositivo o emulador Android. Siguen pendientes instalación real, recorte en el lanzador, cancelación, apertura independiente, actualización de una instalación anterior sin duplicados y comportamiento sin conexión en ambas plataformas. El navegador integrado y un manifiesto válido no prueban esos casos. Falta revisión manual con tecnologías de asistencia reales y una comprobación exhaustiva de todos los estados dinámicos; los resultados automatizados no certifican conformidad WCAG.
+- La persona usuaria confirmó que una instalación de staging existente antes del cambio se actualizó a Jobs sin duplicados.
+- La persona usuaria probó TalkBack en Android y confirmó que anuncia correctamente la navegación, los botones y los estados. No se registró una auditoría exhaustiva de todos los estados dinámicos ni una certificación de conformidad WCAG.
+- La versión de Chrome usada en la prueba de escritorio y los detalles de la decisión de actualización en staging no fueron registrados.

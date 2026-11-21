@@ -421,8 +421,9 @@ class RefreshTasksTests(TestCase):
         for source_run in source_runs:
             self.assertEqual(source_run.listing_count, 1)
             self.assertEqual(source_run.title_kept_count, 1)
-            self.assertEqual(source_run.details_requested_count, 1)
-            self.assertEqual(source_run.details_received_count, 1)
+        self.assertEqual(sum(run.details_requested_count for run in source_runs), 1)
+        self.assertEqual(sum(run.details_received_count for run in source_runs), 1)
+        self.assertEqual(sum(run.details_reused_count for run in source_runs), len(work_items) - 1)
         self.assertEqual(Vacancy.objects.count(), 1)
         self.assertTrue(JobSourceStatus.objects.get(source="test-source").available)
         self.assertEqual(schedule_analysis.call_count, len(work_items))
@@ -464,7 +465,8 @@ class RefreshTasksTests(TestCase):
         profile_leases = dispatch.call_args.args[0]
         _, _, work_items = self._advance_batch_to_work_item(profile_leases)
 
-        result = process_refresh_work_item.run(work_items[0].pk)
+        with patch("operations.scheduling.automatic_searches_paused", return_value=True):
+            result = process_refresh_work_item.run(work_items[0].pk)
 
         self.assertEqual(result, {"deferred": "automatic_search_schedule"})
         work_items[0].refresh_from_db()

@@ -19,7 +19,7 @@
 </section>
 <section class="admin-panel">
   <h2>Invitaciones recientes</h2>
-  <div class="admin-table-wrap"><table class="admin-table">
+  <div class="admin-table-wrap" role="group" aria-label="Tabla desplazable horizontalmente" tabindex="0"><table class="admin-table">
     <thead><tr><th>Correo</th><th>Estado</th><th>Vence</th><th>Creada por</th><th>Acción</th></tr></thead>
     <tbody>{% for invitation in invitations %}
       <tr>
@@ -32,7 +32,7 @@
     {% empty %}<tr><td colspan="5">Todavía no hay invitaciones.</td></tr>{% endfor %}</tbody>
   </table></div>
 </section>
-<div class="admin-table-wrap">
+<div class="admin-table-wrap" role="group" aria-label="Tabla desplazable horizontalmente" tabindex="0">
   <table class="admin-table">
     <thead><tr><th>Usuario</th><th>Correo</th><th>Estado</th><th>Último acceso</th><th>Acciones</th></tr></thead>
     <tbody>
@@ -56,7 +56,7 @@
 </div>
 <section class="admin-audit">
   <h2>Actividad administrativa reciente</h2>
-  <div class="admin-table-wrap"><table class="admin-table">
+  <div class="admin-table-wrap" role="group" aria-label="Tabla desplazable horizontalmente" tabindex="0"><table class="admin-table">
     <thead><tr><th>Fecha</th><th>Acción</th><th>Cuenta afectada</th><th>Realizada por</th></tr></thead>
     <tbody>{% for event in audit_events %}<tr><td>{{ event.created_at|date:"Y-m-d H:i" }}</td><td>{{ event.get_action_display }}</td><td>{% if event.target %}{{ event.target.get_username }}{% elif event.invitation_email %}{{ event.invitation_email }}{% else %}—{% endif %}</td><td>{% if event.actor %}{{ event.actor.get_username }}{% else %}Sistema{% endif %}</td></tr>{% empty %}<tr><td colspan="4">No hay acciones registradas.</td></tr>{% endfor %}</tbody>
   </table></div>

@@ -1,24 +1,27 @@
+{% load static %}
 <!doctype html>
-<html lang="es">
+<html lang="es" data-brand="jobs">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Ingresar · Ramper Job</title>
-    <link rel="stylesheet" href="/static/app.css?v=6">
+    <meta name="theme-color" content="#12263F">
+    <title>Ingresar · Jobs</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'brand/jobs/favicon.svg' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}?v=jobs-1">
+    <link rel="stylesheet" href="/static/app.css?v=27">
   </head>
   <body class="auth-page">
     <main class="auth-layout">
-      <section class="auth-story" aria-label="Ramper Job">
-        <a class="brand brand-light" href="/" aria-label="Ramper Job, inicio">
-          <span class="brand-mark" aria-hidden="true">r</span>
-          <span>Ramper <strong>Job</strong></span>
+      <section class="auth-story" aria-label="Jobs">
+        <a class="brand brand-light" href="/" aria-label="Jobs, inicio">
+          <img class="brand-logo" src="{% static 'brand/jobs/jobs-logo-on-dark.svg' %}" alt="Jobs">
         </a>
         <div class="auth-story-copy">
           <p class="eyebrow">Tu próximo paso</p>
           <h1>Oportunidades que sí conectan contigo.</h1>
           <p>Reúne en un solo lugar vacantes seleccionadas según tu experiencia y lo que estás buscando.</p>
         </div>
-        <div class="auth-orbit" aria-hidden="true"><span>R</span><i></i><i></i><i></i></div>
+        <div class="auth-orbit" aria-hidden="true"><img src="{% static 'brand/jobs/jobs-symbol.svg' %}" alt=""><i></i><i></i><i></i></div>
         <p class="auth-footnote">Un espacio privado para tu búsqueda laboral.</p>
       </section>
       <section class="auth-card" aria-labelledby="login-title">

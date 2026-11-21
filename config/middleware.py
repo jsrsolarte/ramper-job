@@ -11,6 +11,22 @@ from operations.models import ApplicantActivity
 from profiles.tour import ensure_mandatory_tour, is_tour_eligible, step_by_id
 
 
+class PrivateResponseCacheControlMiddleware:
+    """Prevent authenticated pages from being reused after logout or offline."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        user = getattr(request, "user", None)
+        was_authenticated = bool(user and user.is_authenticated)
+        response = self.get_response(request)
+        current_user = getattr(request, "user", None)
+        if was_authenticated or (current_user and current_user.is_authenticated):
+            response["Cache-Control"] = "private, no-store"
+        return response
+
+
 class RecordAuthenticatedApplicantActivityMiddleware:
     """Track real, authenticated applicant page use without recording every request."""
 

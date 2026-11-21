@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "Jobs",
+  "short_name": "Jobs",
+  "description": "Tu espacio privado para organizar oportunidades laborales.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F7FB",
+  "theme_color": "#12263F",
+  "icons": [
+    {
+      "src": "/static/brand/jobs/jobs-app-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/brand/jobs/jobs-app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

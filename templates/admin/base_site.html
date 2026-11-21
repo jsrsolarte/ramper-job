@@ -1,15 +1,18 @@
 {% extends "admin/base.html" %}
 {% load static %}
 
-{% block title %}{{ title }} · Administración Ramper Job{% endblock %}
+{% block title %}{{ title }} · Administración Jobs{% endblock %}
+
+{% block dark-mode-vars %}{% endblock %}
 
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" href="{% static 'admin-ramper.css' %}?v=1">
+  <link rel="icon" type="image/svg+xml" href="{% static 'brand/jobs/favicon.svg' %}">
+  <link rel="stylesheet" href="{% static 'admin-ramper.css' %}?v=8">
 {% endblock %}
 
 {% block branding %}
-  <div id="site-name"><a href="{% url 'operations:admin_center' %}"><span class="ramper-admin-mark">r</span><span>Ramper <strong>Job</strong></span><small>Administración</small></a></div>
+  <div id="site-name"><a href="{% url 'operations:admin_center' %}"><img class="admin-brand-logo" src="{% static 'brand/jobs/jobs-logo.svg' %}" alt="Jobs"><small>Administración</small></a></div>
 {% endblock %}
 
 {% block nav-global %}

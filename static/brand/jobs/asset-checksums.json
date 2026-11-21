@@ -1,0 +1,118 @@
+{
+  "version": "1.0.0",
+  "brand": "jobs",
+  "status": "approved-for-production",
+  "approval_date": "2026-11-20",
+  "assets": [
+    {
+      "path": "assets/approved/jobs/jobs-logo.svg",
+      "encoding": "utf-8",
+      "sha256": "b1d114afc71911ef323ebd39a3276bef0537669c1d080b98da5d6b8f5108515e"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-logo-on-dark.svg",
+      "encoding": "utf-8",
+      "sha256": "a0d1f21bf9edc5f2d96745d264cebf1ca45aa809a7575e96f8f0b0bd35b54d03"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-symbol.svg",
+      "encoding": "utf-8",
+      "sha256": "674e729d15c6c608da36d23d0041d63bad139150b5042ff0860442d7b24ac024"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-symbol-mono-dark.svg",
+      "encoding": "utf-8",
+      "sha256": "2a206c058eb57ee7b8a150f12ef741967edf4e93dca5c6564de597c3ca12c826"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-symbol-mono-white.svg",
+      "encoding": "utf-8",
+      "sha256": "242d03436c319f24e576dda0634a52cd6075ac96e4ac2b4af17f3cb6f988a9e9"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-logo-mono-dark.svg",
+      "encoding": "utf-8",
+      "sha256": "69774f091df7b4bcb7a993ba0a7e4a9c60d5ed6a053b6ce92c44dfa9407f43e4"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-logo-mono-white.svg",
+      "encoding": "utf-8",
+      "sha256": "ea5814ba9f63cbc4324e026d6e878d8ebcb287ebad96a78e246f320ec4262e7f"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-app-icon.svg",
+      "encoding": "utf-8",
+      "sha256": "4019412d7fe7a71f3a15de8d99d2282b3321bacbdefc6b8a52f54759d764aa0a"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-app-icon-dark.svg",
+      "encoding": "utf-8",
+      "sha256": "ecdb413a95b0eec44b76534497f584a5b3a7eff538146bc895748bbb2fd38bbd"
+    },
+    {
+      "path": "assets/approved/jobs/favicon.svg",
+      "encoding": "utf-8",
+      "sha256": "674e729d15c6c608da36d23d0041d63bad139150b5042ff0860442d7b24ac024"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-logo-editable-text.svg",
+      "encoding": "utf-8",
+      "sha256": "7ee86a0890a8410255be5e9ce1d4261469e2bfacfd20348cc6a45eb5b155a4a6"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-app-icon-192.png",
+      "encoding": "base64",
+      "sha256": "4aae326a6f394ad2eddfe89758b4bc76ad4a43e0ffb0cfce046cd6f1c30031e0"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-app-icon-512.png",
+      "encoding": "base64",
+      "sha256": "9c5ee2a572755381c9156057c9cba6d0c2173de28fb1f33fcf5826d5c7da09f1"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-app-icon-1024.png",
+      "encoding": "base64",
+      "sha256": "b80eb13905059949adfb4688eb90f478c65309c0bc40a331f41e421564d0979a"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-app-icon-dark-512.png",
+      "encoding": "base64",
+      "sha256": "68713007c5e907ca75c7ea92923c2dbb4beda19c8859d0ad8752777d4dcd4d00"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-logo-960.png",
+      "encoding": "base64",
+      "sha256": "a33f6bc1f1dc9d63aa9acc7505315f76571bc6b713eb852234a3e8f79aae9a3e"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-logo-on-dark-960.png",
+      "encoding": "base64",
+      "sha256": "212229da18c608190402690616841a570f8ed9a87db7d619e350698859b3d572"
+    },
+    {
+      "path": "assets/approved/jobs/jobs-symbol-512.png",
+      "encoding": "base64",
+      "sha256": "8fca0f2ca0b242de67c992b0f7ca113114de43372cd30b037926775b637106af"
+    },
+    {
+      "path": "assets/approved/jobs/favicon-16.png",
+      "encoding": "base64",
+      "sha256": "91c59000f2cbe8604a93cd18e62115b003e2dbf0d84c3f1e59707ac0a708c7e8"
+    },
+    {
+      "path": "assets/approved/jobs/favicon-32.png",
+      "encoding": "base64",
+      "sha256": "043d284746af0fd1d859e4183e642b050a1601441e498d0fc79359d9fa05df56"
+    },
+    {
+      "path": "assets/approved/jobs/favicon-48.png",
+      "encoding": "base64",
+      "sha256": "3224ea88e1a7764e95eb81df4e83c7637033f64fda790dd5ecb3d088c9239f1f"
+    },
+    {
+      "path": "assets/approved/jobs/favicon.ico",
+      "encoding": "base64",
+      "sha256": "849b53df68a186895cb7fc182876a0df1dd0b737a0171a4548a8fe88774db2a0"
+    }
+  ]
+}

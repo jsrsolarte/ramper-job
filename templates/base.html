@@ -1,21 +1,24 @@
 {% load static %}
 <!doctype html>
-<html lang="es">
+<html lang="es" data-brand="jobs">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Ramper Job{% endblock %}</title>
-    <link rel="stylesheet" href="/static/app.css?v=18">
+    <meta name="theme-color" content="#12263F">
+    <title>{% block title %}Jobs{% endblock %}</title>
+    <link rel="icon" type="image/svg+xml" href="{% static 'brand/jobs/favicon.svg' %}">
+    <link rel="manifest" href="{% static 'manifest.json' %}?v=jobs-1">
+    <link rel="stylesheet" href="/static/app.css?v=27">
     <script src="/static/score-range.js?v=3" defer></script>
+    <script src="{% static 'table-scroll.js' %}" defer></script>
     {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
       <script src="{% static 'tour.js' %}?v=4" defer></script>
     {% endif %}
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/" aria-label="Ramper Job, inicio">
-        <span class="brand-mark" aria-hidden="true">r</span>
-        <span>Ramper <strong>Job</strong></span>
+      <a class="brand" href="/" aria-label="Jobs, inicio">
+        <img class="brand-logo" src="{% static 'brand/jobs/jobs-logo.svg' %}" alt="Jobs">
       </a>
       {% if request.user.is_authenticated %}
         <nav aria-label="Navegación principal">
@@ -30,7 +33,7 @@
     {% if request.user.is_authenticated and not request.user.is_staff and not request.user.is_superuser %}
       <form id="tour-csrf" hidden>{% csrf_token %}</form>
       <aside id="tour-offer" class="tour-offer panel" hidden aria-labelledby="tour-offer-title">
-        <div><h2 id="tour-offer-title">¿Quieres conocer Ramper Job?</h2><p>Una guía breve te muestra cómo configurar tu búsqueda y organizar las vacantes.</p></div>
+        <div><h2 id="tour-offer-title">¿Quieres conocer Jobs?</h2><p>Una guía breve te muestra cómo configurar tu búsqueda y organizar las vacantes.</p></div>
         <div class="tour-offer-actions">
           <button type="button" data-tour-offer-action="start">Iniciar recorrido</button>
           <button class="button button-secondary" type="button" data-tour-offer-action="skip">Omitir</button>

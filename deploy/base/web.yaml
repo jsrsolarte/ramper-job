@@ -27,7 +27,7 @@ spec:
     spec:
       automountServiceAccountToken: false
       imagePullSecrets:
-        - name: ramper-job-registry
+        - name: ghcr-pull-staging
       terminationGracePeriodSeconds: 45
       securityContext:
         runAsNonRoot: true

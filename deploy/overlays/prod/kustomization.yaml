@@ -54,21 +54,21 @@ patches:
     patch: |-
       - op: replace
         path: /spec/template/spec/imagePullSecrets/0/name
-        value: mcp-gateway-ghcr-prod
+        value: ghcr-pull-prod
   - target:
       kind: Deployment
       name: ramper-job-worker
     patch: |-
       - op: replace
         path: /spec/template/spec/imagePullSecrets/0/name
-        value: mcp-gateway-ghcr-prod
+        value: ghcr-pull-prod
   - target:
       kind: Deployment
       name: ramper-job-beat
     patch: |-
       - op: replace
         path: /spec/template/spec/imagePullSecrets/0/name
-        value: mcp-gateway-ghcr-prod
+        value: ghcr-pull-prod
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job

@@ -537,11 +537,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .chip-add:hover { background: #dceafc; }
 
 .auth-page {
-  display: grid;
+  display: flex;
   min-height: 100vh;
-  place-items: center;
+  flex-direction: column;
+  align-items: center;
   padding: 30px;
   background: #eaf1fa;
+}
+.auth-layout {
+  display: grid;
+  margin: auto 0;
+}
+.auth-page > .site-footer {
+  align-self: stretch;
+  margin: 0 -30px -30px;
 }
 .auth-layout {
   display: grid;
@@ -596,6 +605,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .site-header { padding: 0 24px; }
   .site-main { width: min(100% - 40px, 700px); padding-top: 39px; }
   .auth-page { padding: 20px; }
+  .auth-page > .site-footer { margin: 0 -20px -20px; }
   .auth-layout { min-height: 570px; grid-template-columns: .9fr 1.1fr; }
   .auth-story { min-height: 570px; padding: 30px; }
   .auth-card { padding: 42px 32px; }
@@ -629,7 +639,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .form-actions .button, .form-actions button { width: 100%; }
   .form-actions .text-link { text-align: center; }
   .auth-page { display: block; padding: 12px; }
-  .auth-layout { min-height: 0; grid-template-columns: 1fr; border-radius: 22px; }
+  .auth-page > .site-footer { margin: 12px -12px -12px; }
+  .auth-layout { min-height: 0; grid-template-columns: 1fr; border-radius: 22px; margin: 0 auto; }
   .auth-story { min-height: 238px; padding: 23px 24px 20px; }
   .auth-story-copy { margin: 32px 0 14px; padding: 0; }
   .auth-story-copy h1 { max-width: 360px; margin: 8px 0 9px; font-size: 30px; }

@@ -30,4 +30,4 @@ class PrimaryNavigationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Administración")
-        self.assertNotContains(response, "Recomendaciones")
+        self.assertNotContains(response, 'href="/?state=pending"')

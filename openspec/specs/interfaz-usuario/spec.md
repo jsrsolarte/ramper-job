@@ -45,3 +45,18 @@ La interfaz SHALL cumplir WCAG 2.2 AA para el contraste aplicable y SHALL comuni
 #### Scenario: Identificar el foco
 - **WHEN** una persona navega por teclado en las pantallas de producto y administración
 - **THEN** el indicador de foco es visible y distinguible sobre los colores adyacentes
+
+### Requirement: Pie de página centrado con firma secundaria RamPer
+El pie de página común SHALL centrarse, usar la paleta visual de Jobs y mostrar la firma «By» junto al lockup claro RamPer v0.6 como elemento secundario, manteniendo Jobs como identidad principal. En el pie, el lockup v0.6 se considera una exploración autorizada exclusivamente para esta superficie; no SHALL declararse como recurso gráfico aprobado ni reutilizarse en otra superficie. La firma RamPer SHALL conservar una alternativa accesible que identifique la marca.
+
+#### Scenario: Consultar una pantalla de Jobs
+- **WHEN** una persona abre una pantalla de ingreso, perfil, vacantes, análisis o administración
+- **THEN** el pie común aparece centrado, muestra la firma secundaria «By RamPer» y mantiene la identidad Jobs como protagonista
+
+#### Scenario: Consultar el pie en un móvil
+- **WHEN** el ancho disponible es reducido
+- **THEN** la versión y la firma se reorganizan dentro del pie sin recortarse ni producir desbordamiento horizontal
+
+#### Scenario: Usar tecnología de asistencia
+- **WHEN** un lector de pantalla encuentra el lockup RamPer
+- **THEN** anuncia un texto alternativo que identifica la marca RamPer sin repetir decoración visual

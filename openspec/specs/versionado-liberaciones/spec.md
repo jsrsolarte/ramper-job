@@ -40,9 +40,8 @@ El sistema SHALL relacionar cada versión de producción con una etiqueta inmuta
 - **WHEN** una etiqueta de versión ya existe
 - **THEN** el sistema rechaza moverla o reutilizarla para otro commit o imagen
 
-
 ### Requirement: Mostrar la versión del artefacto desplegado
-La interfaz SHALL mostrar en el pie de página común un identificador que corresponda al artefacto de la aplicación que está ejecutándose.
+La interfaz SHALL mostrar en el pie de página la versión SemVer declarada en el archivo `VERSION` del código de la aplicación que está ejecutándose, tanto en staging como en producción. El SHA y el digest SHALL permanecer como metadatos técnicos y no SHALL mostrarse como versión de producto.
 
 #### Scenario: La aplicación ejecuta una liberación de producción
 - **WHEN** una persona consulta cualquier pantalla de una versión desplegada en producción
@@ -54,8 +53,8 @@ La interfaz SHALL mostrar en el pie de página común un identificador que corre
 
 #### Scenario: La aplicación ejecuta una imagen de staging
 - **WHEN** una persona autorizada consulta una pantalla de staging
-- **THEN** el pie de página muestra el SHA o identificador del commit de la imagen, sin presentarlo como versión de producción
+- **THEN** el pie de página muestra la versión SemVer declarada en `VERSION` para el código de esa imagen y no muestra el SHA ni el digest
 
-#### Scenario: No hay metadatos de versión disponibles
-- **WHEN** la aplicación no puede determinar el identificador del artefacto en ejecución
-- **THEN** la interfaz indica que la versión no está disponible y no muestra un valor fijo o desactualizado
+#### Scenario: No hay una versión SemVer válida disponible
+- **WHEN** el artefacto no incluye una versión SemVer válida en `VERSION`
+- **THEN** la interfaz indica que la versión no está disponible y no muestra un valor fijo, un SHA o un digest como sustituto

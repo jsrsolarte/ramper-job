@@ -45,8 +45,17 @@ La imagen requiere además un Secret `kubernetes.io/dockerconfigjson` con permis
 GHCR `read:packages`. Los nombres referenciados son distintos por ambiente:
 
 - Staging, namespace `staging`: `ramper-job-registry`.
-- Producción, namespace `prod`: `mcp-gateway-ghcr-prod` (Secret de solo lectura
-  ya compartido en ese namespace).
+- Producción, namespace `prod`: `ghcr-pull-prod` (Secret de solo lectura
+  con permiso `read:packages`, compartido por los workloads de Ramper Job).
+
+El overlay aplica `ghcr-pull-prod` a web, worker y Beat. El Secret anterior
+`mcp-gateway-ghcr-prod` permanece en `prod` para `mcp-gateway`; este cambio no lo
+modifica ni lo elimina. El provisionador productivo existente todavía comprueba ese
+Secret anterior, por lo que no aprovisiona ni valida `ghcr-pull-prod`.
+
+Para revertir solo esta referencia, restaurar `mcp-gateway-ghcr-prod` en las tres
+entradas del overlay productivo y dejar que Flux reconcilie. Conservar ambos Secrets
+mientras `mcp-gateway` siga usando el anterior.
 
 Los Secrets no se guardan en Git. Para preparar los de runtime usa los provisionadores
 interactivos del repositorio desde el servidor:

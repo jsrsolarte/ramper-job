@@ -546,15 +546,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .auth-layout {
   display: grid;
-  margin: auto 0;
-}
-.auth-page > .site-footer {
-  align-self: stretch;
-  margin: 0 -30px -30px;
-}
-.auth-layout {
-  display: grid;
   width: min(100%, 1030px);
+  margin: auto 0;
   min-height: 620px;
   grid-template-columns: 1.05fr .95fr;
   overflow: hidden;
@@ -562,6 +555,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   border-radius: 28px;
   background: #fff;
   box-shadow: 0 26px 75px rgba(24, 62, 50, .13);
+}
+.auth-page > .site-footer {
+  align-self: stretch;
+  margin: 0 -30px -30px;
 }
 .auth-story {
   position: relative;

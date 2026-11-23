@@ -75,15 +75,15 @@ jobs:
               capture_output=True,
               text=True,
           ).stdout.strip()
-          if not re.fullmatch(r'(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)', version):
+          if not re.fullmatch(r'(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)', version):
               raise SystemExit(f'Invalid SemVer in VERSION for {candidate_sha}')
           path = Path('deploy/overlays/staging/kustomization.yaml')
-          updated, count = re.subn(r'(?m)^(\\s*newTag:\\s*)[^\\s#]+',
+          updated, count = re.subn(r'(?m)^(\s*newTag:\s*)[^\s#]+',
               lambda m: m.group(1) + candidate_sha, path.read_text())
           if count != 1:
               raise SystemExit('Expected exactly one staging image tag')
           updated, count = re.subn(
-              r'(?m)(path: /data/APP_VERSION\\s*\\n\\s*value:\\s*)[^\\s#]+',
+              r'(?m)(path: /data/APP_VERSION\s*\n\s*value:\s*)[^\s#]+',
               lambda m: m.group(1) + version, updated)
           if count != 1:
               raise SystemExit('Expected exactly one staging APP_VERSION value')

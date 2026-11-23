@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [main, staging]
+    paths-ignore:
+      - deploy/overlays/staging/kustomization.yaml
   workflow_dispatch:
     inputs:
       source_branch:
@@ -165,6 +167,15 @@ jobs:
           )
           if replacements != 1:
               raise SystemExit(f"Expected exactly one image newTag, found {replacements}")
+          updated, version_replacements = re.subn(
+              r"(?m)(path: /data/APP_VERSION\s*\n\s*value:\s*)[^\s#]+",
+              lambda match: f"{match.group(1)}{os.environ['IMAGE_SHA']}",
+              updated,
+          )
+          if version_replacements != 1:
+              raise SystemExit(
+                  f"Expected exactly one staging APP_VERSION value, found {version_replacements}"
+              )
           path.write_text(updated, encoding="utf-8")
           PY
 

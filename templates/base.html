@@ -23,6 +23,9 @@
       </a>
       {% if request.user.is_authenticated %}
         <nav aria-label="Navegación principal">
+          {% if not request.user.is_staff and not request.user.is_superuser %}
+            <a href="{% url 'dashboard:home' %}?state=pending"{% if request.resolver_match.url_name == 'home' %}{% if not request.GET.state or request.GET.state == 'pending' %} aria-current="page"{% endif %}{% endif %}>Recomendaciones</a>
+          {% endif %}
           <a href="{% url 'profiles:edit' %}" data-tour="profile-nav">Mi perfil</a>
           <a href="{% url 'dashboard:analysis' %}">Análisis</a>
           {% if request.user.is_superuser %}<a href="{% url 'operations:admin_center' %}">Administración</a>{% endif %}
@@ -60,5 +63,8 @@
       {% for message in messages %}<p class="notice{% if message.tags %} notice-{{ message.tags }}{% endif %}" role="status">{{ message }}</p>{% endfor %}
       {% block content %}{% endblock %}
     </main>
+    <footer class="site-footer">
+      <span>Versión: {% if app_version %}{{ app_version }}{% else %}no disponible{% endif %}</span>
+    </footer>
   </body>
 </html>

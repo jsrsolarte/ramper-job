@@ -9,6 +9,10 @@ La interfaz SHALL mostrar en el pie de página común un identificador que corre
 - **WHEN** una persona consulta cualquier pantalla de una versión desplegada en producción
 - **THEN** el pie de página muestra la versión semántica inmutable de esa liberación
 
+#### Scenario: La versión canónica llega a producción
+- **WHEN** el pipeline promueve a producción el artefacto probado en staging
+- **THEN** toma la versión semántica del archivo `VERSION` del código de la liberación y la muestra sin reconstruir la imagen
+
 #### Scenario: La aplicación ejecuta una imagen de staging
 - **WHEN** una persona autorizada consulta una pantalla de staging
 - **THEN** el pie de página muestra el SHA o identificador del commit de la imagen, sin presentarlo como versión de producción

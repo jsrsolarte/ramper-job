@@ -11,6 +11,13 @@ patches:
       name: ramper-job-config
     patch: |-
       - op: replace
+        path: /data/APP_VERSION
+        value: ""
+  - target:
+      kind: ConfigMap
+      name: ramper-job-config
+    patch: |-
+      - op: replace
         path: /data/OMNIROUTE_BASE_URL
         value: http://omniroute.prod.svc.cluster.local:20128/v1
   - target:

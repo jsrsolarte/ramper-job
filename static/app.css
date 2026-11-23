@@ -36,7 +36,9 @@
 html { min-width: 320px; background: var(--canvas); }
 
 body {
-  min-height: 100vh;
+    display: flex;
+  flex-direction: column;
+min-height: 100vh;
   margin: 0;
   color: var(--ink);
   background:
@@ -130,9 +132,23 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .text-button { cursor: pointer; }
 
 .site-main {
+  flex: 1 0 auto;
   width: min(100% - 48px, 1120px);
   margin: 0 auto;
   padding: 50px 0 88px;
+}
+
+.site-footer {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 20px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  background: rgba(255, 255, 255, .72);
+  font-size: 12px;
+  text-align: center;
 }
 
 .hero {

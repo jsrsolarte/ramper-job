@@ -4,6 +4,7 @@ metadata:
   name: ramper-job-config
 data:
   DJANGO_DEBUG: "false"
+  APP_VERSION: ""
   DJANGO_ALLOWED_HOSTS: "ramper-job-staging.ramper.lat"
   DJANGO_CSRF_TRUSTED_ORIGINS: "https://ramper-job-staging.ramper.lat"
   POSTGRES_DB: "ramper_job"

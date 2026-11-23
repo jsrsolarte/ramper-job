@@ -21,6 +21,13 @@
 - Después de que el usuario apruebe la prueba, abrir un PR desde la rama probada hacia `main`. Promover el mismo código probado, preservando el SHA o digest cuando sea posible; no reconstruir silenciosamente una versión distinta para producción.
 - Un cambio a `main` no autoriza por sí solo una mutación de producción. Respetar siempre la aprobación explícita requerida para la promoción.
 
+## Versionado de la aplicación
+
+- `VERSION` es la fuente canónica de la próxima versión semántica de producción, sin prefijo `v`.
+- Al implementar un cambio de comportamiento o de interfaz, el agente debe actualizar `VERSION` antes de entregar el trabajo: PATCH para correcciones compatibles, MINOR para funcionalidad compatible y MAJOR para cambios incompatibles. No incrementar por cambios solo documentales ni cambiar la versión por una mera promoción.
+- En la respuesta final, indicar la versión elegida y el motivo del incremento. La etiqueta de GitHub para una liberación debe coincidir con `v` seguido del valor de `VERSION`.
+- Staging sigue identificándose por SHA de commit; no debe recibir el valor de `VERSION` como versión de producto.
+
 ## Estado actual de la configuración
 
 - Ramper Job tiene overlays independientes para staging y producción. Producción ya tiene un despliegue activo reconciliado por Flux en el namespace `prod`; la última revisión en vivo, el 12 de noviembre de 2026, encontró `Kustomization/ramper-job-prod` con `Ready=True`, `suspend=false` y la revisión `main@sha1:1cfe6b21809637fb77847e995c95c23d0c40a0d4`.

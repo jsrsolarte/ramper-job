@@ -11,6 +11,7 @@ Ver `proposal.md` para la motivación y las deltas para el contrato. `templates/
 - Hacer que Recomendaciones sea un destino explícito y fácil de encontrar desde las pantallas de aspirantes.
 - Identificar la versión o build desplegado en todas las páginas, incluida la entrada pública.
 - Mantener el identificador visible vinculado al mismo artefacto inmutable que se promovió.
+- Hacer que el agente actualice una única versión canónica al implementar cambios y que el pipeline la consuma al promover.
 
 **Non-Goals:**
 
@@ -34,7 +35,7 @@ Alternativa considerada: poner la versión en la barra superior. Se elige el pie
 
 ### Inyectar el identificador del artefacto en tiempo de ejecución
 
-La aplicación lee un metadato de despliegue inmutable, provisto al ejecutar la imagen. Producción recibe la versión semántica del manifiesto de liberación; staging recibe el SHA o identificador de commit usado para etiquetar su imagen. La etiqueta no se escribe como constante de código ni exige reconstruir la imagen probada para añadir la versión de producción.
+La aplicación lee un metadato de despliegue inmutable, provisto al ejecutar la imagen. `VERSION` es la fuente canónica de la próxima versión semántica y el agente la incrementa según SemVer al implementar cambios de producto. Producción recibe ese valor del commit de liberación; staging recibe el SHA o identificador de commit usado para etiquetar su imagen. La etiqueta no exige reconstruir la imagen probada para añadir la versión de producción. El workflow de liberación rechaza una etiqueta `vX.Y.Z` que no coincida con `VERSION`.
 
 Alternativa considerada: deducir la versión consultando Git desde el contenedor. Se descarta porque la imagen de ejecución no debe depender de metadatos Git presentes en tiempo de ejecución y el SHA por sí solo no expresa la versión de producción.
 

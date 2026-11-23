@@ -11,6 +11,13 @@ patches:
       name: ramper-job-config
     patch: |-
       - op: replace
+        path: /data/APP_VERSION
+        value: ""
+  - target:
+      kind: ConfigMap
+      name: ramper-job-config
+    patch: |-
+      - op: replace
         path: /data/DJANGO_ALLOWED_HOSTS
         value: jobs.ramper.lat
       - op: replace

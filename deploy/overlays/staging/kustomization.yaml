@@ -32,7 +32,7 @@ patches:
         template:
           metadata:
             annotations:
-              ops.ramper.lat/config-revision: c4631d5e
+              ops.ramper.lat/config-revision: 93ec6a63
   - target:
       kind: Deployment
       name: ramper-job-worker
@@ -45,7 +45,7 @@ patches:
         template:
           metadata:
             annotations:
-              ops.ramper.lat/config-revision: c4631d5e
+              ops.ramper.lat/config-revision: 93ec6a63
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job

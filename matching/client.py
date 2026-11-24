@@ -49,7 +49,7 @@ class ModelCallResult:
 
 
 def request_model_analysis(
-    *, profile_text: str, search_phrases: list[str], locations: list[str], remote_ok: bool,
+    *, profile_evidence: list[dict], search_phrases: list[str], locations: list[str], remote_ok: bool,
     vacancy: dict, prompt: str, parameters: dict, rubric_version: int = RUBRIC_VERSION
 ):
     if rubric_version != RUBRIC_VERSION:
@@ -58,7 +58,7 @@ def request_model_analysis(
     return _request_model_json(
         prompt=prompt,
         input_data={
-            "cv": profile_text,
+            "profile_evidence": profile_evidence,
             "search_phrases": search_phrases,
             "vacancy": vacancy,
             "matching_parameters": parameters,
@@ -106,13 +106,13 @@ def request_model_organization(*, vacancy: dict, prompt: str, parameters: dict):
 
 
 def request_model_keywords(
-    *, profile_text: str, search_phrases: list[str], locations: list[str], remote_ok: bool,
+    *, profile_evidence: list[dict], search_phrases: list[str], locations: list[str], remote_ok: bool,
     prompt: str, parameters: dict
 ):
     return _request_model_json(
         prompt=prompt,
         input_data={
-            "cv": profile_text,
+            "profile_evidence": profile_evidence,
             "search_phrases": search_phrases,
             "locations": locations,
             "remote_ok": remote_ok,
@@ -120,6 +120,73 @@ def request_model_keywords(
         },
         temperature=float(parameters.get("temperature", 0.1)),
     )
+
+
+def request_model_profile_artifacts(
+    *, profile_text: str, search_phrases: list[str], locations: list[str], remote_ok: bool,
+    prompt: str, parameters: dict,
+):
+    """Extract source-grounded employment facts and search terms in one CV read."""
+    return _request_model_json(
+        prompt=prompt,
+        input_data={
+            "cv": profile_text,
+            "search_phrases": search_phrases,
+            "locations": locations,
+            "remote_ok": remote_ok,
+            "response_format": {
+                "facts": [{
+                    "category": "experience | skill | achievement | education | certification",
+                    "statement": "concise employment fact grounded in the CV",
+                    "source_excerpt": "verbatim excerpt copied from the CV",
+                    "normalized_terms": ["terms explicitly supported by the excerpt"],
+                    "period": "dates copied from the excerpt, or empty",
+                    "metrics": "scope or metrics copied from the excerpt, or empty",
+                }],
+                "keywords": ["up to five additional CV-backed search terms"],
+            },
+        },
+        temperature=float(parameters.get("temperature", 0.1)),
+        json_schema=_profile_artifacts_json_schema(),
+    )
+
+
+def _profile_artifacts_json_schema():
+    fact = {
+        "type": "object",
+        "properties": {
+            "category": {
+                "type": "string",
+                "enum": ["experience", "skill", "achievement", "education", "certification"],
+            },
+            "statement": {"type": "string", "minLength": 1, "maxLength": 360},
+            "source_excerpt": {"type": "string", "minLength": 1, "maxLength": 600},
+            "normalized_terms": {
+                "type": "array", "maxItems": 20,
+                "items": {"type": "string", "minLength": 1, "maxLength": 100},
+            },
+            "period": {"type": "string", "maxLength": 100},
+            "metrics": {"type": "string", "maxLength": 160},
+        },
+        "required": ["category", "statement", "source_excerpt", "normalized_terms", "period", "metrics"],
+        "additionalProperties": False,
+    }
+    return {
+        "name": "profile_evidence_and_search_terms_v1",
+        "strict": True,
+        "schema": {
+            "type": "object",
+            "properties": {
+                "facts": {"type": "array", "maxItems": 80, "items": fact},
+                "keywords": {
+                    "type": "array", "maxItems": 5,
+                    "items": {"type": "string", "minLength": 1, "maxLength": 100},
+                },
+            },
+            "required": ["facts", "keywords"],
+            "additionalProperties": False,
+        },
+    }
 
 
 def request_model_title_preselection(*, search_terms: list[str], vacancies: list[dict]):

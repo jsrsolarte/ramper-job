@@ -4,8 +4,10 @@ from unittest.mock import Mock, patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
+from celery.exceptions import Retry
+from matching.client import OmniRouteError
 
-from jobs.connectors.base import JobListing
+from jobs.connectors.base import JobListing, SourcePartiallyUnavailable
 from jobs.models import JobSourceStatus, Vacancy
 from jobs.tasks import refresh_periodic_sources, refresh_profile_sources, refresh_sources
 from matching.models import PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, ProfileSearchTerms, ProfileVacancyDiscovery
@@ -113,7 +115,11 @@ class RefreshTasksTests(TestCase):
         prepare_refresh_batch.run(profile_leases, command_run_id=command_id, origin=origin)
         batch = RefreshBatch.objects.latest("pk")
         batch_profile = RefreshBatchProfile.objects.get(batch=batch, profile=self.profile)
-        prepare_refresh_profile.run(batch_profile.pk)
+        with patch(
+            "matching.services.ensure_profile_artifacts",
+            return_value=(Mock(facts=[]), self.term_set),
+        ):
+            prepare_refresh_profile.run(batch_profile.pk)
         plan_refresh_batch.run(batch.pk)
         return batch, batch_profile, list(RefreshWorkItem.objects.filter(batch=batch).order_by("pk"))
 
@@ -226,6 +232,42 @@ class RefreshTasksTests(TestCase):
         self.assertEqual(batch_profile.search_request, {})
         get_terms.assert_not_called()
         plan_batch.assert_called_once_with(batch.pk)
+
+    @patch("jobs.resumable.get_active_matching_config")
+    @patch("jobs.resumable.plan_refresh_batch.delay")
+    @patch("jobs.resumable.get_profile_search_terms", side_effect=OmniRouteError("fallo temporal"))
+    def test_evidence_extraction_failure_keeps_profile_preparation_retryable(
+        self, get_terms, plan_batch, active_config,
+    ):
+        from jobs.resumable import prepare_refresh_profile
+
+        active_config.return_value = self.config
+        now = timezone.now()
+        batch = RefreshBatch.objects.create(status=RefreshBatch.Status.RUNNING, started_at=now)
+        profile_run = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="profile_refresh",
+            status=OperationalRun.Status.RUNNING,
+            started_at=now,
+        )
+        batch_profile = RefreshBatchProfile.objects.create(
+            batch=batch,
+            profile=self.profile,
+            profile_run=profile_run,
+            lease_token="retryable-evidence-lease",
+        )
+
+        with patch.object(prepare_refresh_profile, "retry", side_effect=Retry("retry", None)) as retry:
+            with self.assertRaises(Retry):
+                prepare_refresh_profile.run(batch_profile.pk)
+
+        batch_profile.refresh_from_db()
+        self.assertFalse(batch_profile.failed)
+        self.assertIsNone(batch_profile.prepared_at)
+        self.assertEqual(batch_profile.search_request, {})
+        get_terms.assert_called_once_with(self.revision, self.config)
+        plan_batch.assert_not_called()
+        retry.assert_called_once()
 
     @patch("jobs.resumable.process_refresh_work_item.apply_async")
     @patch("operations.parameters.processing_is_paused", return_value=True)
@@ -430,6 +472,75 @@ class RefreshTasksTests(TestCase):
         self.assertEqual(Vacancy.objects.count(), 1)
         self.assertTrue(JobSourceStatus.objects.get(source="test-source").available)
         self.assertEqual(schedule_analysis.call_count, len(work_items))
+
+    @patch("matching.tasks.schedule_vacancy_analysis.delay")
+    @patch("matching.services.preselect_listing_titles")
+    @patch("jobs.tasks.configured_connectors")
+    @patch("jobs.tasks.refresh_shared_sources.delay")
+    @patch("jobs.resumable.get_profile_search_terms")
+    def test_partial_source_keeps_results_and_does_not_stop_other_sources(
+        self, search_terms, dispatch, configured, preselect, schedule_analysis,
+    ):
+        from types import SimpleNamespace
+
+        from jobs.resumable import process_refresh_work_item
+
+        search_terms.return_value = SimpleNamespace(keywords=["procesos"])
+        self.profile.locations = []
+        self.profile.save(update_fields=("locations",))
+        self.revision.locations = []
+        self.revision.save(update_fields=("locations",))
+        magneto_listing = JobListing(
+            **{**self._listing().__dict__,
+               "source": "magneto_co", "original_url": "https://www.magneto365.com/co/empleos/prueba-parcial"}
+        )
+        other_listing = JobListing(
+            **{**self._listing().__dict__,
+               "source": "other-source", "original_url": "https://jobs.example.test/vacancy/other"}
+        )
+        confirmed_other = JobListing(
+            **{**other_listing.__dict__, "raw_data": {"details_fetch": {"status": "confirmed"}}}
+        )
+        magneto = Mock(source="magneto_co", status_message="Consulta parcial de Magneto")
+        magneto.fetch_titles.side_effect = SourcePartiallyUnavailable(
+            "Magneto devolvió resultados parciales.", [magneto_listing],
+        )
+        other = Mock(source="other-source", status_message="")
+        other.fetch_titles.return_value = [other_listing]
+        other.fetch_details.return_value = [confirmed_other]
+        configured.return_value = [magneto, other]
+        preselect.side_effect = [
+            Mock(listings=[magneto_listing], discarded_count=0, input_tokens=1),
+            Mock(listings=[other_listing], discarded_count=0, input_tokens=1),
+        ]
+        command = AdminCommandRun.objects.create(command="refresh_sources", requested_by=self.profile.owner)
+
+        self.assertEqual(refresh_sources.run(command.pk), {"scheduled_profiles": 1})
+        leases = dispatch.call_args.args[0]
+        batch, _batch_profile, work_items = self._advance_batch_to_work_item(leases, command.pk)
+        self.assertEqual({item.source for item in work_items}, {"magneto_co", "other-source"})
+
+        with self.captureOnCommitCallbacks(execute=True):
+            for item in work_items:
+                process_refresh_work_item.run(item.pk)
+
+        magneto_item = next(item for item in work_items if item.source == "magneto_co")
+        other_item = next(item for item in work_items if item.source == "other-source")
+        magneto_item.refresh_from_db()
+        other_item.refresh_from_db()
+        magneto_status = JobSourceStatus.objects.get(source="magneto_co")
+        other_status = JobSourceStatus.objects.get(source="other-source")
+        self.assertEqual(magneto_item.status, RefreshWorkItem.Status.PARTIAL)
+        self.assertFalse(magneto_status.available)
+        self.assertIn("parcial", magneto_status.status_message.lower())
+        self.assertEqual(other_item.status, RefreshWorkItem.Status.SUCCEEDED)
+        self.assertTrue(other_status.available)
+        self.assertEqual(Vacancy.objects.filter(source="magneto_co").count(), 1)
+        self.assertEqual(Vacancy.objects.filter(source="other-source").count(), 1)
+        magneto.fetch_details.assert_not_called()
+        other.fetch_details.assert_called_once_with([other_listing])
+        batch.refresh_from_db()
+        self.assertIsNotNone(batch.finished_at)
 
     @patch("jobs.resumable.prepare_refresh_batch.delay")
     def test_profile_refresh_only_schedules_durable_batch(self, prepare_batch):

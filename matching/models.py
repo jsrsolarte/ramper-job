@@ -6,7 +6,7 @@ from jobs.models import Vacancy
 from profiles.models import Profile, ProfileRevision
 
 RUBRIC_VERSION = 3
-PROMPT_VERSION = 6
+PROMPT_VERSION = 7
 CRITICAL_REQUIREMENT_DEDUCTION = "1.0"
 # Read-only presentation metadata for historical analyses.
 HISTORICAL_RUBRIC_CRITERIA_V2 = {
@@ -106,6 +106,34 @@ class ProfileSearchTerms(models.Model):
 
     def __str__(self):
         return f"{self.profile_revision} · configuración v{self.matching_config.version}"
+
+
+class ProfileEvidence(models.Model):
+    """Compact, source-traceable employment facts for one immutable CV revision."""
+
+    profile_revision = models.ForeignKey(
+        ProfileRevision, on_delete=models.CASCADE, related_name="evidence_records"
+    )
+    extractor_version = models.PositiveSmallIntegerField()
+    source_sha256 = models.CharField(max_length=64)
+    facts = models.JSONField(default=list, blank=True)
+    input_tokens = models.PositiveIntegerField(null=True, blank=True)
+    output_tokens = models.PositiveIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-extractor_version", "-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=("profile_revision", "extractor_version"),
+                name="unique_profile_evidence_revision_extractor",
+            ),
+        ]
+        verbose_name = "evidencia laboral de CV"
+        verbose_name_plural = "evidencias laborales de CV"
+
+    def __str__(self):
+        return f"Evidencia de {self.profile_revision} · extractor v{self.extractor_version}"
 
 
 class ProfileVacancyDiscovery(models.Model):

@@ -4,22 +4,17 @@ import logging
 
 from django.db import transaction
 
-from profiles.extract import extract_revision_text
-from profiles.locations import expand_locations
-
-from .client import request_model_keywords, request_model_title_preselection
+from .client import request_model_title_preselection
+from .evidence import PROFILE_EVIDENCE_ANALYSIS_INSTRUCTION, ensure_profile_artifacts
 from .models import (
     CRITICAL_REQUIREMENT_DEDUCTION,
     DEFAULT_SEARCH_PROMPT,
     RUBRIC_CRITERIA,
     RUBRIC_VERSION,
-    RUBRIC_VERSION,
     MatchingConfig,
     PROMPT_VERSION,
-    ProfileSearchTerms,
     default_matching_parameters,
 )
-from .schemas import validate_search_keywords
 
 logger = logging.getLogger(__name__)
 
@@ -101,12 +96,15 @@ def get_active_matching_config():
         analysis_prompt=_versioned_prompt(
             _versioned_prompt(
                 _versioned_prompt(
-                    config.analysis_prompt if config else DEFAULT_ANALYSIS_PROMPT,
-                    CONCISE_ANALYSIS_INSTRUCTION,
+                    _versioned_prompt(
+                        config.analysis_prompt if config else DEFAULT_ANALYSIS_PROMPT,
+                        CONCISE_ANALYSIS_INSTRUCTION,
+                    ),
+                    CRITICAL_COMPLETENESS_INSTRUCTION,
                 ),
-                CRITICAL_COMPLETENESS_INSTRUCTION,
+                EVIDENCE_STATUS_INSTRUCTION,
             ),
-            EVIDENCE_STATUS_INSTRUCTION,
+            PROFILE_EVIDENCE_ANALYSIS_INSTRUCTION,
         ),
         organization_prompt=_versioned_prompt(
             config.organization_prompt if config else DEFAULT_ORGANIZATION_PROMPT,
@@ -126,41 +124,7 @@ def _versioned_prompt(existing_prompt, concise_instruction):
 
 def get_profile_search_terms(profile_revision, config=None):
     config = config or get_active_matching_config()
-    existing = ProfileSearchTerms.objects.filter(
-        profile_revision=profile_revision,
-        matching_config=config,
-    ).first()
-    if existing:
-        return existing
-
-    response = request_model_keywords(
-        profile_text=extract_revision_text(profile_revision),
-        search_phrases=profile_revision.search_phrases,
-        locations=expand_locations(profile_revision.locations),
-        remote_ok=profile_revision.remote_ok,
-        prompt="\n\n".join((
-            config.search_prompt,
-            "Conserva las frases de búsqueda recibidas y sugiere hasta cinco términos "
-            "adicionales, distintos y respaldados por el CV. Las frases del aspirante "
-            "se añadirán a los términos devueltos; no hace falta repetirlas en el JSON.",
-        )),
-        parameters=config.parameters,
-    )
-    suggestions = validate_search_keywords(getattr(response, "content", response))
-    keywords = []
-    seen = set()
-    for phrase in [*profile_revision.search_phrases, *suggestions]:
-        phrase = " ".join(phrase.split())
-        if phrase and phrase.casefold() not in seen:
-            keywords.append(phrase)
-            seen.add(phrase.casefold())
-    if not keywords:
-        raise ValueError("El perfil necesita al menos una frase de búsqueda o una sugerencia de IA.")
-    search_terms, _ = ProfileSearchTerms.objects.get_or_create(
-        profile_revision=profile_revision,
-        matching_config=config,
-        defaults={"keywords": keywords},
-    )
+    _evidence, search_terms = ensure_profile_artifacts(profile_revision, config)
     return search_terms
 
 

@@ -202,6 +202,7 @@ COMPUTRABAJO_USER_AGENT = os.getenv(
     "COMPUTRABAJO_USER_AGENT",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
 )
+MAGNETO_USER_AGENT = os.getenv("MAGNETO_USER_AGENT", "RamperJob (public vacancy search)")
 OMNIROUTE_BASE_URL = os.getenv("OMNIROUTE_BASE_URL", "")
 OMNIROUTE_API_KEY = os.getenv("OMNIROUTE_API_KEY", "")
 OMNIROUTE_MODEL = os.getenv("OMNIROUTE_MODEL", "")

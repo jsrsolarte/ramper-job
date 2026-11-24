@@ -48,4 +48,7 @@ Registrar la fuente y configuración, incrementar VERSION en MINOR y ejecutar pr
 - Se construyó la imagen temporal con el Dockerfile; `.dockerignore` excluye `.env`, CV, bases de datos locales y datos runtime.
 - Pasaron 54 pruebas relevantes (`jobs.tests.test_magneto`, `profiles.tests.test_locations`, `jobs.tests.test_refresh`, `jobs.tests.test_detail_cache` y `jobs.tests.test_search_groups`) con SQLite temporal, broker Celery en memoria y fixtures sintéticos. No se iniciaron workers ni se hicieron solicitudes a Magneto.
 - `scripts/validate_release_version.py --tag v1.2.0 --existing-tags v1.0.0` aceptó `v1.2.0`; `VERSION` quedó en `1.2.0`.
-- Staging no fue desplegado ni validado; la tarea 3.5 permanece pendiente.
+- El workflow `CI and staging image` #108 pasó desde `main`, probó la rama candidata `codex/agregar-magneto-staging-20261124` (`241dbef5694bd3cbc94967b5af23e09fd267efd5`) y fijó esa imagen en staging. No se cambió producción.
+- Flux reportó `Ready=True` y `Healthy=True` en `staging@sha1:ee45570f17d546589e1646d4e19af80dd0fc1d92`; web, worker y beat quedaron listos 1/1 con la imagen SHA. `/healthz` y `/readyz` respondieron HTTP 200 dentro del pod web.
+- Se observaron timeouts iniciales de sondas mientras arrancaban worker y beat; se recuperaron, Flux completó reconciliación y los pods quedaron listos sin reinicios.
+- CI ejecutó las pruebas completas del proyecto, incluyendo las pruebas de Magneto con fixtures sintéticos. No se disparó una búsqueda real ni se consultaron páginas de Magneto durante esta validación.

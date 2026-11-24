@@ -18,4 +18,4 @@
 - [x] 3.2 Verificar búsquedas compartidas, preselección, deduplicación por fuente y URL, elegibilidad y conservación de seguimientos con pruebas sintéticas.
 - [x] 3.3 Verificar que bloqueos producen resultados parciales y estado observable sin detener las demás fuentes mediante pruebas de integración.
 - [x] 3.4 Incrementar VERSION en MINOR y ejecutar las validaciones de versión y pruebas pertinentes; registrar los resultados.
-- [ ] 3.5 Validar en staging con datos sintéticos solo cuando corresponda al flujo autorizado; registrar resultados y limitaciones antes de solicitar promoción.
+- [x] 3.5 Desplegar y validar en staging mediante el flujo autorizado, con pruebas sintéticas; registrar resultados y limitaciones antes de solicitar promoción.

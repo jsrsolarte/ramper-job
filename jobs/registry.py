@@ -1,9 +1,11 @@
 from .connectors.elempleo import ElempleoConnector
 from .connectors.computrabajo import ComputrabajoConnector
+from .connectors.magneto import MagnetoConnector
 
 _CONNECTOR_TYPES = {
     ElempleoConnector.source: ElempleoConnector,
     ComputrabajoConnector.source: ComputrabajoConnector,
+    MagnetoConnector.source: MagnetoConnector,
 }
 
 

@@ -4,6 +4,8 @@ from unittest.mock import Mock, patch
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.utils import timezone
+from celery.exceptions import Retry
+from matching.client import OmniRouteError
 
 from jobs.connectors.base import JobListing, SourcePartiallyUnavailable
 from jobs.models import JobSourceStatus, Vacancy
@@ -113,7 +115,11 @@ class RefreshTasksTests(TestCase):
         prepare_refresh_batch.run(profile_leases, command_run_id=command_id, origin=origin)
         batch = RefreshBatch.objects.latest("pk")
         batch_profile = RefreshBatchProfile.objects.get(batch=batch, profile=self.profile)
-        prepare_refresh_profile.run(batch_profile.pk)
+        with patch(
+            "matching.services.ensure_profile_artifacts",
+            return_value=(Mock(facts=[]), self.term_set),
+        ):
+            prepare_refresh_profile.run(batch_profile.pk)
         plan_refresh_batch.run(batch.pk)
         return batch, batch_profile, list(RefreshWorkItem.objects.filter(batch=batch).order_by("pk"))
 
@@ -226,6 +232,42 @@ class RefreshTasksTests(TestCase):
         self.assertEqual(batch_profile.search_request, {})
         get_terms.assert_not_called()
         plan_batch.assert_called_once_with(batch.pk)
+
+    @patch("jobs.resumable.get_active_matching_config")
+    @patch("jobs.resumable.plan_refresh_batch.delay")
+    @patch("jobs.resumable.get_profile_search_terms", side_effect=OmniRouteError("fallo temporal"))
+    def test_evidence_extraction_failure_keeps_profile_preparation_retryable(
+        self, get_terms, plan_batch, active_config,
+    ):
+        from jobs.resumable import prepare_refresh_profile
+
+        active_config.return_value = self.config
+        now = timezone.now()
+        batch = RefreshBatch.objects.create(status=RefreshBatch.Status.RUNNING, started_at=now)
+        profile_run = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="profile_refresh",
+            status=OperationalRun.Status.RUNNING,
+            started_at=now,
+        )
+        batch_profile = RefreshBatchProfile.objects.create(
+            batch=batch,
+            profile=self.profile,
+            profile_run=profile_run,
+            lease_token="retryable-evidence-lease",
+        )
+
+        with patch.object(prepare_refresh_profile, "retry", side_effect=Retry("retry", None)) as retry:
+            with self.assertRaises(Retry):
+                prepare_refresh_profile.run(batch_profile.pk)
+
+        batch_profile.refresh_from_db()
+        self.assertFalse(batch_profile.failed)
+        self.assertIsNone(batch_profile.prepared_at)
+        self.assertEqual(batch_profile.search_request, {})
+        get_terms.assert_called_once_with(self.revision, self.config)
+        plan_batch.assert_not_called()
+        retry.assert_called_once()
 
     @patch("jobs.resumable.process_refresh_work_item.apply_async")
     @patch("operations.parameters.processing_is_paused", return_value=True)

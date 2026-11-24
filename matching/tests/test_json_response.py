@@ -92,7 +92,7 @@ class ModelJSONResponseTests(SimpleTestCase):
         post.return_value = response
 
         result = request_model_analysis(
-            profile_text="CV sintético", search_phrases=[], locations=[], remote_ok=False,
+            profile_evidence=[], search_phrases=[], locations=[], remote_ok=False,
             vacancy={}, prompt="Evalúa", parameters={}, rubric_version=3,
         )
 
@@ -115,7 +115,7 @@ class ModelJSONResponseTests(SimpleTestCase):
         post.return_value = response
 
         result = request_model_analysis(
-            profile_text="CV sintético",
+            profile_evidence=[],
             search_phrases=["Analista"],
             locations=["Bogotá"],
             remote_ok=False,
@@ -132,7 +132,7 @@ class ModelJSONResponseTests(SimpleTestCase):
     def test_legacy_rubric_is_rejected_before_a_model_call(self, post):
         with self.assertRaises(ValueError):
             request_model_analysis(
-                profile_text="CV sintético", search_phrases=[], locations=[], remote_ok=False,
+                profile_evidence=[], search_phrases=[], locations=[], remote_ok=False,
                 vacancy={}, prompt="Evalúa", parameters={}, rubric_version=2,
             )
         post.assert_not_called()
@@ -150,7 +150,7 @@ class ModelJSONResponseTests(SimpleTestCase):
         post.return_value = response
 
         request_model_analysis(
-            profile_text="CV sintético", search_phrases=[], locations=[], remote_ok=False,
+            profile_evidence=[], search_phrases=[], locations=[], remote_ok=False,
             vacancy={}, prompt="Evalúa", parameters={}, rubric_version=3,
         )
         structured = post.call_args.kwargs["json"]["response_format"]
@@ -178,6 +178,9 @@ class ModelJSONResponseTests(SimpleTestCase):
         self.assertEqual(schema["name"], "vacancy_organization_v1")
         self.assertTrue(schema["strict"])
         self.assertEqual(schema["schema"]["required"], ["summary", "keywords", "responsibilities", "requirements", "conditions"])
+        organization_input = json.loads(post.call_args.kwargs["json"]["messages"][1]["content"])
+        self.assertEqual(set(organization_input), {"vacancy", "response_format"})
+        self.assertNotIn("profile_evidence", organization_input)
 
     @override_settings(
         OMNIROUTE_BASE_URL="http://omniroute.internal/v1",

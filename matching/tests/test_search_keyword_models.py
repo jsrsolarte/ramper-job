@@ -4,7 +4,8 @@ from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
 from django.test import TestCase
 
-from matching.models import MatchingConfig, ProfileSearchTerms
+from matching.client import ModelCallResult
+from matching.models import MatchingConfig, ProfileEvidence, ProfileSearchTerms
 from matching.services import get_profile_search_terms
 from profiles.models import Profile, ProfileRevision
 
@@ -65,20 +66,32 @@ class ProfileSearchTermsModelTests(TestCase):
         self.assertEqual(second.keywords, ["mejora continua"])
         self.assertEqual(ProfileRevision.objects.count(), 1)
 
-    @patch("matching.services.extract_revision_text", return_value="CV de procesos")
-    @patch("matching.services.request_model_keywords", return_value={"keywords": ["procesos"]})
-    def test_existing_terms_are_reused_for_same_revision_and_config(self, request, extract):
+    @patch("matching.evidence.request_model_profile_artifacts")
+    @patch("matching.evidence.request_model_keywords")
+    def test_existing_terms_are_reused_for_same_revision_and_config(self, keywords, extraction):
+        ProfileEvidence.objects.create(
+            profile_revision=self.revision, extractor_version=1,
+            source_sha256="a" * 64, facts=[],
+        )
+        ProfileSearchTerms.objects.create(
+            profile_revision=self.revision, matching_config=self.config,
+            keywords=["Analista de procesos"],
+        )
         first = get_profile_search_terms(self.revision, self.config)
         second = get_profile_search_terms(self.revision, self.config)
 
         self.assertEqual(first.pk, second.pk)
         self.assertEqual(ProfileSearchTerms.objects.count(), 1)
-        request.assert_called_once()
-        extract.assert_called_once_with(self.revision)
+        keywords.assert_not_called()
+        extraction.assert_not_called()
 
-    @patch("matching.services.extract_revision_text", return_value="CV actualizado")
-    @patch("matching.services.request_model_keywords", return_value={"keywords": ["procesos"]})
-    def test_new_profile_revision_or_config_generates_a_new_set(self, request, extract):
+    @patch("matching.evidence.extract_revision_text", side_effect=["CV de procesos", "CV actualizado"])
+    @patch("matching.evidence.request_model_profile_artifacts")
+    @patch("matching.evidence.request_model_keywords", return_value={"keywords": ["mejora continua"]})
+    def test_new_revision_extracts_once_and_new_config_reuses_its_evidence(self, keywords, extract_artifacts, extract_cv):
+        extract_artifacts.return_value = ModelCallResult(
+            content={"facts": [], "keywords": ["procesos"]}, input_tokens=30, output_tokens=10,
+        )
         get_profile_search_terms(self.revision, self.config)
         updated_revision = ProfileRevision.objects.create(
             profile=self.revision.profile,
@@ -98,4 +111,7 @@ class ProfileSearchTermsModelTests(TestCase):
         get_profile_search_terms(updated_revision, updated_config)
 
         self.assertEqual(ProfileSearchTerms.objects.count(), 3)
-        self.assertEqual(request.call_count, 3)
+        self.assertEqual(extract_artifacts.call_count, 2)
+        self.assertEqual(keywords.call_count, 1)
+        self.assertEqual(extract_cv.call_count, 2)
+        self.assertNotIn("CV actualizado", str(keywords.call_args.kwargs["profile_evidence"]))

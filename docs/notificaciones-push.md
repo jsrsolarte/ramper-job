@@ -24,3 +24,15 @@ Genera la clave de cifrado en el entorno seguro con `python -c 'from cryptograph
 En una instalación local se pueden exportar las variables desde un archivo `.env` privado. Staging y producción deben recibir valores mediante sus propios mecanismos secretos. Esta spec no cambia infraestructura ni crea Secrets.
 
 La entrega requiere HTTPS, permiso del navegador y disponibilidad de su servicio push. El resumen no garantiza recepción; cada aviso usa contenido genérico y TTL corto.
+
+## Liberación en producción
+
+Antes de habilitar notificaciones en producción al liberar a `main`:
+
+1. Genera una pareja VAPID exclusiva para producción. No reutilices la pareja de staging. Configura `PUSH_VAPID_PUBLIC_KEY`, `PUSH_VAPID_PRIVATE_KEY` en Base64 URL-safe sin relleno y `PUSH_VAPID_SUBJECT`.
+2. Conserva la `PUSH_SUBSCRIPTION_ENCRYPTION_KEY` de producción si ya existe. Si no está configurada, define una clave estable y exclusiva de producción antes de registrar dispositivos; si ya hay suscripciones cifradas con la clave derivada de `DJANGO_SECRET_KEY`, no la reemplaces sin migrarlas con la clave anterior.
+3. Añade esos valores al Secret Kubernetes existente `ramper-job-secrets` del namespace `prod`; nunca los guardes en Git, manifiestos en texto claro o logs.
+4. Web, worker y Beat ya consumen ese Secret. Comprueba las referencias y que la clave privada se pueda cargar sin imprimirla; después confirma el rollout de las tres cargas.
+5. Valida la entrega con un dispositivo de prueba autorizado y contenido genérico, sin enviar notificaciones a otras cuentas.
+
+Codex puede preparar el Secret de producción durante la liberación autorizada. La fusión a `main` por sí sola no inicia la promoción ni cambia recursos o secretos de producción.

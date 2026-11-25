@@ -95,23 +95,22 @@ class StarScoreMigrationTests(__import__('django.test', fromlist=['TransactionTe
             ('jobs', '0008_alter_manualvacancysubmission_source_and_more'),
             ('matching', '0014_vacancyanalysis_score_stars'),
         ]
-        executor.migrate(previous)
-        old_apps = executor.loader.project_state(previous).apps
-        User = old_apps.get_model('auth', 'User')
-        Profile = old_apps.get_model('profiles', 'Profile')
-        Revision = old_apps.get_model('profiles', 'ProfileRevision')
-        Vacancy = old_apps.get_model('jobs', 'Vacancy')
-        Config = old_apps.get_model('matching', 'MatchingConfig')
-        Analysis = old_apps.get_model('matching', 'VacancyAnalysis')
-        user = User.objects.create(username='migration-synthetic')
-        profile = Profile.objects.create(owner_id=user.pk, revision_number=1)
-        revision = Revision.objects.create(profile_id=profile.pk, version=1)
-        vacancy = Vacancy.objects.create(source='test', title='Prueba', original_url='https://example.test/migration')
-        config = Config.objects.create(version=1, analysis_prompt='Prueba', organization_prompt='Prueba')
-        original = Analysis.objects.create(profile_id=profile.pk, profile_revision_id=revision.pk,
-            vacancy_id=vacancy.pk, matching_config_id=config.pk, score=Decimal('6.5'),
-            score_breakdown={'evidence': 'sintética'})
         try:
+            # Create the historical record on the current schema before
+            # rolling back. jobs.0009 depends on matching.0015, so migrating
+            # matching to 0013 also rolls the jobs table back to 0008; using
+            # current ORM models after that rollback writes columns that no
+            # longer exist.
+            user = get_user_model().objects.create(username='migration-synthetic')
+            profile = Profile.objects.create(owner=user, revision_number=1)
+            revision = ProfileRevision.objects.create(profile=profile, version=1)
+            vacancy = Vacancy.objects.create(source='test', title='Prueba', original_url='https://example.test/migration')
+            config = MatchingConfig.objects.create(version=1, analysis_prompt='Prueba', organization_prompt='Prueba')
+            original = VacancyAnalysis.objects.create(profile=profile, profile_revision=revision,
+                vacancy=vacancy, matching_config=config, score=Decimal('6.5'),
+                score_breakdown={'evidence': 'sintética'})
+
+            executor.migrate(previous)
             executor = MigrationExecutor(connection)
             executor.migrate(current)
             new_apps = executor.loader.project_state(current).apps

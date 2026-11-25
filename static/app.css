@@ -486,6 +486,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .push-preferences .field-help { max-width: 680px; margin: 0 0 8px; }
 .push-notification-status { margin: 0; color: var(--muted); font-size: 13px; }
 .push-notification-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.push-notification-actions [hidden] { display: none !important; }
 @media (max-width: 700px) { .push-preferences { align-items: stretch; flex-direction: column; } }
 
 .connection-status { margin: 12px auto; width: min(1100px, calc(100% - 48px)); padding: 13px 16px; border: 1px solid #f2d0c9; border-radius: 12px; color: var(--danger); background: var(--danger-bg); font-size: 13px; font-weight: 650; line-height: 1.55; }

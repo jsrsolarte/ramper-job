@@ -32,7 +32,7 @@ patches:
         template:
           metadata:
             annotations:
-              ops.ramper.lat/config-revision: 93ec6a63
+              ops.ramper.lat/config-revision: notifications-1.4.0
   - target:
       kind: Deployment
       name: ramper-job-worker

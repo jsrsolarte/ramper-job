@@ -1,16 +1,46 @@
 from pathlib import Path
+import hashlib
+import json
+from urllib.parse import urlparse
 
+from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import FileResponse, Http404, JsonResponse
+from django.db.models import Max
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_GET, require_POST
+from django.utils import timezone
 
 from .forms import ProfileForm
 from .models import GuidedTourProgress, Profile, ProfileRevision
 from .tour import TOUR_STEPS, TOUR_VERSION, ensure_mandatory_tour, is_tour_eligible, step_payload
 from dashboard.score_display import score_star_label, score_star_percent, score_star_threshold_label
+from dashboard.models import PushSubscription, RecommendationEvent
+
+
+def _push_endpoint_digest(endpoint):
+    return hashlib.sha256(endpoint.encode("utf-8")).hexdigest()
+
+
+def _valid_push_endpoint(endpoint):
+    endpoint = str(endpoint or "").strip()
+    parsed = urlparse(endpoint)
+    if len(endpoint) > 4096 or parsed.scheme != "https" or not parsed.netloc:
+        return ""
+    return endpoint
+
+
+def _push_request_data(request):
+    if len(request.body) > 8192:
+        return None
+    try:
+        payload = json.loads(request.body or b"{}")
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return None
+    return payload if isinstance(payload, dict) else None
 
 
 @login_required
@@ -85,7 +115,143 @@ def edit_profile(request):
         "min_score_star_threshold_label": score_star_threshold_label(min_score_value),
         "min_score_star_percent": min_score_value * 10,
         "min_score_options": min_score_options,
+        "push_vapid_public_key": settings.PUSH_VAPID_PUBLIC_KEY,
+        "push_enabled_for_environment": bool(
+            settings.PUSH_VAPID_PUBLIC_KEY
+            and settings.PUSH_VAPID_PRIVATE_KEY
+            and settings.PUSH_VAPID_SUBJECT
+        ),
     })
+
+
+@login_required
+@require_POST
+def push_subscription_status(request):
+    payload = _push_request_data(request)
+    endpoint = _valid_push_endpoint(payload.get("endpoint") if payload else "")
+    profile = Profile.objects.filter(owner=request.user).first()
+    if not endpoint or not profile:
+        return JsonResponse({"active": False}, status=400)
+    active = PushSubscription.objects.filter(
+        profile=profile,
+        endpoint_digest=_push_endpoint_digest(endpoint),
+        active=True,
+    ).exists()
+    return JsonResponse({"active": active})
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def save_push_subscription(request):
+    payload = _push_request_data(request)
+    action = payload.get("action") if payload else None
+    if action == "unsubscribe":
+        endpoint = _valid_push_endpoint(payload.get("endpoint"))
+        profile = Profile.objects.filter(owner=request.user).first()
+        if not endpoint or not profile:
+            return JsonResponse({"active": False}, status=400)
+        PushSubscription.objects.filter(
+            profile=profile,
+            endpoint_digest=_push_endpoint_digest(endpoint),
+        ).delete()
+        return JsonResponse({"active": False})
+
+    subscription = payload.get("subscription") if payload else None
+    endpoint = _valid_push_endpoint(
+        subscription.get("endpoint") if isinstance(subscription, dict) else ""
+    )
+    keys = subscription.get("keys") if isinstance(subscription, dict) else None
+    p256dh = str((keys or {}).get("p256dh") or "").strip() if isinstance(keys, dict) else ""
+    auth_key = str((keys or {}).get("auth") or "").strip() if isinstance(keys, dict) else ""
+    profile = Profile.objects.filter(owner=request.user).first()
+    if (
+        not endpoint or not p256dh or not auth_key
+        or len(p256dh) > 256 or len(auth_key) > 128 or not profile
+    ):
+        return JsonResponse(
+            {"active": False, "message": "La suscripción del navegador no es válida."},
+            status=400,
+        )
+    digest = _push_endpoint_digest(endpoint)
+    latest_event_id = (
+        RecommendationEvent.objects.filter(profile=profile).aggregate(max_id=Max("pk"))["max_id"]
+        or 0
+    )
+    row = PushSubscription.objects.select_for_update().filter(endpoint_digest=digest).first()
+    if row is None:
+        row = PushSubscription.objects.create(
+            profile=profile,
+            endpoint_digest=digest,
+            endpoint=endpoint,
+            p256dh_key=p256dh,
+            auth_key=auth_key,
+            active=True,
+            activated_at=timezone.now(),
+            last_event_cutoff_id=latest_event_id,
+        )
+    else:
+        changed_account = row.profile_id != profile.pk
+        row.profile = profile
+        row.endpoint = endpoint
+        row.p256dh_key = p256dh
+        row.auth_key = auth_key
+        row.active = True
+        update_fields = [
+            "profile", "endpoint_ciphertext", "p256dh_ciphertext", "auth_ciphertext",
+            "active", "updated_at",
+        ]
+        if changed_account:
+            row.activated_at = timezone.now()
+            row.last_event_cutoff_id = latest_event_id
+            update_fields.extend(["activated_at", "last_event_cutoff_id"])
+        row.save(update_fields=update_fields)
+    return JsonResponse({"active": True})
+
+
+@login_required
+@require_POST
+def logout_with_push_unlink(request):
+    endpoint = _valid_push_endpoint(request.POST.get("push_endpoint"))
+    if endpoint:
+        profile = Profile.objects.filter(owner=request.user).first()
+        if profile:
+            PushSubscription.objects.filter(
+                profile=profile,
+                endpoint_digest=_push_endpoint_digest(endpoint),
+            ).delete()
+    logout(request)
+    return redirect("login")
+
+
+@require_GET
+def push_service_worker(_request):
+    response = HttpResponse(
+        """self.addEventListener('push', (event) => {
+  event.waitUntil(self.registration.showNotification('Novedades en Ramper Job', {
+    body: 'Hay recomendaciones nuevas. Abre Ramper Job para revisarlas.',
+    silent: true,
+    data: { url: '/' }
+  }));
+});
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const destination = new URL('/', self.location.origin).href;
+  event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
+    for (const client of windows) {
+      if (new URL(client.url).origin === self.location.origin) {
+        return client.focus().then(() => client.navigate(destination));
+      }
+    }
+    return clients.openWindow(destination);
+  }));
+});
+""",
+        content_type="application/javascript; charset=utf-8",
+    )
+    response["Service-Worker-Allowed"] = "/"
+    response["Cache-Control"] = "no-store"
+    return response
 
 
 @login_required

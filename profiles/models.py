@@ -3,6 +3,7 @@ from pathlib import Path
 from django.conf import settings
 from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
+from django.utils import timezone
 
 
 def cv_upload_path(instance, filename):
@@ -44,6 +45,8 @@ class Profile(models.Model):
         validators=[FileExtensionValidator(["pdf", "docx"])],
     )
     revision_number = models.PositiveIntegerField(default=0)
+    recommendation_tracking_started_at = models.DateTimeField(default=timezone.now, editable=False)
+    recommendations_reviewed_through = models.PositiveBigIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:

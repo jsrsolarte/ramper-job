@@ -28,6 +28,17 @@
 
 {% include "dashboard/_tabs.html" %}
 
+{% if follow_up_status == 'pending' and recommendation_new_count %}
+  <section class="recommendation-new-summary notice" aria-label="Novedades en recomendaciones">
+    <p><strong>{{ recommendation_new_count }} recomendaciones nuevas.</strong> El indicador cuenta vacantes que siguen en Recomendaciones, sin depender de los filtros de puntaje o la página.</p>
+    <form method="post" action="{% url 'dashboard:mark_recommendations_reviewed' %}">
+      {% csrf_token %}
+      <input type="hidden" name="cutoff" value="{{ recommendation_new_cutoff }}">
+      <button class="button button-secondary" type="submit">Marcar como revisadas</button>
+    </form>
+  </section>
+{% endif %}
+
 {% for source in unavailable_sources %}
   <div class="notice notice-warning"><strong>{{ source.get_source_display|default:source.source }}</strong>: la fuente no está disponible en este momento. Conservamos las vacantes encontradas anteriormente.</div>
 {% endfor %}

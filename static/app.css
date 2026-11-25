@@ -478,6 +478,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .notice-warning { border-color: #f0dfbd; color: var(--warning); background: var(--warning-bg); }
 .notice-error { border-color: #f2d0c9; color: var(--danger); background: var(--danger-bg); }
 .notice-success { border-color: #d0e6d9; color: #285846; background: #edf7ef; }
+.recommendation-badge { display: inline-grid; min-width: 1.35rem; height: 1.35rem; margin-left: 4px; padding: 0 4px; place-items: center; border-radius: 999px; color: #fff; background: var(--green); font-size: 11px; font-weight: 800; line-height: 1; }
+.recommendation-new-summary { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.recommendation-new-summary p { margin: 0; }
+.push-preferences { display: flex; align-items: center; justify-content: space-between; gap: 22px; margin-top: 18px; padding: 22px; }
+.push-preferences h2 { margin: 0 0 8px; }
+.push-preferences .field-help { max-width: 680px; margin: 0 0 8px; }
+.push-notification-status { margin: 0; color: var(--muted); font-size: 13px; }
+.push-notification-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 700px) { .push-preferences { align-items: stretch; flex-direction: column; } }
 
 .connection-status { margin: 12px auto; width: min(1100px, calc(100% - 48px)); padding: 13px 16px; border: 1px solid #f2d0c9; border-radius: 12px; color: var(--danger); background: var(--danger-bg); font-size: 13px; font-weight: 650; line-height: 1.55; }
 .connection-status[data-state="recovered"] { border-color: #d0e6d9; color: #285846; background: #edf7ef; }

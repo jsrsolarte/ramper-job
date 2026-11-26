@@ -127,12 +127,16 @@ El sistema SHALL identificar por separado la validación de PR, la entrega a sta
 - **THEN** CI ejecuta las validaciones correspondientes sin modificar el pin ni desplegar en ninguno de los entornos
 
 #### Scenario: Se integra en main el código probado en staging
-- **WHEN** se integra a `main` mediante PR un candidato ya validado en `staging`
+- **WHEN** se integra a `main` mediante PR un candidato ya validado y publicado en `staging`
 - **THEN** el pipeline de producción valida el commit integrado y, si todas las verificaciones pasan, actualiza automáticamente el pin productivo al artefacto inmutable probado en staging
 
 #### Scenario: El merge genera un SHA distinto
 - **WHEN** el merge a `main` produce un SHA distinto al commit probado en `staging`
 - **THEN** el pipeline verifica que el código de aplicación integrado corresponde al candidato aprobado y conserva el SHA y digest de la imagen probada
+
+#### Scenario: El código de main no corresponde al candidato de staging
+- **WHEN** el commit integrado no contiene el código de aplicación del candidato publicado en staging
+- **THEN** el pipeline falla sin modificar el pin de producción
 
 #### Scenario: Se autoriza la promoción de producción
 - **WHEN** el usuario integra a `main` mediante PR el candidato validado en staging

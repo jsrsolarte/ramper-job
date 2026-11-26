@@ -63,8 +63,8 @@ El sistema SHALL permitir a una persona administradora ajustar y versionar los p
 - **THEN** el sistema crea una nueva versión para los procesos siguientes sin alterar los resultados ya generados
 
 #### Scenario: Se reprocesa una vacante
-- **WHEN** una persona administradora solicita reprocesar una vacante para un perfil
-- **THEN** el sistema crea un nuevo análisis con las versiones vigentes del perfil y la configuración, y conserva el resultado previo para trazabilidad
+- **WHEN** una persona administradora solicita procesar una vacante con análisis completado para ese perfil
+- **THEN** el sistema conserva el resultado y no solicita un nuevo análisis
 
 ### Requirement: Evaluación con una rúbrica fija y versionada
 El sistema SHALL enviar al modelo una rúbrica común y versionada, y exigir una evaluación por criterio con puntaje de precisión definida en la rúbrica, estado de evidencia y soporte basado en el CV y la vacante.
@@ -269,5 +269,46 @@ Las instrucciones de análisis SHALL exigir requisitos críticos y evidencia den
 - **THEN** el sistema no guarda un análisis parcial, registra solo la categoría segura de validación y mantiene genérico el mensaje visible a la persona usuaria
 
 ### Requirement: Preservar literales durante la comprobación de reparaciones
+El sistema SHALL verificar que una reparación JSON conserva las claves y los valores originales sin alterar el contenido de cadenas, incluso en estructuras anidadas. Si no puede demostrarlo, SHALL rechazar la reparación.
+
+#### Scenario: Puntuación dentro de una cadena
+- **WHEN** la respuesta original contiene `{"evidence": "texto, } y más",}` y la reparación cambia la evidencia a `texto} y más`
+- **THEN** el sistema rechaza la reparación y no guarda el resultado
+
+#### Scenario: Solo se corrige una coma fuera de la cadena
+- **WHEN** la respuesta anterior se repara conservando exactamente el valor `texto, } y más`
+- **THEN** el sistema puede aceptar la reparación tras comprobar equivalencia y aplicar las validaciones existentes
+
+#### Scenario: Cadenas y escapes ambiguos
+- **WHEN** la respuesta contiene comillas escapadas, barras inversas, secuencias Unicode, delimitadores o estructuras anidadas y la equivalencia no puede demostrarse
+- **THEN** el sistema rechaza la reparación sin alterar ni inferir valores
+
+#### Scenario: Se altera una clave o valor anidado
+- **WHEN** la reparación añade, elimina o modifica una clave o un valor en cualquier nivel
+- **THEN** el sistema rechaza la reparación y conserva la recuperación existente
 
 ### Requirement: Usar solo la rúbrica vigente en análisis nuevos
+El sistema SHALL usar exclusivamente la rúbrica vigente de cinco estrellas para todo análisis nuevo y SHALL conservar los resultados anteriores solo como historial, sin recalcularlos ni modificarlos.
+
+#### Scenario: Se crea un análisis nuevo
+- **WHEN** el sistema solicita una evaluación de compatibilidad
+- **THEN** solicita la rúbrica vigente de 0 a 5 puntos en incrementos de medio punto y rechaza respuestas identificadas con otra versión
+
+#### Scenario: Se consulta un análisis histórico
+- **WHEN** la persona consulta un análisis creado con una versión anterior de la rúbrica
+- **THEN** el sistema presenta los valores y el desglose almacenados sin reevaluarlos ni usar esa versión para análisis nuevos
+
+### Requirement: Conservar análisis completados por perfil
+El sistema SHALL reutilizar el análisis completado de una vacante para un perfil sin reevaluarlo por cambios posteriores del perfil, configuración o ficha. Un perfil sin resultado completado SHALL usar su revisión vigente.
+
+#### Scenario: Cambia el perfil después del análisis
+- **WHEN** una persona modifica su perfil tras completarse un análisis
+- **THEN** el resultado previo sigue visible con su revisión original y no se reanaliza
+
+#### Scenario: Una vacante conocida corresponde a otro perfil
+- **WHEN** otro perfil elegible aún no tiene un análisis completado para la vacante
+- **THEN** el sistema evalúa ese perfil con su revisión vigente usando la ficha guardada
+
+#### Scenario: Varias tareas coinciden
+- **WHEN** varias búsquedas encuentran la misma URL para el mismo perfil al mismo tiempo
+- **THEN** el sistema evita crear o ejecutar análisis duplicados

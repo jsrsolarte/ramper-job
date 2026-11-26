@@ -41,7 +41,7 @@ Cada conector compatible SHALL recibir las palabras clave, ubicaciones y modalid
 
 #### Scenario: Varias consultas encuentran la misma vacante
 - **WHEN** más de una consulta devuelve la misma publicación
-- **THEN** el sistema conserva una sola vacante y evita duplicar su análisis para el mismo perfil y revisión
+- **THEN** el sistema conserva una sola vacante y evita duplicar su análisis para el mismo perfil, incluso tras cambiar la revisión
 
 #### Scenario: Un perfil genera más trabajo que el límite de una tarea
 - **WHEN** las combinaciones de términos, ubicaciones y fichas de una fuente exceden el presupuesto de trabajo de una tarea Celery
@@ -122,3 +122,22 @@ El sistema SHALL iniciar búsquedas automáticas y asociar sus resultados única
 #### Scenario: Se procesan vacantes existentes o ingresadas manualmente
 - **WHEN** un perfil tiene pausada la búsqueda automática y se analiza una vacante ya guardada o registrada manualmente por administración
 - **THEN** el sistema mantiene el análisis y acceso a esa vacante según el flujo común del perfil
+
+### Requirement: Buscar en Magneto por preferencias efectivas
+El sistema SHALL consultar Magneto con los términos y ubicaciones efectivos de cada grupo de búsqueda y procesar sus resultados por el flujo compartido.
+
+#### Scenario: Perfiles con búsqueda equivalente
+- **WHEN** varios perfiles tienen términos, ubicaciones y modalidad efectivos equivalentes
+- **THEN** el sistema comparte la consulta a Magneto y evalúa cada resultado por separado para cada perfil elegible
+
+#### Scenario: Primera página de resultados
+- **WHEN** se consulta una combinación de término y ubicación
+- **THEN** el sistema procesa como máximo la primera página de resultados de esa combinación
+
+#### Scenario: Modalidad remota aceptada
+- **WHEN** el grupo acepta vacantes remotas
+- **THEN** el sistema incluye una consulta sin restricción de ciudad y aplica la elegibilidad de modalidad y ubicación con los datos disponibles
+
+#### Scenario: Publicación ya conocida
+- **WHEN** una búsqueda devuelve una publicación de Magneto ya registrada
+- **THEN** el sistema reutiliza o actualiza su registro conforme a la identidad existente sin alterar seguimientos de los perfiles

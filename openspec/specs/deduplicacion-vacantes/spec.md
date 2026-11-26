@@ -7,15 +7,15 @@ Evita mostrar varias veces la misma vacante de una bolsa cuando aparece en consu
 ## Requirements
 
 ### Requirement: Reconocer una vacante repetida dentro de una bolsa
-El sistema SHALL identificar una vacante por bolsa usando su identificador estable cuando esté disponible y, de lo contrario, una huella normalizada de sus datos principales.
+El sistema SHALL identificar una vacante por bolsa mediante la URL pública de la ficha normalizada sin parámetros ni fragmento, dentro de cada bolsa.
 
 #### Scenario: El mismo identificador aparece con otra URL
-- **WHEN** una bolsa entrega de nuevo una vacante con el mismo identificador y una URL distinta
-- **THEN** el sistema actualiza el registro existente y presenta una sola vacante
+- **WHEN** una bolsa entrega nuevamente una URL de ficha que difiere solo en parámetros o fragmento
+- **THEN** el sistema reconoce la misma publicación y conserva un único registro
 
 #### Scenario: No hay identificador estable
-- **WHEN** una vacante sin identificador tiene cargo, empresa y ubicación normalizados coincidentes con otra de la misma bolsa
-- **THEN** el sistema conserva un solo registro
+- **WHEN** dos publicaciones de la misma bolsa tienen URL normalizadas diferentes y datos similares
+- **THEN** el sistema no las fusiona solo por título, empresa, ubicación o identificador
 
 #### Scenario: Vacantes de bolsas distintas
 - **WHEN** dos bolsas ofrecen vacantes con datos coincidentes

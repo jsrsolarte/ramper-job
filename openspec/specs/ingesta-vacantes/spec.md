@@ -80,7 +80,7 @@ El sistema SHALL clasificar en lote los títulos de resultados automáticos fren
 - **THEN** el sistema extrae y procesa esa ficha sin aplicar el filtro de títulos de resultados automáticos
 
 ### Requirement: Obtener detalles desde la ficha pública
-El sistema SHALL consultar la ficha pública de cada resultado automático conservado por la preselección de títulos y extraer los datos disponibles además de los que aparecen en la tarjeta. Una vacante registrada directamente por URL SHALL continuar consultándose sin esa preselección.
+El sistema SHALL reutilizar la ficha previamente descargada de un resultado automático conocido por URL normalizada y consultar la ficha cuando no exista detalle confirmado. Una vacante registrada directamente por URL SHALL continuar consultándose sin esa preselección.
 
 #### Scenario: La ficha contiene más información que el listado
 - **WHEN** una ficha pública incluye salario, ubicación o condiciones que no aparecen completos en el listado
@@ -96,7 +96,15 @@ El sistema SHALL consultar la ficha pública de cada resultado automático conse
 
 #### Scenario: Una vacante se registra directamente desde su URL
 - **WHEN** la administración solicita procesar una ficha pública mediante su URL
-- **THEN** el sistema consulta esa ficha y extrae sus datos disponibles sin preselección por título
+- **THEN** el sistema reutiliza el detalle confirmado si existe o consulta la ficha si no existe, sin preselección por título
+
+#### Scenario: La ficha ya fue descargada
+- **WHEN** el listado contiene una URL normalizada con detalle confirmado para esa fuente
+- **THEN** el sistema reutiliza el detalle sin volver a solicitarlo y continúa asociando la vacante a los perfiles elegibles
+
+#### Scenario: Una consulta anterior de detalle falló
+- **WHEN** existe una publicación sin evidencia confiable de descarga de ficha exitosa
+- **THEN** el sistema intenta obtener el detalle y no considera su sola presencia como ficha descargada
 
 ### Requirement: Normalizar condiciones y ubicación de la vacante
 El sistema SHALL conservar por separado el salario publicado, la ciudad, la dirección o zona, la modalidad y el tipo de contrato cuando esos datos estén disponibles.
@@ -222,8 +230,8 @@ Una vacante extraída desde una URL SHALL usar la deduplicación global y el flu
 - **THEN** el sistema guarda la publicación global y encola una evaluación individual para cada perfil activo elegible con CV y preferencias vigentes
 
 #### Scenario: La publicación ya fue evaluada sin cambios materiales
-- **WHEN** la URL corresponde a una publicación existente sin cambios materiales para el perfil, revisión y configuración vigentes
-- **THEN** el sistema no duplica el análisis completado y muestra el estado del procesamiento administrativo
+- **WHEN** la URL corresponde a una publicación existente con un análisis completado para el perfil
+- **THEN** el sistema reutiliza el análisis completado sin reevaluar y muestra el estado del procesamiento administrativo
 
 ### Requirement: Registrar manualmente una vacante desde administración
 El centro administrativo SHALL permitir que la persona administradora registre una vacante pegando únicamente la URL pública de una publicación admitida.
@@ -263,8 +271,8 @@ El sistema SHALL reutilizar una publicación existente que tenga la misma URL p�
 - **THEN** el sistema actualiza o reutiliza la publicación existente y no crea un segundo registro global
 
 #### Scenario: Se vuelve a registrar una vacante sin cambios materiales
-- **WHEN** una vacante existente se registra manualmente de nuevo sin cambiar contenido material
-- **THEN** el sistema no duplica análisis ya completados para el mismo perfil, revisión y configuración
+- **WHEN** una vacante existente se registra manualmente de nuevo para un perfil ya analizado
+- **THEN** el sistema reutiliza el análisis completado para el perfil sin reevaluarlo
 
 ### Requirement: Obtener vacantes públicas de Computrabajo Colombia
 El sistema SHALL obtener publicaciones públicas de Computrabajo Colombia y normalizarlas al formato común, conservando la fuente y el enlace original.
@@ -278,7 +286,7 @@ El sistema SHALL obtener publicaciones públicas de Computrabajo Colombia y norm
 - **THEN** el sistema lo deja como desconocido sin inferirlo de la búsqueda
 
 ### Requirement: Enriquecer las publicaciones de Computrabajo
-El sistema SHALL consultar la ficha pública de cada publicación única de Computrabajo y conservar los detalles disponibles sin perder los datos del listado.
+El sistema SHALL consultar la ficha pública de cada publicación de Computrabajo sin detalle confirmado y reutilizar el detalle ya obtenido por URL normalizada y conservar los detalles disponibles sin perder los datos del listado.
 
 #### Scenario: La ficha incluye condiciones y requisitos
 - **WHEN** la ficha proporciona descripción, contrato, jornada, modalidad, formación o experiencia
@@ -311,8 +319,53 @@ El sistema SHALL indicar la indisponibilidad de Computrabajo cuando una búsqued
 - **THEN** el sistema conserva y procesa los resultados de El Empleo
 
 ### Requirement: Deduplicar publicaciones de Computrabajo
-El sistema SHALL identificar cada publicación de Computrabajo por su identificador externo cuando esté disponible y reutilizar el flujo común de deduplicación y análisis por perfil.
+El sistema SHALL identificar cada publicación de Computrabajo por su URL de ficha normalizada sin parámetros ni fragmento y reutilizar el flujo común de deduplicación y análisis por perfil.
 
 #### Scenario: Una publicación aparece en varias búsquedas
-- **WHEN** dos consultas devuelven la misma publicación de Computrabajo con el mismo identificador
+- **WHEN** dos consultas devuelven la misma publicación de Computrabajo con la misma URL normalizada
 - **THEN** el sistema conserva un único registro de esa fuente y mantiene los seguimientos y análisis existentes por perfil
+
+### Requirement: Obtener publicaciones públicas de Magneto Colombia
+El sistema SHALL obtener y normalizar vacantes públicas de Magneto a partir de HTML, conservando fuente y enlace original.
+
+#### Scenario: Tarjeta interpretable
+- **WHEN** el listado contiene una publicación con título y enlace público de ficha
+- **THEN** el sistema conserva ambos y los demás datos disponibles, incluyendo empresa, ubicación, salario e identificador cuando existan
+
+#### Scenario: Campo opcional ausente
+- **WHEN** el listado omite un dato opcional
+- **THEN** el sistema lo deja desconocido sin inferirlo de la consulta
+
+### Requirement: Enriquecer fichas públicas de Magneto
+El sistema SHALL consultar las fichas públicas necesarias y conservar su información disponible en el formato común.
+
+#### Scenario: Ficha disponible
+- **WHEN** la ficha contiene descripción, requisitos o condiciones interpretables
+- **THEN** el sistema conserva los datos disponibles y la evidencia de detalle confirmado
+
+#### Scenario: Ficha individual inaccesible
+- **WHEN** una ficha falla sin indicar bloqueo de la fuente
+- **THEN** el sistema conserva los datos del listado y continúa con las demás fichas
+
+#### Scenario: Identidad de la ficha incompatible o ambigua
+- **WHEN** el contenido de la ficha no permite asociarla con confianza a la publicación del listado
+- **THEN** el sistema conserva los datos del listado, informa la discrepancia y no marca el detalle como confirmado
+
+#### Scenario: Condiciones contradictorias
+- **WHEN** la ficha presenta valores salariales diferentes en el resumen y la descripción
+- **THEN** el sistema conserva los valores disponibles con su procedencia y no sustituye silenciosamente uno por otro
+
+#### Scenario: Varias ubicaciones publicadas
+- **WHEN** la ficha informa varias ubicaciones de la oferta
+- **THEN** el sistema conserva las ubicaciones disponibles y las considera en la elegibilidad sin inventar una ubicación a partir de la URL
+
+### Requirement: Detener la extracción de Magneto ante bloqueo
+El sistema SHALL detener las solicitudes restantes a Magneto durante la ejecución cuando la fuente bloquee o limite el acceso, sin evadir el control.
+
+#### Scenario: Respuesta de bloqueo
+- **WHEN** una búsqueda o ficha exige autenticación o devuelve 401, 403 o 429
+- **THEN** el sistema conserva los resultados parciales y registra la indisponibilidad sin impedir el procesamiento de otras fuentes
+
+#### Scenario: Destino inseguro
+- **WHEN** un enlace o redirección apunta fuera de los hosts públicos permitidos o a una dirección no pública
+- **THEN** el sistema rechaza el destino sin consultarlo

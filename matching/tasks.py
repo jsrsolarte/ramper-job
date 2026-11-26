@@ -491,6 +491,9 @@ def queue_organization(analysis):
         analysis.organization_status = VacancyAnalysis.OrganizationStatus.DEFERRED
         analysis.save(update_fields=["organization_status", "updated_at"])
         return None
+    from dashboard.services import register_recommendation_event
+
+    register_recommendation_event(analysis.profile, analysis.vacancy, source_analysis=analysis)
     fingerprint = _vacancy_content_hash(analysis.vacancy)
     organization, _ = VacancyOrganization.objects.get_or_create(
         vacancy=analysis.vacancy, matching_config=analysis.matching_config, content_hash=fingerprint,

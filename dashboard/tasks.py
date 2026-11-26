@@ -143,3 +143,11 @@ def archive_inactive_follow_ups(retention_days=None):
 
     logger.info("follow_ups_archived count=%s cutoff=%s", archived, cutoff.isoformat())
     return {"archived": archived, "cutoff": cutoff.isoformat()}
+
+
+@shared_task(name="dashboard.tasks.send_daily_recommendation_summaries", max_retries=0)
+def send_daily_recommendation_summaries():
+    """Attempt one generic push per opted-in device at 09:00 America/Bogota."""
+    from dashboard.push import send_daily_recommendation_summaries as send_summaries
+
+    return send_summaries()

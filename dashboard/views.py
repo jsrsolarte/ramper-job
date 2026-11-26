@@ -12,7 +12,12 @@ from django.views.decorators.http import require_POST
 from dashboard.models import VacancyFollowUp
 from dashboard.score_distribution import build_score_summary
 from dashboard.score_display import score_star_label, score_star_percent, score_star_threshold_label
-from dashboard.services import current_score_analyses, dashboard_follow_up_summary, discard_follow_up
+from dashboard.services import (
+    current_score_analyses,
+    dashboard_follow_up_summary,
+    discard_follow_up,
+    mark_recommendations_reviewed,
+)
 from dashboard.time_format import publication_age, relative_age
 from jobs.models import JobSourceStatus
 from matching.models import AICallAttempt, HISTORICAL_RUBRIC_CRITERIA_V2, RUBRIC_CRITERIA, VacancyAnalysis
@@ -472,6 +477,10 @@ def update_follow_up(request, vacancy_id):
         follow_up.status = target_status
         follow_up.state_changed_at = timezone.now()
         follow_up.save(update_fields=["status", "state_changed_at", "updated_at"])
+        if target_status == VacancyFollowUp.Status.PENDING:
+            from dashboard.services import register_recommendation_event
+
+            register_recommendation_event(profile, analysis.vacancy)
     else:
         allowed_next_statuses = {
             VacancyFollowUp.Status.PENDING: {VacancyFollowUp.Status.APPLIED},
@@ -502,3 +511,18 @@ def update_follow_up(request, vacancy_id):
             follow_up.save(update_fields=["status", "state_changed_at", "updated_at"])
     messages.success(request, "Se actualizó el seguimiento de la vacante.")
     return redirect(f"/?state={target_status}")
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def mark_recommendations_reviewed_view(request):
+    profile = Profile.objects.filter(owner=request.user).first()
+    if not profile:
+        return HttpResponseBadRequest("No hay un perfil asociado a esta cuenta.")
+    try:
+        cutoff = int(request.POST.get("cutoff", ""))
+    except (TypeError, ValueError):
+        return HttpResponseBadRequest("El corte de novedades no es válido.")
+    mark_recommendations_reviewed(profile, cutoff)
+    return redirect("dashboard:home")

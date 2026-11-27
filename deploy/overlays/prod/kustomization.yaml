@@ -12,7 +12,7 @@ patches:
     patch: |-
       - op: replace
         path: /data/APP_VERSION
-        value: ""
+        value: 1.4.0
   - target:
       kind: ConfigMap
       name: ramper-job-config
@@ -79,4 +79,4 @@ patches:
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job
-    newTag: 1f37fdaed5d66bdef21d95d9ccc13384109017b5
+    newTag: 0e81d1026b8aaeccc94d8ef6aaeabecb5a4f37c1

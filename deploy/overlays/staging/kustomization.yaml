@@ -49,4 +49,4 @@ patches:
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job
-    newTag: d1d1031d71b75917ed73db26c13cb8e9536eee39
+    newTag: 9e0c8637839c8b2c895ea60d83631821379f1104

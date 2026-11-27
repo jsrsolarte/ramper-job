@@ -42,11 +42,20 @@ En **cada namespace** debe existir un Secret de runtime llamado
 - `OMNIROUTE_API_KEY`
 
 La imagen requiere además un Secret `kubernetes.io/dockerconfigjson` con permiso
-GHCR `read:packages`. Los workloads de staging comparten el Secret de solo lectura `ghcr-pull-staging` en el
-namespace `staging`. Producción conserva su credencial independiente:
-`mcp-gateway-ghcr-prod` en el namespace `prod`; el overlay productivo aplica esa
-referencia a los tres workloads. No se cambia ni se gestiona la credencial de producción
-desde este repositorio.
+GHCR `read:packages`. Los nombres referenciados son distintos por ambiente:
+
+- Staging, namespace `staging`: `ramper-job-registry`.
+- Producción, namespace `prod`: `ghcr-pull-prod` (Secret de solo lectura
+  con permiso `read:packages`, compartido por los workloads de Ramper Job).
+
+El overlay aplica `ghcr-pull-prod` a web, worker y Beat. El Secret anterior
+`mcp-gateway-ghcr-prod` permanece en `prod` para `mcp-gateway`; este cambio no lo
+modifica ni lo elimina. El provisionador productivo existente todavía comprueba ese
+Secret anterior, por lo que no aprovisiona ni valida `ghcr-pull-prod`.
+
+Para revertir solo esta referencia, restaurar `mcp-gateway-ghcr-prod` en las tres
+entradas del overlay productivo y dejar que Flux reconcilie. Conservar ambos Secrets
+mientras `mcp-gateway` siga usando el anterior.
 
 Los Secrets no se guardan en Git. Para preparar los de runtime usa los provisionadores
 interactivos del repositorio desde el servidor:
@@ -55,13 +64,10 @@ interactivos del repositorio desde el servidor:
 - Producción: `python3 scripts/provision_prod_secrets.py`
 
 El provisionador de staging crea la clave Django y la contraseña PostgreSQL, solicita
-OmniRoute sin eco y reutiliza `ghcr-pull-staging` sin leer su contenido cuando ya existe.
-Si falta, solicita la credencial GHCR y crea ese Secret. El provisionador de producción
-genera la clave Django y la contraseña PostgreSQL, solicita OmniRoute sin eco y comprueba
-la existencia y el tipo de `mcp-gateway-ghcr-prod`; no lee ni copia su credencial.
-
-El Secret anterior `ramper-job-registry` queda sin referencias en los manifiestos. No se
-elimina desde este repositorio.
+OmniRoute sin eco y solo pide credenciales GHCR si no existe el Secret
+`ramper-job-registry` con el tipo esperado. El de producción genera la clave Django
+y la contraseña PostgreSQL, solicita OmniRoute sin eco y comprueba la existencia y el
+tipo de `mcp-gateway-ghcr-prod`; no lee ni copia su credencial.
 
 Los workloads de Ramper Job y los Secrets de runtime están separados por namespace.
 

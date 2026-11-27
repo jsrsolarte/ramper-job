@@ -12,7 +12,7 @@ patches:
     patch: |-
       - op: replace
         path: /data/APP_VERSION
-        value: 1.4.0
+        value: 3de46979957b3f06c7cd8d44c15f8229a3f84ad3
   - target:
       kind: ConfigMap
       name: ramper-job-config

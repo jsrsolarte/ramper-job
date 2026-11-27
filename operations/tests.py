@@ -88,7 +88,8 @@ class OperationalDashboardTests(TestCase):
         next_at = timezone.make_aware(datetime(2026, 11, 12, 18, 30))
         cases = (
             ({"status": "scheduled", "next_at": next_at, "is_overdue": False}, "Próximo ciclo estimado:"),
-            ({"status": "paused", "next_at": None}, "Las búsquedas están pausadas."),
+            ({"status": "overdue", "next_at": next_at, "is_overdue": True}, "Ciclo automático retrasado."),
+            ({"status": "paused", "next_at": None}, "Las búsquedas automáticas están pausadas."),
             ({"status": "unavailable", "next_at": None}, "El horario todavía no está disponible."),
         )
         for schedule, expected in cases:
@@ -100,6 +101,21 @@ class OperationalDashboardTests(TestCase):
                 self.assertEqual(response.context["automatic_refresh_schedule"], schedule)
                 self.assertContains(response, expected)
                 self.assertContains(response, "Una actualización manual")
+
+    def test_admin_center_exposes_last_start_and_work_state_separately(self):
+        from datetime import datetime
+
+        self.client.force_login(self.staff)
+        last_started = timezone.make_aware(datetime(2026, 11, 12, 14, 0))
+        from .scheduling import record_periodic_refresh_start
+        record_periodic_refresh_start(started_at=last_started)
+
+        response = self.client.get(reverse("operations:admin_center"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Último inicio registrado:")
+        self.assertContains(response, "No hay una búsqueda en curso confirmada.")
+        self.assertContains(response, 'data-status-url="/admin/operaciones/horario/estado-admin/"')
 
     def test_staff_can_view_period_metrics_and_pending_queue(self):
         now = timezone.now()

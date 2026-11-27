@@ -214,6 +214,13 @@ def save_push_subscription(request):
 def logout_with_push_unlink(request):
     endpoint = _valid_push_endpoint(request.POST.get("push_endpoint"))
     if endpoint:
+        from operations.alerts import push_endpoint_digest
+        from operations.models import OperationalAlertSubscription
+
+        OperationalAlertSubscription.objects.filter(
+            user=request.user,
+            endpoint_digest=push_endpoint_digest(endpoint),
+        ).delete()
         profile = Profile.objects.filter(owner=request.user).first()
         if profile:
             PushSubscription.objects.filter(
@@ -228,15 +235,19 @@ def logout_with_push_unlink(request):
 def push_service_worker(_request):
     response = HttpResponse(
         """self.addEventListener('push', (event) => {
-  event.waitUntil(self.registration.showNotification('Novedades en Ramper Job', {
-    body: 'Hay recomendaciones nuevas. Abre Ramper Job para revisarlas.',
+  let kind = 'recommendations';
+  try { kind = event.data ? event.data.json().type : kind; } catch (_) {}
+  const operational = kind === 'operational_alerts';
+  event.waitUntil(self.registration.showNotification(
+    operational ? 'Aviso operativo · Ramper Job' : 'Novedades en Ramper Job', {
+    body: operational ? 'Hay una alerta operativa. Abre el centro de administración.' : 'Hay recomendaciones nuevas. Abre Ramper Job para revisarlas.',
     silent: true,
-    data: { url: '/' }
+    data: { url: operational ? '/admin/operaciones/' : '/' }
   }));
 });
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const destination = new URL('/', self.location.origin).href;
+  const destination = new URL(event.notification.data?.url || '/', self.location.origin).href;
   event.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windows) => {
     for (const client of windows) {
       if (new URL(client.url).origin === self.location.origin) {

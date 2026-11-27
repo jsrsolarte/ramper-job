@@ -7,17 +7,19 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.tokens import default_token_generator
 from django.core.paginator import Paginator
 from django.db import IntegrityError, transaction
-from django.db.models import Avg, Count, F, OuterRef, Q, Subquery, Sum
+from django.db.models import Avg, Count, F, Max, OuterRef, Q, Subquery, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
-from django.views.decorators.http import require_POST
+from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_GET, require_POST
 
 from jobs.models import JobSourceStatus, ManualVacancySubmission
 from jobs.tasks import process_manual_vacancy_submission
@@ -38,6 +40,11 @@ from .models import (
     AdminCommandRun,
     OperationalParameterChange,
     OperationalRun,
+    OperationalAlertSubscription,
+    OperationalIncident,
+    VacancyCleanupOperation,
+    VacancyDataGeneration,
+    VacancyDataCoverage,
     RefreshWorkItem,
     UserInvitation,
 )
@@ -90,11 +97,165 @@ def admin_center(request):
                     else "Se reanudó la búsqueda y el análisis de vacantes.",
                 )
         return redirect("operations:admin_center")
+    from .alerts import operational_alert_health
+    alert_subscriptions = OperationalAlertSubscription.objects.filter(user=request.user, active=True).count()
     return render(request, "operations/admin_center.html", {
         "applicant_count": get_user_model().objects.filter(is_superuser=False, is_staff=False).count(),
         "processing_paused": processing_is_paused(),
         "automatic_refresh_schedule": next_periodic_refresh_schedule(),
+        "operational_alert_health": operational_alert_health(),
+        "operational_incidents": OperationalIncident.objects.filter(
+            status__in=(OperationalIncident.Status.OPEN, OperationalIncident.Status.ACKNOWLEDGED),
+        )[:20],
+        "recovered_incidents": OperationalIncident.objects.filter(
+            status=OperationalIncident.Status.RECOVERED,
+        )[:10],
+        "operational_alert_subscription_count": alert_subscriptions,
+        "push_vapid_public_key": settings.PUSH_VAPID_PUBLIC_KEY,
     })
+
+
+@platform_admin_required
+@require_POST
+def acknowledge_operational_incident(request, incident_id):
+    incident = get_object_or_404(OperationalIncident, pk=incident_id)
+    if incident.status == OperationalIncident.Status.OPEN:
+        incident.status = OperationalIncident.Status.ACKNOWLEDGED
+        incident.acknowledged_by = request.user
+        incident.acknowledged_at = timezone.now()
+        incident.save(update_fields=("status", "acknowledged_by", "acknowledged_at", "updated_at"))
+    return redirect("operations:admin_center")
+
+
+@platform_admin_required
+@require_POST
+def operational_alert_push_subscription(request):
+    from .alerts import parse_push_request, push_endpoint_digest, valid_push_endpoint
+
+    payload = parse_push_request(request.body)
+    if payload is None:
+        return JsonResponse({"error": "invalid_request"}, status=400)
+    subscription = payload.get("subscription")
+    subscription = subscription if isinstance(subscription, dict) else {}
+    endpoint = valid_push_endpoint(subscription.get("endpoint"))
+    if not endpoint:
+        return JsonResponse({"error": "invalid_endpoint"}, status=400)
+    digest = push_endpoint_digest(endpoint)
+    if not payload.get("enabled"):
+        OperationalAlertSubscription.objects.filter(
+            user=request.user, endpoint_digest=digest,
+        ).update(active=False)
+        return JsonResponse({"active": False})
+    sub = subscription
+    keys = sub.get("keys") or {}
+    p256dh, auth = str(keys.get("p256dh") or ""), str(keys.get("auth") or "")
+    if len(p256dh) > 256 or len(auth) > 256 or not p256dh or not auth:
+        return JsonResponse({"error": "invalid_keys"}, status=400)
+    latest_incident_id = OperationalIncident.objects.aggregate(value=Max("pk"))["value"] or 0
+    with transaction.atomic():
+        row, created = OperationalAlertSubscription.objects.select_for_update().get_or_create(
+            endpoint_digest=digest,
+            defaults={"user": request.user, "active": False},
+        )
+        if row.user_id != request.user.pk:
+            return JsonResponse({"error": "endpoint_in_use"}, status=409)
+        row.endpoint = endpoint
+        row.p256dh_key = p256dh
+        row.auth_key = auth
+        row.active = True
+        row.consented_at = timezone.now()
+        if created:
+            row.last_notified_incident_id = latest_incident_id
+        row.save()
+    return JsonResponse({"active": True})
+
+
+@platform_admin_required
+def vacancy_cleanup(request):
+    from .vacancy_cleanup import (
+        CleanupError,
+        cleanup_preview_counts,
+        issue_cleanup_confirmation,
+        start_vacancy_cleanup,
+    )
+
+    if request.method == "POST":
+        if request.POST.get("confirmation_phrase", "").strip() != "ELIMINAR VACANTES":
+            messages.error(request, "Escribe exactamente ELIMINAR VACANTES para confirmar.")
+            return redirect("operations:vacancy_cleanup")
+        try:
+            operation = start_vacancy_cleanup(
+                actor=request.user, token=request.POST.get("confirmation_token", ""),
+            )
+        except CleanupError as exc:
+            descriptions = {
+                "confirmation_expired": "La confirmación venció. Revisa de nuevo la vista previa.",
+                "preview_changed": "Los datos cambiaron desde la vista previa. Revisa y confirma de nuevo.",
+                "confirmation_used": "Esta confirmación ya fue usada.",
+                "cleanup_active": "Ya hay una limpieza en curso o pendiente de recuperación.",
+                "dispatch_failed": "No se pudo iniciar la tarea. El sistema permanece pausado para recuperación.",
+            }
+            messages.error(request, descriptions.get(exc.code, "No se pudo iniciar la operación."))
+            return redirect("operations:vacancy_cleanup")
+        messages.warning(request, f"Limpieza {operation.pk} en cola. El procesamiento queda pausado hasta validar que no haya trabajo activo.")
+        return redirect("operations:vacancy_cleanup")
+
+    counts = cleanup_preview_counts()
+    active_operation = VacancyDataGeneration.objects.filter(pk=1, cleanup_active=True).select_related(
+        "active_operation",
+    ).first()
+    return render(request, "operations/vacancy_cleanup.html", {
+        "counts": counts,
+        "has_cleanup_data": any(counts.values()),
+        "confirmation_token": issue_cleanup_confirmation(counts),
+        "active_operation": active_operation.active_operation if active_operation else None,
+        "operations": VacancyCleanupOperation.objects.select_related("requested_by")[:10],
+        "backup_configured": False,
+    })
+
+
+@platform_admin_required
+@require_POST
+def retry_vacancy_cleanup(request, operation_id):
+    operation = get_object_or_404(VacancyCleanupOperation, pk=operation_id)
+    control = VacancyDataGeneration.objects.filter(pk=1, cleanup_active=True, active_operation=operation).first()
+    if control is None or operation.status == VacancyCleanupOperation.Status.COMPLETED:
+        messages.error(request, "La operación no está disponible para recuperación.")
+        return redirect("operations:vacancy_cleanup")
+    operation.status = VacancyCleanupOperation.Status.QUEUED
+    operation.attempt_count = 0
+    operation.error_category = ""
+    operation.save(update_fields=("status", "attempt_count", "error_category"))
+    from .tasks import execute_vacancy_cleanup_task
+
+    execute_vacancy_cleanup_task.delay(operation.pk)
+    messages.warning(request, "Se reintentará la limpieza. El procesamiento permanece pausado.")
+    return redirect("operations:vacancy_cleanup")
+
+
+@login_required
+@require_GET
+@never_cache
+def schedule_status(request):
+    """Read-only schedule status for authenticated applicant dashboards."""
+    schedule = next_periodic_refresh_schedule()
+    schedule.pop("last_started_at", None)
+    return JsonResponse(_schedule_json(schedule))
+
+
+@platform_admin_required
+@require_GET
+@never_cache
+def admin_schedule_status(request):
+    """Read-only schedule status, including the last cycle start, for admins."""
+    return JsonResponse(_schedule_json(next_periodic_refresh_schedule()))
+
+
+def _schedule_json(schedule):
+    return {
+        key: value.isoformat() if hasattr(value, "isoformat") else value
+        for key, value in schedule.items()
+    }
 
 
 @platform_admin_required
@@ -812,6 +973,9 @@ def dashboard(request):
         status__in=(OperationalRun.Status.FAILED, OperationalRun.Status.RETRYING),
     ).exclude(error_summary="").order_by("-started_at")[:10]
     coverage_start = OperationalRun.objects.order_by("started_at").values_list("started_at", flat=True).first()
+    cleanup_coverage = VacancyDataCoverage.objects.filter(pk=1).first()
+    if cleanup_coverage and (coverage_start is None or cleanup_coverage.covered_from > coverage_start):
+        coverage_start = cleanup_coverage.covered_from
     admin_commands = list(AdminCommandRun.objects.select_related("requested_by").all()[:20])
     for command in admin_commands:
         command.duration_minutes = minutes(command.duration_ms)
@@ -845,6 +1009,7 @@ def dashboard(request):
         "since": since,
         "now": now,
         "coverage_start": coverage_start,
+        "history_reset": cleanup_coverage is not None,
         "source_query_page": source_query_page,
         "source_query_groups": source_query_groups,
         "ingestion": summarize(runs.filter(kind=OperationalRun.Kind.INGESTION)),

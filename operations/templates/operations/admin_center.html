@@ -20,6 +20,12 @@
     <a class="button" href="{% url 'operations:manual_vacancies' %}">Agregar desde una URL</a>
   </article>
   <article class="admin-tool">
+    <p class="eyebrow">Mantenimiento</p>
+    <h2>Limpiar datos de vacantes</h2>
+    <p>Elimina vacantes, análisis y seguimientos con confirmación explícita. Conserva usuarios y perfiles.</p>
+    <a class="button button-secondary" href="{% url 'operations:vacancy_cleanup' %}">Revisar limpieza</a>
+  </article>
+  <article class="admin-tool">
     <p class="eyebrow">Accesos</p>
     <h2>Usuarios aspirantes</h2>
     <p>Consulta {{ applicant_count }} cuenta{{ applicant_count|pluralize:"s" }}, crea accesos y conserva su historial al desactivarlas.</p>
@@ -42,19 +48,59 @@
     <form method="post">{% csrf_token %}<input type="hidden" name="processing_action" value="pause"><button class="button button-secondary" type="submit">Pausar procesamiento</button></form>
     {% endif %}
   </article>
-  <article class="admin-tool" aria-label="Horario de búsqueda automática">
+  <article class="admin-tool" aria-label="Horario de búsqueda automática" data-refresh-schedule data-status-url="{% url 'operations:admin_schedule_status' %}" data-administrator="true">
     <p class="eyebrow">Búsqueda automática</p>
     <h2>Próximo ciclo</h2>
-    {% if automatic_refresh_schedule.status == "paused" %}
-    <p><strong>Las búsquedas están pausadas.</strong></p>
-    {% elif automatic_refresh_schedule.quiet_window %}
-    <p><strong>Pausa horaria activa.</strong> El trabajo automático se conserva y se reanuda al terminar la ventana.{% if automatic_refresh_schedule.next_at %} Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).{% endif %}</p>
-    {% elif automatic_refresh_schedule.next_at %}
-    <p>Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).</p>
-    {% else %}
-    <p>El horario todavía no está disponible.</p>
-    {% endif %}
+    <p data-refresh-schedule-summary>
+      {% if automatic_refresh_schedule.status == "paused" %}
+      <strong>Las búsquedas automáticas están pausadas.</strong>
+      {% elif automatic_refresh_schedule.status == "overdue" and automatic_refresh_schedule.next_at %}
+      <strong>Ciclo automático retrasado.</strong> Hora estimada vencida: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).
+      {% elif automatic_refresh_schedule.quiet_window %}
+      <strong>Pausa horaria activa.</strong> El trabajo automático se conserva y se reanuda al terminar la ventana.{% if automatic_refresh_schedule.next_at %} Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).{% endif %}
+      {% elif automatic_refresh_schedule.next_at %}
+      Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).
+      {% else %}
+      El horario todavía no está disponible.
+      {% endif %}
+    </p>
+    <p data-refresh-work-summary aria-live="polite">
+      {% if automatic_refresh_schedule.work_state == "active" %}Búsqueda en curso con actividad confirmada.
+      {% elif automatic_refresh_schedule.work_state == "queued" %}Trabajo pendiente o en cola.
+      {% elif automatic_refresh_schedule.work_state == "uncertain" %}Hay trabajo registrado, pero su actividad es incierta.
+      {% elif automatic_refresh_schedule.work_state == "idle" %}No hay una búsqueda en curso confirmada.
+      {% else %}El estado del trabajo todavía no está disponible.{% endif %}
+    </p>
+    <p data-refresh-last-start>
+      {% if automatic_refresh_schedule.last_started_at %}Último inicio registrado: <time datetime="{{ automatic_refresh_schedule.last_started_at|date:'c' }}">{{ automatic_refresh_schedule.last_started_at|date:"l, d F Y H:i" }}</time> (hora local).
+      {% else %}Todavía no hay un inicio de ciclo registrado.{% endif %}
+    </p>
     <p>Una actualización manual o un cambio en un perfil puede iniciar una búsqueda antes.</p>
+  </article>
+  <article class="admin-tool operational-alerts" data-operational-alerts
+      data-subscription-url="{% url 'operations:operational_alert_push_subscription' %}"
+      data-public-key="{{ push_vapid_public_key }}"
+      data-worker-url="{% url 'push_service_worker' %}">
+    <p class="eyebrow">Alertas operativas</p>
+    <h2>Estado del servicio</h2>
+    <p>{% if operational_alert_health.status == "verified" %}<strong>Evaluador ejecutado recientemente.</strong> Última evaluación: {{ operational_alert_health.last_succeeded_at|date:"d/m/Y H:i" }}. La salud general del procesamiento no se puede concluir solo con esta señal.{% else %}<strong>Estado desconocido.</strong> No hay una evaluación reciente confirmada.{% endif %}</p>
+    <p class="muted">Las alertas informan fallos recurrentes, trabajo detenido y ciclos retrasados. La caída completa de la plataforma requiere un monitor externo.</p>
+    <div data-operational-push-status aria-live="polite">{{ operational_alert_subscription_count }} dispositivo{{ operational_alert_subscription_count|pluralize:"s" }} con alertas activas.</div>
+    <button class="button button-secondary" type="button" data-operational-push-enable>Activar alertas en este dispositivo</button>
+    <button class="button button-secondary" type="button" data-operational-push-disable>Desactivar en este dispositivo</button>
+  </article>
+  <article class="admin-tool operational-incidents">
+    <p class="eyebrow">Incidentes</p>
+    <h2>Operación reciente</h2>
+    <p><a href="{% url 'operations:dashboard' %}">Consultar evidencias en observabilidad</a></p>
+    {% for incident in operational_incidents %}
+    <div class="operational-incident">
+      <p><strong>{{ incident.get_kind_display }} · {{ incident.component }} · {{ incident.category }}</strong> — {{ incident.count }} evento{{ incident.count|pluralize:"s" }}; {{ incident.get_status_display }}.</p>
+      <p class="muted">Desde {{ incident.first_observed_at|date:"d/m/Y H:i" }} · Última señal {{ incident.last_observed_at|date:"d/m/Y H:i" }}.</p>
+      {% if incident.status == "open" %}<form method="post" action="{% url 'operations:acknowledge_operational_incident' incident.pk %}">{% csrf_token %}<button class="button button-secondary" type="submit">Reconocer</button></form>{% endif %}
+    </div>
+    {% empty %}<p>No hay incidentes activos.</p>{% endfor %}
+    {% if recovered_incidents %}<details><summary>Incidentes recuperados</summary>{% for incident in recovered_incidents %}<p>{{ incident.get_kind_display }} · {{ incident.component }} · recuperado {{ incident.recovered_at|date:"d/m/Y H:i" }}</p>{% endfor %}</details>{% endif %}
   </article>
   <article class="admin-tool">
     <p class="eyebrow">Configuración</p>

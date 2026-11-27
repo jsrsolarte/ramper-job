@@ -334,3 +334,181 @@ class UserInvitation(models.Model):
     def is_pending(self, *, at=None):
         at = at or timezone.now()
         return self.used_at is None and self.revoked_at is None and self.expires_at > at
+
+
+class OperationalAlertState(models.Model):
+    """Singleton health and activation record for the internal evaluator."""
+
+    activated_at = models.DateTimeField(default=timezone.now)
+    last_started_at = models.DateTimeField(null=True, blank=True)
+    last_succeeded_at = models.DateTimeField(null=True, blank=True)
+    last_error_category = models.CharField(max_length=40, blank=True)
+
+
+class OperationalIncident(models.Model):
+    class Kind(models.TextChoices):
+        RECURRING_FAILURE = "recurring_failure", "Fallos recurrentes"
+        NO_PROGRESS = "no_progress", "Trabajo sin progreso"
+        PERIODIC_OVERDUE = "periodic_overdue", "Ciclo retrasado"
+
+    class Status(models.TextChoices):
+        OPEN = "open", "Activo"
+        ACKNOWLEDGED = "acknowledged", "Reconocido"
+        RECOVERED = "recovered", "Recuperado"
+
+    kind = models.CharField(max_length=24, choices=Kind.choices)
+    component = models.CharField(max_length=32)
+    category = models.CharField(max_length=48)
+    first_observed_at = models.DateTimeField()
+    last_observed_at = models.DateTimeField()
+    count = models.PositiveIntegerField(default=1)
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.OPEN)
+    consecutive_clear_checks = models.PositiveSmallIntegerField(default=0)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+    acknowledged_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="acknowledged_operational_incidents",
+    )
+    recovered_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-last_observed_at", "-pk"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["kind", "component", "category"],
+                condition=models.Q(status__in=["open", "acknowledged"]),
+                name="one_active_operational_incident_key",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["status", "last_observed_at"], name="ops_incident_status_seen_idx"),
+        ]
+
+    def __str__(self):
+        return f"{self.get_kind_display()} · {self.component} · {self.get_status_display()}"
+
+
+class OperationalAlertSubscription(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="operational_alert_subscriptions",
+    )
+    endpoint_digest = models.CharField(max_length=64, unique=True)
+    endpoint_ciphertext = models.TextField()
+    p256dh_ciphertext = models.TextField()
+    auth_ciphertext = models.TextField()
+    active = models.BooleanField(default=False)
+    consented_at = models.DateTimeField(null=True, blank=True)
+    last_notified_incident_id = models.PositiveBigIntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @staticmethod
+    def _fernet():
+        # Keep the same encryption key and format as applicant push subscriptions.
+        from dashboard.models import PushSubscription
+
+        return PushSubscription._fernet()
+
+    @property
+    def endpoint(self):
+        return self._fernet().decrypt(self.endpoint_ciphertext.encode("ascii")).decode("utf-8")
+
+    @endpoint.setter
+    def endpoint(self, value):
+        self.endpoint_ciphertext = self._fernet().encrypt(str(value).encode("utf-8")).decode("ascii")
+
+    @property
+    def p256dh_key(self):
+        return self._fernet().decrypt(self.p256dh_ciphertext.encode("ascii")).decode("utf-8")
+
+    @p256dh_key.setter
+    def p256dh_key(self, value):
+        self.p256dh_ciphertext = self._fernet().encrypt(str(value).encode("utf-8")).decode("ascii")
+
+    @property
+    def auth_key(self):
+        return self._fernet().decrypt(self.auth_ciphertext.encode("ascii")).decode("utf-8")
+
+    @auth_key.setter
+    def auth_key(self, value):
+        self.auth_ciphertext = self._fernet().encrypt(str(value).encode("utf-8")).decode("ascii")
+
+
+class OperationalAlertPushAttempt(models.Model):
+    class Status(models.TextChoices):
+        RESERVED = "reserved", "Reservado"
+        SENT = "sent", "Aceptado por el servicio push"
+        FAILED = "failed", "Fallido o resultado incierto"
+
+    subscription = models.ForeignKey(
+        OperationalAlertSubscription,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="push_attempts",
+    )
+    subscription_digest = models.CharField(max_length=64)
+    latest_incident_id = models.PositiveBigIntegerField()
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.RESERVED)
+    failure_category = models.CharField(max_length=32, blank=True)
+    reserved_at = models.DateTimeField(default=timezone.now)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["subscription_digest", "reserved_at"], name="ops_push_digest_reserved_idx"),
+        ]
+
+
+class VacancyDataGeneration(models.Model):
+    generation = models.PositiveBigIntegerField(default=1)
+    cleanup_active = models.BooleanField(default=False)
+    active_operation = models.ForeignKey(
+        "VacancyCleanupOperation", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="active_generation_states",
+    )
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+class VacancyDataCoverage(models.Model):
+    covered_from = models.DateTimeField(default=timezone.now)
+    cleanup_operation = models.ForeignKey(
+        "VacancyCleanupOperation", null=True, blank=True, on_delete=models.SET_NULL,
+        related_name="coverage_records",
+    )
+
+
+class VacancyCleanupOperation(models.Model):
+    class Status(models.TextChoices):
+        QUEUED = "queued", "En espera"
+        RUNNING = "running", "En curso"
+        WAITING = "waiting", "Esperando trabajo activo"
+        COMPLETED = "completed", "Completada"
+        FAILED = "failed", "Fallida; pausada para recuperación"
+
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="vacancy_cleanups",
+    )
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.QUEUED)
+    requested_at = models.DateTimeField(default=timezone.now, editable=False)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    pause_was_active = models.BooleanField(default=False)
+    pause_parameter_updated_at = models.DateTimeField(null=True, blank=True)
+    generation = models.PositiveBigIntegerField(default=1)
+    attempt_count = models.PositiveSmallIntegerField(default=0)
+    counts = models.JSONField(default=dict, blank=True)
+    error_category = models.CharField(max_length=40, blank=True)
+
+
+class VacancyCleanupConfirmation(models.Model):
+    token_digest = models.CharField(max_length=64, unique=True)
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(default=timezone.now, editable=False)

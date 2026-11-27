@@ -10,6 +10,7 @@ from dashboard.models import VacancyFollowUp
 from jobs.models import Vacancy
 from matching.models import AICallAttempt, MatchingConfig, VacancyAnalysis
 from operations.platform_statistics import _score_distribution, build_platform_statistics
+from operations.models import VacancyDataCoverage
 from profiles.models import Profile, ProfileRevision
 
 
@@ -86,6 +87,15 @@ class PlatformStatisticsTests(TestCase):
         self.assertEqual(distribution["sample_size"], len(scores))
         self.assertEqual([band["width_percent"] for band in distribution["bands"]],
                          [100] * 11)
+
+    def test_cleanup_coverage_marks_older_period_as_unavailable_not_zero(self):
+        now = timezone.now()
+        VacancyDataCoverage.objects.create(covered_from=now)
+        stats = build_platform_statistics(period="30d", now=now)
+        self.assertTrue(stats["history_reset"])
+        self.assertFalse(stats["coverage_complete"])
+        self.assertEqual(stats["coverage_start"], timezone.localtime(now))
+        self.assertEqual(stats["score_distributions"], [])
 
     def test_median_conversion_preserves_precision_before_display(self):
         for scores, expected in ((["2", "4"], "3"), (["3.12", "3.13"], "3.125"),

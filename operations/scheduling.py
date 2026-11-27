@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
+from django.conf import settings
 from django.db import DatabaseError, transaction
 from django.utils import timezone
 
-from .models import PeriodicRefreshState
+from .models import PeriodicRefreshState, RefreshBatch, RefreshWorkItem
 from .parameters import (PROCESSING_PAUSED_KEY, automatic_search_schedule, current_parameter_value,
                          current_refresh_interval_minutes)
 
@@ -64,21 +65,32 @@ def claim_periodic_refresh_start(*, started_at=None):
 
 
 def next_periodic_refresh_schedule(*, now=None):
-    """Return the shared estimate or an explicit paused/unavailable state."""
+    """Return the shared schedule estimate and durable processing state."""
+    current = now or timezone.now()
     try:
         paused = bool(current_parameter_value(PROCESSING_PAUSED_KEY, 0))
-        if paused:
-            return {"status": "paused", "next_at": None}
-
-        current = now or timezone.now()
         quiet = automatic_searches_paused(now=current)
         state = PeriodicRefreshState.objects.filter(pk=1).first()
-        interval = timedelta(minutes=current_refresh_interval_minutes())
-        # Before the first persisted cycle, provide a useful estimate from now.
-        next_at = (state.last_started_at if state else current) + interval
+        work_state = _periodic_refresh_work_state(now=current)
+        last_started_at = state.last_started_at if state else None
+        if paused:
+            return {
+                "status": "paused", "next_at": None, "is_overdue": False,
+                "quiet_window": quiet, "quiet_window_end": next_automatic_search_time(now=current) if quiet else None,
+                "last_started_at": timezone.localtime(last_started_at) if last_started_at else None,
+                "work_state": work_state,
+            }
+        # A moving estimate from request time would conceal a missing first
+        # cycle by perpetually pushing the displayed time into the future.
+        if last_started_at is None:
+            return {
+                "status": "unavailable", "next_at": None, "is_overdue": False,
+                "quiet_window": quiet, "quiet_window_end": next_automatic_search_time(now=current) if quiet else None,
+                "last_started_at": None, "work_state": work_state,
+            }
+
+        next_at = last_started_at + timedelta(minutes=current_refresh_interval_minutes())
         if quiet:
-            # A cycle that became overdue before or during the quiet window is
-            # estimated at the first allowed instant, never in the past.
             quiet_end = next_automatic_search_time(now=current)
             if quiet_end and next_at < quiet_end:
                 next_at = quiet_end
@@ -87,12 +99,34 @@ def next_periodic_refresh_schedule(*, now=None):
             if next_allowed and next_allowed > next_at:
                 next_at = next_allowed
     except DatabaseError:
-        return {"status": "unavailable", "next_at": None}
+        return {
+            "status": "unavailable", "next_at": None, "is_overdue": False,
+            "quiet_window": False, "quiet_window_end": None,
+            "last_started_at": None, "work_state": "unavailable",
+        }
 
+    overdue = not quiet and next_at <= current
     return {
-        "status": "scheduled",
+        "status": "overdue" if overdue else "scheduled",
         "next_at": timezone.localtime(next_at) if timezone.is_aware(next_at) else next_at,
-        "is_overdue": next_at <= (now or timezone.now()),
+        "is_overdue": overdue,
         "quiet_window": quiet,
         "quiet_window_end": next_automatic_search_time(now=current) if quiet else None,
+        "last_started_at": timezone.localtime(last_started_at) if timezone.is_aware(last_started_at) else last_started_at,
+        "work_state": work_state,
     }
+
+
+def _periodic_refresh_work_state(*, now):
+    """Summarize durable global refresh work without exposing profile details."""
+    stale_before = now - timedelta(seconds=settings.REFRESH_WORK_LEASE_SECONDS)
+    batches = RefreshBatch.objects.filter(status=RefreshBatch.Status.RUNNING)
+    running = RefreshWorkItem.objects.filter(status=RefreshWorkItem.Status.RUNNING)
+    if (batches.filter(heartbeat_at__gte=stale_before).exists()
+            or running.filter(lease_expires_at__gt=now, heartbeat_at__gte=stale_before).exists()):
+        return "active"
+    if RefreshWorkItem.objects.filter(status=RefreshWorkItem.Status.QUEUED).exists():
+        return "queued"
+    if running.exists() or batches.exists():
+        return "uncertain"
+    return "idle"

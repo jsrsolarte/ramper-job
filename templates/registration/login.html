@@ -8,7 +8,7 @@
     <title>Ingresar · Jobs</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'brand/jobs/favicon.svg' %}">
     <link rel="manifest" href="{% static 'manifest.json' %}?v=jobs-1">
-    <link rel="stylesheet" href="/static/app.css?v=27">
+    <link rel="stylesheet" href="/static/app.css?v=28">
     <script src="{% static 'connectivity.js' %}?v=1" defer></script>
   </head>
   <body class="auth-page">
@@ -43,5 +43,11 @@
         <p class="auth-note">¿Necesitas acceso? Pídeselo a quien administra tu cuenta.</p>
       </section>
     </main>
+    <footer class="site-footer">
+      <div class="site-footer-content">
+        <span class="site-footer-version">Versión: {% if app_version %}{{ app_version }}{% else %}no disponible{% endif %}</span>
+        <span class="site-footer-signature"><span>By</span><img src="{% static 'brand/ramper/ramper-lockup-v0.6-light.svg' %}" alt="RamPer"></span>
+      </div>
+    </footer>
   </body>
 </html>

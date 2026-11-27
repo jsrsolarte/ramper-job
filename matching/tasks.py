@@ -15,7 +15,11 @@ from matching.client import OmniRouteError, request_model_analysis, request_mode
 from matching.models import AICallAttempt, AnalysisSourceQuery, PROMPT_VERSION, RUBRIC_VERSION, MatchingConfig, ProfileVacancyDiscovery, VacancyAnalysis, VacancyOrganization
 from matching.schemas import InvalidAnalysisError, save_validated_analysis, save_validated_organization
 from matching.services import get_active_matching_config, rubric_prompt
-from profiles.extract import extract_revision_text
+from matching.evidence import (
+    PROFILE_EVIDENCE_ANALYSIS_INSTRUCTION,
+    ensure_profile_artifacts,
+    select_evidence_for_vacancy,
+)
 from profiles.models import Profile
 from profiles.locations import expand_locations, vacancy_location_is_eligible
 from operations.models import OperationalRun
@@ -277,28 +281,39 @@ def analyze_vacancy_for_profile(self, analysis_id):
         task_id=self.request.id or "",
     )
     try:
-        profile_text = extract_revision_text(analysis.profile_revision)
+        evidence_record, _search_terms = ensure_profile_artifacts(
+            analysis.profile_revision, analysis.matching_config,
+        )
+        vacancy_data = {
+            "source": analysis.vacancy.source,
+            "title": analysis.vacancy.title,
+            "company": analysis.vacancy.company,
+            "location": analysis.vacancy.location,
+            "description": analysis.vacancy.description,
+            "salary": analysis.vacancy.salary,
+            "contract_type": analysis.vacancy.contract_type,
+            "details": (analysis.vacancy.raw_data or {}).get("details", {}),
+            "url": analysis.vacancy.original_url,
+        }
+        selected_evidence = select_evidence_for_vacancy(
+            evidence_record.facts,
+            vacancy_data,
+            search_phrases=analysis.profile_revision.search_phrases,
+        )
+        analysis_prompt = analysis.matching_config.analysis_prompt
+        if PROFILE_EVIDENCE_ANALYSIS_INSTRUCTION not in analysis_prompt:
+            analysis_prompt = "\n\n".join((analysis_prompt, PROFILE_EVIDENCE_ANALYSIS_INSTRUCTION))
         prompt = "\n\n".join(part for part in (
-            analysis.matching_config.analysis_prompt,
+            analysis_prompt,
             rubric_prompt(analysis.matching_config.rubric_version),
         ) if part)
         call_started = perf_counter()
         model_result = request_model_analysis(
-            profile_text=profile_text,
+            profile_evidence=selected_evidence,
             search_phrases=analysis.profile_revision.search_phrases,
             locations=expand_locations(analysis.profile_revision.locations),
             remote_ok=analysis.profile_revision.remote_ok,
-            vacancy={
-                "source": analysis.vacancy.source,
-                "title": analysis.vacancy.title,
-                "company": analysis.vacancy.company,
-                "location": analysis.vacancy.location,
-                "description": analysis.vacancy.description,
-                "salary": analysis.vacancy.salary,
-                "contract_type": analysis.vacancy.contract_type,
-                "details": (analysis.vacancy.raw_data or {}).get("details", {}),
-                "url": analysis.vacancy.original_url,
-            },
+            vacancy=vacancy_data,
             prompt=prompt,
             parameters=analysis.matching_config.parameters,
             rubric_version=analysis.matching_config.rubric_version,
@@ -476,6 +491,9 @@ def queue_organization(analysis):
         analysis.organization_status = VacancyAnalysis.OrganizationStatus.DEFERRED
         analysis.save(update_fields=["organization_status", "updated_at"])
         return None
+    from dashboard.services import register_recommendation_event
+
+    register_recommendation_event(analysis.profile, analysis.vacancy, source_analysis=analysis)
     fingerprint = _vacancy_content_hash(analysis.vacancy)
     organization, _ = VacancyOrganization.objects.get_or_create(
         vacancy=analysis.vacancy, matching_config=analysis.matching_config, content_hash=fingerprint,

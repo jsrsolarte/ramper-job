@@ -66,13 +66,27 @@ jobs:
           git show "$CANDIDATE_SHA:scripts/check_staging_candidate.py" > "$RUNNER_TEMP/check_staging_candidate.py"
           python "$RUNNER_TEMP/check_staging_candidate.py" "$CANDIDATE_SHA" HEAD
           python - <<'PYCODE'
-          import os, re
+          import os, re, subprocess
           from pathlib import Path
+          candidate_sha = os.environ['CANDIDATE_SHA']
+          version = subprocess.run(
+              ['git', 'show', f'{candidate_sha}:VERSION'],
+              check=True,
+              capture_output=True,
+              text=True,
+          ).stdout.strip()
+          if not re.fullmatch(r'(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)', version):
+              raise SystemExit(f'Invalid SemVer in VERSION for {candidate_sha}')
           path = Path('deploy/overlays/staging/kustomization.yaml')
           updated, count = re.subn(r'(?m)^(\s*newTag:\s*)[^\s#]+',
-              lambda m: m.group(1) + os.environ['CANDIDATE_SHA'], path.read_text())
+              lambda m: m.group(1) + candidate_sha, path.read_text())
           if count != 1:
               raise SystemExit('Expected exactly one staging image tag')
+          updated, count = re.subn(
+              r'(?m)(path: /data/APP_VERSION\s*\n\s*value:\s*)[^\s#]+',
+              lambda m: m.group(1) + version, updated)
+          if count != 1:
+              raise SystemExit('Expected exactly one staging APP_VERSION value')
           path.write_text(updated)
           PYCODE
           git config user.name 'github-actions[bot]'

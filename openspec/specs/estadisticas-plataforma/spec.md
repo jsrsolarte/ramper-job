@@ -29,11 +29,15 @@ El panel SHALL mostrar conteos globales por estado personal de seguimiento, calc
 - **THEN** el panel muestra cero para ese estado sin omitirlo
 
 ### Requirement: Consultar la distribución global de puntuaciones
-El panel SHALL mostrar la distribución agregada de los puntajes vigentes de compatibilidad, usando estrellas visuales para puntuaciones y medianas de cero a cinco en incrementos de 0,5, con etiquetas accesibles para su valor exacto, y señalando el tamaño y periodo de la muestra.
+El panel SHALL mostrar la distribución agregada de los puntajes vigentes de compatibilidad en una escala visible de cero a cinco estrellas, conservando los puntajes originales para los cálculos y señalando el tamaño y periodo de la muestra.
 
 #### Scenario: Hay puntajes vigentes en el periodo
 - **WHEN** la persona administradora selecciona un periodo con análisis vigentes
-- **THEN** el panel muestra conteos por puntuaciones de estrellas, la mediana y el número de resultados considerados
+- **THEN** el panel muestra conteos por intervalos de media estrella desde `0–<0,5` hasta `4,5–5`, la mediana convertida a estrellas y el número de resultados considerados
+
+#### Scenario: La distribución convierte puntajes decimales
+- **WHEN** los resultados considerados incluyen puntajes decimales en la escala interna de 0 a 10
+- **THEN** el sistema convierte la mediana a estrellas dividiéndola entre dos, muestra hasta dos decimales y determina los intervalos usando los puntajes originales sin redondearlos individualmente
 
 #### Scenario: No hay puntajes vigentes en el periodo
 - **WHEN** el periodo seleccionado no tiene puntajes válidos vigentes
@@ -45,7 +49,7 @@ El panel SHALL mostrar la distribución agregada de los puntajes vigentes de com
 
 #### Scenario: Hay puntajes de varias versiones de rúbrica
 - **WHEN** existen resultados vigentes calculados con distintas versiones de rúbrica
-- **THEN** el panel los presenta por versión y mantiene su origen identificable y no confunde escalas ni versiones
+- **THEN** el panel los presenta por versión y no combina sus puntajes en una sola distribución
 
 ### Requirement: Indicar periodo y cobertura de las puntuaciones
 El panel SHALL permitir filtrar las estadísticas de puntuación por periodos definidos y señalar desde cuándo existe cobertura confiable.

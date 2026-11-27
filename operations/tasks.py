@@ -10,6 +10,7 @@ from .models import (
     AdminCommandRun,
     ApplicantActivity,
     OperationalRun,
+    RefreshBatch,
     RefreshBatchProfile,
     RefreshWorkItem,
 )
@@ -56,6 +57,9 @@ def reconcile_refresh_work():
         _finish_batch_profile,
         _record_work_failure,
     )
+    from .scheduling import automatic_searches_paused
+
+    quiet_window = automatic_searches_paused(now=now)
 
     recovered = 0
     stale_item_ids = list(RefreshWorkItem.objects.filter(
@@ -77,6 +81,20 @@ def reconcile_refresh_work():
                 or item.heartbeat_at >= stale_cutoff
                 or (item.lease_expires_at is not None and item.lease_expires_at > now)
             ):
+                continue
+            if quiet_window and item.batch.origin == RefreshBatch.Origin.AUTOMATIC:
+                # Preserve interrupted automatic work during the configured
+                # pause. It must not consume retry attempts or become terminal
+                # while source calls are intentionally disabled.
+                item.status = RefreshWorkItem.Status.QUEUED
+                item.lease_token = ""
+                item.lease_expires_at = None
+                item.last_dispatched_at = None
+                item.error_category = ""
+                item.save(update_fields=(
+                    "status", "lease_token", "lease_expires_at", "last_dispatched_at", "error_category",
+                ))
+                recovered += 1
                 continue
             if item.attempts >= MAX_WORK_ATTEMPTS - 1:
                 item.status = RefreshWorkItem.Status.FAILED
@@ -110,11 +128,10 @@ def reconcile_refresh_work():
                 error_category="execution_interrupted",
             )
 
-    from .scheduling import automatic_searches_paused
     queued = RefreshWorkItem.objects.filter(status=RefreshWorkItem.Status.QUEUED).filter(
         models_q_dispatch_due(dispatch_cutoff),
     )
-    if automatic_searches_paused(now=now):
+    if quiet_window:
         queued = queued.exclude(batch__origin=RefreshBatch.Origin.AUTOMATIC)
     dispatched = 0
     for item_id in queued.values_list("pk", flat=True)[:500]:

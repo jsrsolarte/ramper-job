@@ -16,7 +16,7 @@ from pathlib import Path
 
 NAMESPACE = "staging"
 APP_SECRET = "ramper-job-secrets"
-REGISTRY_SECRET = "ramper-job-registry"
+REGISTRY_SECRET = "ghcr-pull-staging"
 KUBECTL = ["microk8s", "kubectl"]
 
 

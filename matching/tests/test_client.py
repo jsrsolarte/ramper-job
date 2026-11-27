@@ -7,6 +7,7 @@ from matching.client import (
     OmniRouteError,
     request_model_analysis,
     request_model_keywords,
+    request_model_profile_artifacts,
     request_model_title_preselection,
 )
 
@@ -26,7 +27,7 @@ class OmniRouteClientTests(SimpleTestCase):
         post.return_value = response
 
         actual = request_model_analysis(
-            profile_text="Experiencia con datos",
+            profile_evidence=[{"id": "f1", "category": "skill", "statement": "SQL", "source_excerpt": "SQL"}],
             search_phrases=["Analista en Cali"],
             locations=["Cali"],
             remote_ok=False,
@@ -44,12 +45,15 @@ class OmniRouteClientTests(SimpleTestCase):
         self.assertEqual(kwargs["timeout"], 9)
         self.assertEqual(kwargs["json"]["model"], "private-model")
         self.assertEqual(kwargs["json"]["temperature"], 0.2)
+        body = json.loads(kwargs["json"]["messages"][1]["content"])
+        self.assertIn("profile_evidence", body)
+        self.assertNotIn("cv", body)
 
     @override_settings(OMNIROUTE_BASE_URL="", OMNIROUTE_MODEL="")
     def test_missing_endpoint_or_model_is_reported(self):
         with self.assertRaises(OmniRouteError):
             request_model_analysis(
-                profile_text="", search_phrases=[], locations=[], remote_ok=False,
+                profile_evidence=[], search_phrases=[], locations=[], remote_ok=False,
                 vacancy={}, prompt="", parameters={}
             )
 
@@ -73,7 +77,7 @@ class OmniRouteClientTests(SimpleTestCase):
 
         with self.assertRaises(OmniRouteError) as caught:
             request_model_keywords(
-                profile_text="private CV", search_phrases=[], locations=[], remote_ok=False,
+                profile_evidence=[{"statement": "SQL", "source_excerpt": "SQL"}], search_phrases=[], locations=[], remote_ok=False,
                 prompt="private prompt", parameters={},
             )
 
@@ -94,7 +98,7 @@ class OmniRouteClientTests(SimpleTestCase):
         post.return_value = response
 
         result = request_model_keywords(
-            profile_text="Experiencia en mejora de procesos",
+            profile_evidence=[{"statement": "Mejora de procesos", "source_excerpt": "Mejoré procesos"}],
             search_phrases=["Analista de procesos en Bogotá"],
             locations=["Bogotá"],
             remote_ok=False,
@@ -107,6 +111,38 @@ class OmniRouteClientTests(SimpleTestCase):
         self.assertEqual(payload["messages"][0]["content"], "Propón términos de cargo")
         self.assertIn('"search_phrases": ["Analista de procesos en Bogotá"]', payload["messages"][1]["content"])
         self.assertIn('"keywords": ["string"]', payload["messages"][1]["content"])
+        self.assertIn('"profile_evidence"', payload["messages"][1]["content"])
+        self.assertNotIn('"cv"', payload["messages"][1]["content"])
+
+    @override_settings(
+        OMNIROUTE_BASE_URL="http://omniroute.internal/v1",
+        OMNIROUTE_API_KEY="",
+        OMNIROUTE_MODEL="private-model",
+        OMNIROUTE_TIMEOUT_SECONDS=9,
+    )
+    @patch("matching.client.requests.post")
+    def test_profile_artifact_request_returns_evidence_and_keywords_together(self, post):
+        response = Mock()
+        response.json.return_value = {
+            "choices": [{"message": {"content": json.dumps({"facts": [], "keywords": ["Analista"]})}}],
+            "usage": {"prompt_tokens": 250, "completion_tokens": 40},
+        }
+        post.return_value = response
+
+        result = request_model_profile_artifacts(
+            profile_text="CV sintético con experiencia en SQL",
+            search_phrases=["Analista de datos"],
+            locations=["Medellín"],
+            remote_ok=False,
+            prompt="Extrae evidencia y términos",
+            parameters={"temperature": 0.1},
+        )
+
+        self.assertEqual(result.content, {"facts": [], "keywords": ["Analista"]})
+        self.assertEqual(result.input_tokens, 250)
+        body = json.loads(post.call_args.kwargs["json"]["messages"][1]["content"])
+        self.assertEqual(body["cv"], "CV sintético con experiencia en SQL")
+        self.assertIn('"source_excerpt"', post.call_args.kwargs["json"]["messages"][1]["content"])
 
     @override_settings(
         OMNIROUTE_BASE_URL="http://omniroute.internal/v1",

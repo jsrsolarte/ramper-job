@@ -357,7 +357,7 @@ class OmniRouteDiagnosticTests(TestCase):
 
         with self.assertRaises(OmniRouteError) as caught:
             request_model_keywords(
-                profile_text="private cv text", search_phrases=[], locations=[], remote_ok=False,
+                profile_evidence=[], search_phrases=[], locations=[], remote_ok=False,
                 prompt="private prompt", parameters={},
             )
 
@@ -374,7 +374,7 @@ class OmniRouteDiagnosticTests(TestCase):
 
         with self.assertRaises(OmniRouteError) as caught:
             request_model_keywords(
-                profile_text="", search_phrases=[], locations=[], remote_ok=False, prompt="", parameters={},
+                profile_evidence=[], search_phrases=[], locations=[], remote_ok=False, prompt="", parameters={},
             )
 
         self.assertEqual(caught.exception.category, "omniroute.invalid_json")

@@ -36,6 +36,11 @@ jobs:
           EXISTING_TAGS="$(git tag --list 'v*' | grep -Fvx "$TAG" || true)"
           RESULT="$(python scripts/validate_release_version.py --tag "$TAG" --existing-tags "$EXISTING_TAGS")"
           VERSION="$(python -c 'import json,sys; print(json.load(sys.stdin)["version"])' <<< "$RESULT")"
+          DECLARED_VERSION="$(tr -d '\r\n' < VERSION)"
+          if [[ "$DECLARED_VERSION" != "$VERSION" ]]; then
+            echo "Release tag $TAG does not match VERSION ($DECLARED_VERSION)." >&2
+            exit 1
+          fi
           SOURCE_SHA="$(git rev-parse "refs/tags/$TAG^{commit}")"
           RELEASE_REASON="$(git for-each-ref --format='%(contents:subject)' "refs/tags/$TAG")"
           if [[ -z "$RELEASE_REASON" ]]; then

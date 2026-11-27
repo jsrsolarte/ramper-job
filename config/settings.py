@@ -64,6 +64,8 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "config.context_processors.app_version",
+                "config.context_processors.recommendation_notifications",
             ],
         },
     },
@@ -108,6 +110,10 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "login"
 PASSWORD_RESET_TIMEOUT = int(os.getenv("PASSWORD_RESET_TIMEOUT", "259200"))
+PUSH_VAPID_PUBLIC_KEY = os.getenv("PUSH_VAPID_PUBLIC_KEY", "").strip()
+PUSH_VAPID_PRIVATE_KEY = os.getenv("PUSH_VAPID_PRIVATE_KEY", "").strip()
+PUSH_VAPID_SUBJECT = os.getenv("PUSH_VAPID_SUBJECT", "").strip()
+PUSH_SUBSCRIPTION_ENCRYPTION_KEY = os.getenv("PUSH_SUBSCRIPTION_ENCRYPTION_KEY", "").strip()
 
 SESSION_COOKIE_SECURE = env_bool("DJANGO_SESSION_COOKIE_SECURE", not DEBUG)
 CSRF_COOKIE_SECURE = env_bool("DJANGO_CSRF_COOKIE_SECURE", not DEBUG)
@@ -132,6 +138,7 @@ from celery.schedules import crontab
 CELERY_TASK_ROUTES = {
     "dashboard.tasks.discard_stale_recommendations": {"queue": "matching_v2"},
     "dashboard.tasks.archive_inactive_follow_ups": {"queue": "matching_v2"},
+    "dashboard.tasks.send_daily_recommendation_summaries": {"queue": "matching_v2"},
     "jobs.tasks.refresh_profile_sources": {"queue": "matching_v2"},
     "jobs.tasks.refresh_sources": {"queue": "matching_v2"},
     "jobs.tasks.refresh_periodic_sources": {"queue": "matching_v2"},
@@ -155,6 +162,10 @@ CELERY_BEAT_SCHEDULE = {
     "archive-inactive-follow-ups": {
         "task": "dashboard.tasks.archive_inactive_follow_ups",
         "schedule": crontab(hour=3, minute=30),
+    },
+    "daily-recommendation-push-summary": {
+        "task": "dashboard.tasks.send_daily_recommendation_summaries",
+        "schedule": crontab(hour=9, minute=0),
     },
     "refresh-job-sources": {
         "task": "jobs.tasks.refresh_periodic_sources",
@@ -201,6 +212,7 @@ COMPUTRABAJO_USER_AGENT = os.getenv(
     "COMPUTRABAJO_USER_AGENT",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/157.0.0.0 Safari/537.36",
 )
+MAGNETO_USER_AGENT = os.getenv("MAGNETO_USER_AGENT", "RamperJob (public vacancy search)")
 OMNIROUTE_BASE_URL = os.getenv("OMNIROUTE_BASE_URL", "")
 OMNIROUTE_API_KEY = os.getenv("OMNIROUTE_API_KEY", "")
 OMNIROUTE_MODEL = os.getenv("OMNIROUTE_MODEL", "")

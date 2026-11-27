@@ -47,6 +47,10 @@ jobs:
           git fetch origin main staging
           [[ "$(git rev-parse origin/main)" == "$RELEASE_SHA" ]]
 
+          APP_VERSION="$(tr -d '\r\n' < VERSION)"
+          [[ "$APP_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
+          echo "app_version=$APP_VERSION" >> "$GITHUB_OUTPUT"
+
           PR_HEAD_SHA="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${RELEASE_SHA}/pulls" | python scripts/check_production_promotion.py pr-head "$RELEASE_SHA")"
           git merge-base --is-ancestor "$PR_HEAD_SHA" "$RELEASE_SHA"
 
@@ -74,12 +78,13 @@ jobs:
         env:
           IMAGE_SHA: ${{ steps.candidate.outputs.staging_sha }}
           RELEASE_SHA: ${{ github.sha }}
+          APP_VERSION: ${{ steps.candidate.outputs.app_version }}
         run: |
           set -euo pipefail
           git fetch origin main staging
           CURRENT_MAIN_SHA="$(git rev-parse origin/main)"
           CURRENT_STAGING_SHA="$(git show origin/staging:deploy/overlays/staging/kustomization.yaml | sed -nE 's/^[[:space:]]*newTag:[[:space:]]*([^[:space:]#]+).*/\1/p')"
-          python scripts/update_production_pin.py deploy/overlays/prod/kustomization.yaml "$IMAGE_SHA" "$RELEASE_SHA" "$CURRENT_MAIN_SHA" "$CURRENT_STAGING_SHA"
+          python scripts/update_production_pin.py deploy/overlays/prod/kustomization.yaml "$IMAGE_SHA" "$RELEASE_SHA" "$CURRENT_MAIN_SHA" "$CURRENT_STAGING_SHA" "$APP_VERSION"
 
       - name: Commit and push the production image pin
         env:

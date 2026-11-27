@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 910 220" role="img" aria-label="RamPer lockup horizontal fondo claro — estudio"><title>RamPer lockup horizontal fondo claro — estudio</title><desc>El texto utiliza tipografía Sora con fallback; la palabra aún no está vectorizada ni tiene kerning final.</desc>
+<g transform="translate(36 28) scale(.33)">
+<path fill="#5B4BFF" d="M87 39 Q96 29 111 29 H357 C440 29 501 105 501 207 C501 303 453 365 366 395 L435 479 Q443 489 436 496 Q432 499 428 499 H298 Q291 499 284 491 L189 374 Q184 367 188 361 L225 318 Q230 313 241 313 H298 C360 313 399 266 398 211 C397 161 370 127 331 127 H44 Q30 127 40 109 L70 59 Q80 44 87 39 Z"/>
+<path fill="#AD9BFF" d="M47 460 L63 260 C67 211 105 174 160 174 H311 C330 174 344 192 344 215 C344 243 325 263 296 263 H237 Q231 263 226 269 L70 464 Q61 475 53 469 Q47 466 47 460 Z"/>
+</g>
+<text x="242" y="150" fill="#111827" font-family="Sora,Inter,Arial,sans-serif" font-size="112" font-weight="700" letter-spacing="-4">RamPer</text>
+</svg>

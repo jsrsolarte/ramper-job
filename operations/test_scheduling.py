@@ -1,12 +1,19 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import AutomaticSearchSchedule, OperationalParameter, PeriodicRefreshState
-from .parameters import PROCESSING_PAUSED_KEY, REFRESH_INTERVAL_KEY, save_automatic_search_schedule
+from .models import AutomaticSearchSchedule, OperationalParameter, PeriodicRefreshState, RefreshBatch
+from .parameters import (
+    DEFAULT_SEARCH_PAUSE_END,
+    DEFAULT_SEARCH_PAUSE_START,
+    PROCESSING_PAUSED_KEY,
+    REFRESH_INTERVAL_KEY,
+    automatic_search_schedule,
+    save_automatic_search_schedule,
+)
 from .scheduling import (automatic_searches_paused, claim_periodic_refresh_start,
                          next_periodic_refresh_schedule, record_periodic_refresh_start)
 
@@ -22,6 +29,21 @@ class PeriodicRefreshScheduleTests(TestCase):
         self.assertTrue(automatic_searches_paused(now=timezone.make_aware(datetime(2026, 11, 13, 6, 59), bogota)))
         self.assertFalse(automatic_searches_paused(now=timezone.make_aware(datetime(2026, 11, 13, 7, 0), bogota)))
 
+    def test_default_values_and_same_day_window_boundaries(self):
+        from zoneinfo import ZoneInfo
+
+        self.assertEqual(automatic_search_schedule(), {
+            "enabled": True,
+            "starts_at": DEFAULT_SEARCH_PAUSE_START,
+            "ends_at": DEFAULT_SEARCH_PAUSE_END,
+        })
+        AutomaticSearchSchedule.objects.create(pk=1, enabled=True, starts_at=time(12), ends_at=time(14))
+        bogota = ZoneInfo("America/Bogota")
+        self.assertFalse(automatic_searches_paused(now=timezone.make_aware(datetime(2026, 11, 12, 11, 59), bogota)))
+        self.assertTrue(automatic_searches_paused(now=timezone.make_aware(datetime(2026, 11, 12, 12, 0), bogota)))
+        self.assertTrue(automatic_searches_paused(now=timezone.make_aware(datetime(2026, 11, 12, 13, 59), bogota)))
+        self.assertFalse(automatic_searches_paused(now=timezone.make_aware(datetime(2026, 11, 12, 14, 0), bogota)))
+
     def test_disabled_window_never_pauses_and_equal_times_are_rejected(self):
         from datetime import time
 
@@ -30,6 +52,11 @@ class PeriodicRefreshScheduleTests(TestCase):
         self.assertFalse(automatic_searches_paused())
         with self.assertRaises(ValueError):
             save_automatic_search_schedule(actor=actor, enabled=True, starts_at=time(9), ends_at=time(9))
+
+    def test_unspecified_historical_batch_origin_defaults_to_automatic(self):
+        batch = RefreshBatch.objects.create()
+
+        self.assertEqual(batch.origin, RefreshBatch.Origin.AUTOMATIC)
 
     @override_settings(TIME_ZONE="America/Bogota")
     @override_settings(JOB_REFRESH_MINUTES=120)
@@ -72,6 +99,21 @@ class PeriodicRefreshScheduleTests(TestCase):
             datetime(2026, 11, 13, 7, 0), ZoneInfo("America/Bogota"),
         ))
 
+    @override_settings(JOB_REFRESH_MINUTES=15)
+    def test_overdue_estimate_during_quiet_window_moves_to_future_window_end(self):
+        from zoneinfo import ZoneInfo
+
+        bogota = ZoneInfo("America/Bogota")
+        last_started = timezone.make_aware(datetime(2026, 11, 12, 20, 45), bogota)
+        now = timezone.make_aware(datetime(2026, 11, 12, 22, 30), bogota)
+        record_periodic_refresh_start(started_at=last_started)
+
+        schedule = next_periodic_refresh_schedule(now=now)
+
+        self.assertEqual(schedule["next_at"], timezone.make_aware(datetime(2026, 11, 13, 7, 0), bogota))
+        self.assertFalse(schedule["is_overdue"])
+        self.assertTrue(schedule["quiet_window"])
+
     def test_periodic_start_timestamp_is_persisted_and_updated(self):
         first = timezone.now() - timedelta(hours=2)
         second = timezone.now()
@@ -103,12 +145,15 @@ class ScheduleViewIntegrationTests(TestCase):
             "pause_start": "22:00", "pause_end": "06:00", "pause_enabled": "on",
         }).status_code, 403)
         self.client.force_login(admin)
+        AutomaticSearchSchedule.objects.create(pk=1, enabled=True, starts_at=time(21), ends_at=time(7))
         invalid = self.client.post(url, {
             "parameter": "automatic_search_schedule", "action": "save",
             "pause_start": "22:00", "pause_end": "22:00", "pause_enabled": "on",
         })
         self.assertEqual(invalid.status_code, 400)
         self.assertFalse(AutomaticSearchScheduleChange.objects.exists())
+        schedule = AutomaticSearchSchedule.objects.get(pk=1)
+        self.assertEqual((schedule.enabled, schedule.starts_at, schedule.ends_at), (True, time(21), time(7)))
         response = self.client.post(url, {
             "parameter": "automatic_search_schedule", "action": "save",
             "pause_start": "22:00", "pause_end": "06:00", "pause_enabled": "on",

@@ -10,6 +10,7 @@ dependencies = [
   "beautifulsoup4>=4.13,<5",
   "psycopg[binary]>=3.2,<4",
   "pypdf>=5,<7",
+  "pywebpush>=2.5,<3",
   "python-docx>=1.1,<2",
   "requests>=2.32,<3",
   "whitenoise>=6.12,<7",

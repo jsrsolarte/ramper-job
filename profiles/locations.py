@@ -73,13 +73,22 @@ def vacancy_location_is_eligible(vacancy, profile_revision) -> bool:
     preferences = expand_locations(profile_revision.locations)
     if not preferences:
         return True
-    actual_city = details.get("city")
-    actual_location = _normalize(str(actual_city or vacancy.location or ""))
-    if not actual_location:
+    actual_locations = details.get("locations") or []
+    if isinstance(actual_locations, str):
+        actual_locations = [actual_locations]
+    if not actual_locations:
+        actual_locations = [details.get("city") or vacancy.location]
+    normalized_locations = [
+        _normalize(str(location))
+        for location in actual_locations
+        if location
+    ]
+    if not normalized_locations:
         return not preferences
 
     return any(
-        actual_location == _normalize(preferred)
-        or _normalize(preferred) in actual_location
-        for preferred in preferences
+        actual_location == normalized_preference
+        or normalized_preference in actual_location
+        for actual_location in normalized_locations
+        for normalized_preference in (_normalize(preferred) for preferred in preferences)
     )

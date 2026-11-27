@@ -73,7 +73,7 @@ class MatchingProcessingTests(TestCase):
         self.analysis = create_analysis(self.profile, self.vacancy, self.config)
 
     @patch("matching.tasks.request_model_analysis")
-    @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     def test_worker_completes_valid_analysis_for_profile(self, extract, request):
         request.return_value = {
             "organized_description": {
@@ -118,12 +118,47 @@ class MatchingProcessingTests(TestCase):
         self.assertEqual(request.call_args.kwargs["vacancy"]["details"]["education"], "Universitaria")
         self.assertEqual(request.call_args.kwargs["vacancy"]["description"], "Experiencia con SQL")
 
+    @patch("matching.tasks.request_model_analysis")
+    @patch("matching.tasks.ensure_profile_artifacts")
+    def test_scoring_receives_selected_revision_evidence_and_current_preferences(self, artifacts, request):
+        facts = [
+            {"id": "f1", "category": "skill", "statement": "Experiencia con SQL", "source_excerpt": "SQL", "normalized_terms": ["sql"]},
+            {"id": "f2", "category": "education", "statement": "Profesional en sistemas", "source_excerpt": "Profesional en sistemas", "normalized_terms": ["sistemas"]},
+        ]
+        artifacts.return_value = (Mock(facts=facts), Mock())
+        request.return_value = self._valid_payload()
+
+        analyze_vacancy_for_profile.apply(args=(self.analysis.pk,), throw=True)
+
+        artifacts.assert_called_once_with(self.revision, self.config)
+        scoring_payload = request.call_args.kwargs
+        self.assertEqual(scoring_payload["search_phrases"], ["Analista de datos"])
+        self.assertEqual(scoring_payload["remote_ok"], self.revision.remote_ok)
+        self.assertEqual(scoring_payload["rubric_version"], self.config.rubric_version)
+        self.assertNotIn("profile_text", scoring_payload)
+        self.assertTrue(scoring_payload["profile_evidence"])
+        self.assertTrue(all(fact.get("criteria") for fact in scoring_payload["profile_evidence"]))
+        self.assertIn("profile_evidence", scoring_payload["prompt"])
+
+    @patch("operations.scheduling.automatic_searches_paused", return_value=True)
+    @patch("matching.tasks.request_model_analysis")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
+    def test_pending_analysis_continues_during_automatic_search_quiet_window(self, extract, request, quiet):
+        request.return_value = self._valid_payload()
+
+        result = analyze_vacancy_for_profile.apply(args=(self.analysis.pk,), throw=True)
+
+        self.analysis.refresh_from_db()
+        self.assertEqual(result.result, self.analysis.pk)
+        self.assertEqual(self.analysis.status, VacancyAnalysis.Status.COMPLETED)
+        request.assert_called_once()
+
     @override_settings(
         OMNIROUTE_BASE_URL="http://omniroute.internal/v1",
         OMNIROUTE_MODEL="auto",
         OMNIROUTE_TIMEOUT_SECONDS=5,
     )
-    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     @patch("matching.client.requests.post")
     def test_repaired_response_records_original_and_repair_metrics_separately(self, post, extract):
         import json
@@ -160,7 +195,7 @@ class MatchingProcessingTests(TestCase):
         OMNIROUTE_MODEL="auto",
         OMNIROUTE_TIMEOUT_SECONDS=5,
     )
-    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     @patch("matching.client.requests.post")
     def test_scoring_repair_cannot_persist_evidence_changed_inside_a_string(self, post, extract):
         import json
@@ -200,7 +235,7 @@ class MatchingProcessingTests(TestCase):
         OMNIROUTE_MODEL="auto",
         OMNIROUTE_TIMEOUT_SECONDS=5,
     )
-    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     @patch("matching.client.requests.post")
     def test_fenced_score_response_records_normalization_without_repair(self, post, extract):
         import json
@@ -223,7 +258,7 @@ class MatchingProcessingTests(TestCase):
         ).exists())
 
     @patch("matching.tasks.request_model_analysis", side_effect=OmniRouteError("Servicio no disponible"))
-    @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     def test_model_outage_leaves_analysis_pending_for_retry(self, extract, request):
         from celery.exceptions import Retry
 
@@ -251,7 +286,7 @@ class MatchingProcessingTests(TestCase):
             repair_attempted=True,
         ),
     )
-    @patch("matching.tasks.extract_revision_text", return_value="CV sintético")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     def test_failed_json_repair_uses_existing_durable_retry_without_partial_score(self, extract, request):
         from celery.exceptions import Retry
 
@@ -277,7 +312,7 @@ class MatchingProcessingTests(TestCase):
         self.assertEqual(repair_attempt.duration_ms, 17)
 
     @patch("matching.tasks.request_model_analysis", return_value={"private_sentinel": "do not persist"})
-    @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     def test_invalid_rubric_response_records_safe_code_and_generic_message(self, extract, request):
         with self.assertRaises(InvalidAnalysisError):
             analyze_vacancy_for_profile.run(self.analysis.pk)
@@ -296,7 +331,7 @@ class MatchingProcessingTests(TestCase):
 
     @patch("matching.tasks.request_model_organization")
     @patch("matching.tasks.request_model_analysis")
-    @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     def test_discovery_threshold_auto_discards_and_profile_change_does_not_reopen_it(
         self, extract, score_call, organization_call
     ):
@@ -405,7 +440,7 @@ class MatchingProcessingTests(TestCase):
         queue.assert_called_once_with(self.analysis.pk)
 
     @patch("matching.tasks.request_model_analysis")
-    @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     def test_duplicate_delivery_after_completion_does_not_call_model_twice(self, extract, request):
         request.return_value = self._valid_payload()
 
@@ -532,7 +567,7 @@ class MatchingProcessingTests(TestCase):
         ANALYSIS_RECOVERY_BATCH_SIZE=10,
     )
     @patch("matching.tasks.request_model_analysis")
-    @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     @patch("matching.tasks.analyze_vacancy_for_profile.delay")
     def test_recovered_analysis_completes_and_appears_on_applicant_dashboard(
         self, queue, extract, request
@@ -587,7 +622,7 @@ class MatchingProcessingTests(TestCase):
         ANALYSIS_RECOVERY_BATCH_SIZE=10,
     )
     @patch("matching.tasks.request_model_analysis", side_effect=OmniRouteError("Servicio no disponible"))
-    @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     @patch("matching.tasks.analyze_vacancy_for_profile.delay")
     def test_persistent_gateway_failure_continues_recovering(
         self, queue, extract, request
@@ -737,7 +772,7 @@ class ConcurrentAnalysisClaimTests(TransactionTestCase):
         )
 
     @patch("matching.tasks.request_model_analysis")
-    @patch("matching.tasks.extract_revision_text", return_value="CV extraído")
+    @patch("matching.tasks.ensure_profile_artifacts", return_value=(Mock(facts=[]), None))
     def test_simultaneous_workers_call_the_model_once(self, extract, request):
         request.return_value = MatchingProcessingTests._valid_payload(self)
         barrier = Barrier(2)

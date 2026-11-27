@@ -76,7 +76,13 @@ def next_periodic_refresh_schedule(*, now=None):
         interval = timedelta(minutes=current_refresh_interval_minutes())
         # Before the first persisted cycle, provide a useful estimate from now.
         next_at = (state.last_started_at if state else current) + interval
-        if automatic_searches_paused(now=next_at):
+        if quiet:
+            # A cycle that became overdue before or during the quiet window is
+            # estimated at the first allowed instant, never in the past.
+            quiet_end = next_automatic_search_time(now=current)
+            if quiet_end and next_at < quiet_end:
+                next_at = quiet_end
+        elif automatic_searches_paused(now=next_at):
             next_allowed = next_automatic_search_time(now=next_at)
             if next_allowed and next_allowed > next_at:
                 next_at = next_allowed

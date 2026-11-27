@@ -25,6 +25,19 @@ class LocationExpansionTests(SimpleTestCase):
         vacancy.raw_data = {"details": {"city": "Envigado"}}
         self.assertTrue(vacancy_location_is_eligible(vacancy, profile))
 
+    def test_any_published_detail_location_can_match_profile_preferences(self):
+        profile = SimpleNamespace(locations=["Bogotá"], remote_ok=False)
+        vacancy = SimpleNamespace(
+            location=None,
+            raw_data={"details": {"locations": ["Medellín · Antioquia", "Chía · Cundinamarca"]}},
+        )
+
+        self.assertTrue(vacancy_location_is_eligible(vacancy, profile))
+        profile.locations = ["Medellín"]
+        self.assertTrue(vacancy_location_is_eligible(vacancy, profile))
+        profile.locations = ["Cali"]
+        self.assertFalse(vacancy_location_is_eligible(vacancy, profile))
+
     def test_remote_requires_opt_in_and_unknown_location_is_not_assumed_compatible(self):
         profile = SimpleNamespace(locations=["Medellín"], remote_ok=False)
         vacancy = SimpleNamespace(location=None, raw_data={"details": {"modality": "remoto"}})

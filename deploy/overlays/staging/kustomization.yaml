@@ -11,6 +11,13 @@ patches:
       name: ramper-job-config
     patch: |-
       - op: replace
+        path: /data/APP_VERSION
+        value: 3de46979957b3f06c7cd8d44c15f8229a3f84ad3
+  - target:
+      kind: ConfigMap
+      name: ramper-job-config
+    patch: |-
+      - op: replace
         path: /data/OMNIROUTE_BASE_URL
         value: http://omniroute.prod.svc.cluster.local:20128/v1
   - target:
@@ -25,7 +32,7 @@ patches:
         template:
           metadata:
             annotations:
-              ops.ramper.lat/config-revision: c4631d5e
+              ops.ramper.lat/config-revision: 9e0c8637839c8b2c895ea60d83631821379f1104
   - target:
       kind: Deployment
       name: ramper-job-worker
@@ -38,8 +45,21 @@ patches:
         template:
           metadata:
             annotations:
-              ops.ramper.lat/config-revision: c4631d5e
+              ops.ramper.lat/config-revision: 9e0c8637839c8b2c895ea60d83631821379f1104
+  - target:
+      kind: Deployment
+      name: ramper-job-beat
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: ramper-job-beat
+      spec:
+        template:
+          metadata:
+            annotations:
+              ops.ramper.lat/config-revision: 9e0c8637839c8b2c895ea60d83631821379f1104
 images:
   - name: ramper-job
     newName: ghcr.io/jsrsolarte/ramper-job
-    newTag: 1f37fdaed5d66bdef21d95d9ccc13384109017b5
+    newTag: 3de46979957b3f06c7cd8d44c15f8229a3f84ad3

@@ -44,6 +44,13 @@ class HealthEndpointTests(TestCase):
         self.assertContains(response, 'name="username"')
         self.assertContains(response, 'name="password"')
 
+    @patch.dict("os.environ", {"APP_VERSION": ""})
+    def test_login_shows_unavailable_version_when_metadata_is_missing(self):
+        response = self.client.get(reverse("login"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Versión: no disponible")
+
     def test_collected_static_assets_are_served(self):
         response = self.client.get("/static/app.css")
 

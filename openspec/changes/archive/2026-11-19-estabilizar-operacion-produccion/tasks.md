@@ -19,4 +19,4 @@
 ## 4. Validar y desplegar con autorización
 
 - [x] 4.1 Validar cambios de aplicación en staging con datos sintéticos; verificar sondas, categorías de análisis y reconciliación de ingestas sin errores nuevos.
-- [ ] 4.2 Revisar SHA y digest probados, preparar reversión y actualizar `AGENTS.md` y la documentación operativa; desplegar a prod únicamente tras autorización explícita y verificar Flux, réplicas listas, eventos de sondas y estado agregado de trabajos.
+- [x] 4.2 Revisar SHA y digest probados, preparar reversión y actualizar `AGENTS.md` y la documentación operativa; desplegar a prod únicamente tras autorización explícita y verificar Flux, réplicas listas, eventos de sondas y estado agregado de trabajos.

@@ -109,6 +109,30 @@ class ManualVacancySubmissionTaskTests(TestCase):
         self.assertEqual(result, {"skipped": "already_processed"})
         self.assertFalse(Vacancy.objects.exists())
 
+    @patch("matching.tasks.schedule_vacancy_analysis.delay")
+    @patch("jobs.tasks.automatic_searches_paused", return_value=True)
+    def test_manual_url_submission_continues_during_automatic_quiet_window(self, quiet, schedule):
+        submission = self.create_submission()
+
+        result = process_manual_vacancy_submission.run(submission.pk)
+
+        self.assertEqual(result["status"], ManualVacancySubmission.Status.SCHEDULED)
+        self.fetch_mock.assert_called_once()
+        schedule.assert_called_once()
+
+    @patch("jobs.tasks.process_manual_vacancy_submission.apply_async")
+    @patch("jobs.tasks.processing_is_paused", return_value=True)
+    def test_manual_url_submission_still_waits_for_global_pause(self, paused, retry):
+        submission = self.create_submission()
+
+        result = process_manual_vacancy_submission.run(submission.pk)
+
+        self.assertEqual(result, {"deferred": "processing_paused"})
+        self.fetch_mock.assert_not_called()
+        retry.assert_called_once_with(args=(submission.pk,), countdown=60)
+        submission.refresh_from_db()
+        self.assertEqual(submission.status, ManualVacancySubmission.Status.QUEUED)
+
     @patch(
         "matching.tasks.schedule_vacancy_analysis.delay",
         side_effect=RuntimeError("broker detail must not be stored"),

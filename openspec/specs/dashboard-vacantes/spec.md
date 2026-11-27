@@ -180,19 +180,23 @@ La vista de vacantes por analizar SHALL presentar los datos originales disponibl
 - **THEN** la vista omite ese dato o lo marca como no informado sin inventarlo
 
 ### Requirement: Navegar entre vacantes recomendadas y pendientes de análisis
-El dashboard SHALL presentar las vacantes por analizar y las recomendaciones como pestañas de la experiencia privada de vacantes, y ofrecer «Análisis» como una pantalla independiente desde la navegación principal.
+El dashboard SHALL presentar las vacantes por analizar y las recomendaciones como pestañas de la experiencia privada de vacantes. La navegación principal de las personas aspirantes SHALL ofrecer enlaces directos a «Recomendaciones», «Mi perfil» y «Análisis», con «Análisis» como pantalla independiente.
 
 #### Scenario: La persona abre la pestaña de análisis pendiente
 - **WHEN** la persona selecciona la pestaña «Por analizar»
 - **THEN** el sistema muestra las vacantes pendientes del perfil actual sin cambiar el estado técnico de ningún análisis
 
-#### Scenario: La persona abre las recomendaciones
+#### Scenario: La persona abre la pestaña de recomendaciones
 - **WHEN** la persona selecciona la pestaña «Recomendaciones»
 - **THEN** el sistema muestra las recomendaciones disponibles del perfil actual sin alterar los análisis pendientes
 
 #### Scenario: La persona abre Análisis desde la navegación principal
 - **WHEN** la persona selecciona «Análisis» junto a «Mi perfil»
 - **THEN** el sistema muestra las métricas de puntaje de su perfil sin alterar análisis ni estados de seguimiento
+
+#### Scenario: La persona vuelve a Recomendaciones desde otra pantalla
+- **WHEN** una persona aspirante selecciona «Recomendaciones» en la navegación principal
+- **THEN** el sistema abre las recomendaciones de su perfil y el enlace identifica esa pantalla como activa
 
 ### Requirement: Mostrar el conteo de vacantes por analizar
 La pestaña «Por analizar» SHALL mostrar el conteo de vacantes únicas pendientes para el perfil y revisión vigentes.
@@ -434,3 +438,10 @@ Cada estado con vacantes analizadas SHALL ofrecer solo puntuaciones exactas exis
 #### Scenario: Cambia el conjunto de resultados
 - **WHEN** deja de existir la puntuación seleccionada en el estado
 - **THEN** el filtro vuelve a «Todas» sin cambiar estados ni preferencias
+
+### Requirement: Mantener visibles los análisis anteriores al cambio de perfil
+El dashboard SHALL conservar accesible el análisis completado de una vacante para su perfil aunque la revisión o configuración posterior cambie, junto con su trazabilidad y seguimiento.
+
+#### Scenario: Se guarda una revisión nueva
+- **WHEN** una persona actualiza su perfil después de completar un análisis
+- **THEN** el resultado y seguimiento existentes permanecen accesibles sin reanálisis

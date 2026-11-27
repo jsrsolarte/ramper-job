@@ -47,5 +47,23 @@
     <div class="form-actions"><a class="text-link" href="{% url 'dashboard:home' %}" data-tour="back-to-dashboard">Volver a mis vacantes</a><button type="submit">Guardar cambios <span aria-hidden="true">→</span></button></div>
   </form>
 </section>
+<section class="panel push-preferences" data-push-preferences
+  data-enabled="{{ push_enabled_for_environment|yesno:'true,false' }}"
+  data-public-key="{{ push_vapid_public_key }}"
+  data-subscription-url="{% url 'profiles:push_subscription' %}"
+  data-status-url="{% url 'profiles:push_status' %}"
+  data-worker-url="{% url 'push_service_worker' %}">
+  <div>
+    <p class="eyebrow">En este dispositivo</p>
+    <h2>Resumen diario de recomendaciones</h2>
+    <p class="field-help">Es opcional y depende del permiso, el navegador y el dispositivo; Ramper Job no puede garantizar la entrega. El aviso solo invita a abrir la aplicación.</p>
+    <p class="push-notification-status" data-push-status role="status" aria-live="polite">El indicador de novedades dentro de Ramper Job seguirá disponible.</p>
+  </div>
+  <div class="push-notification-actions">
+    <button class="button" type="button" data-push-enable>Activar en este dispositivo</button>
+    <button class="button button-secondary" type="button" data-push-disable hidden>Desactivar en este dispositivo</button>
+  </div>
+</section>
+<form id="push-csrf" hidden>{% csrf_token %}</form>
 <script src="{% static 'profile.js' %}" defer></script>
 {% endblock %}

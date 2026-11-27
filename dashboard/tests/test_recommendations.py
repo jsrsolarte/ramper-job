@@ -429,7 +429,7 @@ class RecommendationEventRegistrationTests(TransactionTestCase):
         self.assertEqual(response["Cache-Control"], "no-store")
         self.assertContains(response, "silent: true")
         self.assertContains(response, "Hay recomendaciones nuevas.")
-        self.assertContains(response, "new URL('/', self.location.origin)")
+        self.assertContains(response, "new URL(event.notification.data?.url || '/', self.location.origin)")
         self.assertNotContains(response, "addEventListener('fetch'")
         self.assertNotContains(response, "caches.")
 

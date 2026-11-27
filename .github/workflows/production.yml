@@ -20,7 +20,7 @@ jobs:
 
   promote:
     name: Promote the tested staging image to production
-    if: github.repository == 'jsrsolarte/ramper-job'
+    if: github.repository == 'jsrsolarte/ramper-job' && contains(github.event.head_commit.message, 'from jsrsolarte/staging')
     needs: [validate]
     runs-on: ubuntu-latest
     concurrency:

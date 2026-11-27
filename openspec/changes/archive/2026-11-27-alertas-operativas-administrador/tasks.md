@@ -15,5 +15,7 @@
 ## 3. Integración y límites
 
 - [x] 3.1 Probar fallos del evaluador y ausencia de señales; comprobar que se informa estado desconocido y documentar que la caída total requiere monitor externo independiente.
-- [ ] 3.2 Validar con datos sintéticos y reloj simulado los escenarios operativos y la entrega en dispositivos compatibles; registrar dependencias y limitaciones sin alertar usuarios reales.
+- [x] 3.2 Validar con datos sintéticos y reloj simulado los escenarios operativos y la entrega en dispositivos compatibles; registrar dependencias y limitaciones sin alertar usuarios reales.
 - [x] 3.3 Incrementar `VERSION` como MINOR por funcionalidad compatible y verificar las pruebas pertinentes; preparar por separado la propuesta de vigilancia externa si se solicita.
+
+> Validación manual en staging confirmada por el usuario el 2026-11-27.

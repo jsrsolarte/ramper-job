@@ -14,4 +14,6 @@
 ## 3. Auditoría y validación
 
 - [x] 3.1 Registrar actor, fecha, resultado y conteos seguros, y actualizar cobertura operativa; verificar que la auditoría persiste y no contiene datos privados.
-- [ ] 3.2 Verificar en staging con datos sintéticos todo el flujo, incluyendo tareas antiguas, fallo de worker y ausencia de backup; documentar resultados y evitar ejecución en producción sin autorización específica.
+- [x] 3.2 Verificar en staging con datos sintéticos todo el flujo, incluyendo tareas antiguas, fallo de worker y ausencia de backup; documentar resultados y evitar ejecución en producción sin autorización específica.
+
+> Validación manual en staging confirmada por el usuario el 2026-11-27.

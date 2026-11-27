@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import patch
 
 from django.db import DatabaseError
@@ -44,9 +45,17 @@ class HealthEndpointTests(TestCase):
         self.assertContains(response, 'name="username"')
         self.assertContains(response, 'name="password"')
 
-    @patch.dict("os.environ", {"APP_VERSION": ""})
-    def test_login_shows_unavailable_version_when_metadata_is_missing(self):
-        response = self.client.get(reverse("login"))
+    def test_login_shows_semantic_product_version_not_deployment_sha(self):
+        with patch.dict("os.environ", {"APP_VERSION": "d1d1031d71b75917ed73db26c13cb8e9536eee39"}):
+            response = self.client.get(reverse("login"))
+
+        self.assertEqual(response.status_code, 200)
+        product_version = Path(__file__).resolve().parents[2].joinpath("VERSION").read_text().strip()
+        self.assertContains(response, f"Versión: {product_version}")
+
+    def test_login_falls_back_when_product_version_file_is_missing(self):
+        with patch("config.context_processors.VERSION_FILE", Path("/missing/ramper-job/VERSION")):
+            response = self.client.get(reverse("login"))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Versión: no disponible")

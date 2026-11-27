@@ -468,6 +468,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .button:hover, .form-panel button[type="submit"]:hover, .auth-card button:hover { border-color: var(--green-deep); background: var(--green-deep); box-shadow: 0 7px 15px rgba(45, 108, 223, .17); transform: translateY(-1px); }
 .button-secondary { border-color: #d2e2f5; color: var(--green-deep); background: #eef5ff; box-shadow: none; }
 .button-secondary:hover { border-color: #bbd3ef; color: var(--green-deep); background: #dfedfc; box-shadow: none; }
+.button-danger { border-color: var(--danger); color: #fff; background: var(--danger); }
+.button-danger:hover { border-color: #812727; background: #812727; }
+.admin-form { display: grid; gap: 12px; margin-top: 20px; max-width: 520px; }
 
 .empty-state { padding: 60px 24px; text-align: center; }
 .empty-state h2 { margin: 15px 0 8px; color: var(--ink); font-size: 22px; font-weight: 720; letter-spacing: -.5px; }

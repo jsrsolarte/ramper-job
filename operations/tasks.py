@@ -17,6 +17,20 @@ from .models import (
 from .services import finish_run, release_refresh_lease, renew_refresh_lease
 
 
+@shared_task(name="operations.tasks.execute_vacancy_cleanup")
+def execute_vacancy_cleanup_task(operation_id):
+    from .vacancy_cleanup import execute_vacancy_cleanup
+
+    return execute_vacancy_cleanup(operation_id)
+
+
+@shared_task(name="operations.tasks.evaluate_operational_alerts")
+def evaluate_operational_alerts():
+    from .alerts import evaluate_operational_alerts as evaluate
+
+    return evaluate()
+
+
 @shared_task(name="operations.tasks.cleanup_operational_history")
 def cleanup_operational_history(retention_days=90):
     now = timezone.now()

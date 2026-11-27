@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 BOGOTA = ZoneInfo("America/Bogota")
 PUSH_TTL_SECONDS = 300
 PUSH_WINDOW_MINUTES = 5
+GENERIC_PUSH_TYPES = {"recommendations", "operational_alerts"}
 
 
 def visible_recommendation_vacancy_ids(profile):
@@ -101,9 +102,11 @@ def _reserve_daily_attempt(subscription_id, now, local_date):
         }
 
 
-def _send_generic_push(subscription_info):
+def _send_generic_push(subscription_info, notification_type="recommendations"):
     from pywebpush import webpush
 
+    if notification_type not in GENERIC_PUSH_TYPES:
+        raise ValueError("unsupported_push_type")
     if not (
         settings.PUSH_VAPID_PUBLIC_KEY
         and settings.PUSH_VAPID_PRIVATE_KEY
@@ -112,7 +115,7 @@ def _send_generic_push(subscription_info):
         raise RuntimeError("push_not_configured")
     return webpush(
         subscription_info=subscription_info,
-        data=json.dumps({"type": "recommendations"}),
+        data=json.dumps({"type": notification_type}),
         vapid_private_key=settings.PUSH_VAPID_PRIVATE_KEY,
         vapid_claims={"sub": settings.PUSH_VAPID_SUBJECT},
         ttl=PUSH_TTL_SECONDS,

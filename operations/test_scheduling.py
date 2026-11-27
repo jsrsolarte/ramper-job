@@ -5,7 +5,10 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from .models import AutomaticSearchSchedule, OperationalParameter, PeriodicRefreshState, RefreshBatch
+from .models import (
+    AutomaticSearchSchedule, OperationalParameter, OperationalRun, PeriodicRefreshState,
+    RefreshBatch, RefreshWorkItem,
+)
 from .parameters import (
     DEFAULT_SEARCH_PAUSE_END,
     DEFAULT_SEARCH_PAUSE_START,
@@ -60,11 +63,12 @@ class PeriodicRefreshScheduleTests(TestCase):
 
     @override_settings(TIME_ZONE="America/Bogota")
     @override_settings(JOB_REFRESH_MINUTES=120)
-    def test_without_a_periodic_cycle_estimates_from_now(self):
+    def test_without_a_recorded_cycle_does_not_invent_a_future_estimate(self):
         now = timezone.make_aware(datetime(2026, 11, 12, 14, 0))
         result = next_periodic_refresh_schedule(now=now)
-        self.assertEqual(result["status"], "scheduled")
-        self.assertEqual(result["next_at"], now + timedelta(minutes=120))
+        self.assertEqual(result["status"], "unavailable")
+        self.assertIsNone(result["next_at"])
+        self.assertIsNone(result["last_started_at"])
 
     @override_settings(TIME_ZONE="America/Bogota")
     def test_estimate_uses_current_interval_and_changes_when_interval_changes(self):
@@ -87,13 +91,17 @@ class PeriodicRefreshScheduleTests(TestCase):
         record_periodic_refresh_start(started_at=last_started_at)
         OperationalParameter.objects.create(key=PROCESSING_PAUSED_KEY, value=1)
 
-        self.assertEqual(next_periodic_refresh_schedule(), {"status": "paused", "next_at": None})
+        schedule = next_periodic_refresh_schedule()
+        self.assertEqual(schedule["status"], "paused")
+        self.assertIsNone(schedule["next_at"])
+        self.assertEqual(schedule["last_started_at"], timezone.localtime(last_started_at))
 
     @override_settings(JOB_REFRESH_MINUTES=120)
     def test_estimate_that_lands_inside_future_quiet_window_moves_to_window_end(self):
         from zoneinfo import ZoneInfo
 
         now = timezone.make_aware(datetime(2026, 11, 12, 20, 0), ZoneInfo("America/Bogota"))
+        record_periodic_refresh_start(started_at=now)
         schedule = next_periodic_refresh_schedule(now=now)
         self.assertEqual(schedule["next_at"], timezone.make_aware(
             datetime(2026, 11, 13, 7, 0), ZoneInfo("America/Bogota"),
@@ -113,6 +121,74 @@ class PeriodicRefreshScheduleTests(TestCase):
         self.assertEqual(schedule["next_at"], timezone.make_aware(datetime(2026, 11, 13, 7, 0), bogota))
         self.assertFalse(schedule["is_overdue"])
         self.assertTrue(schedule["quiet_window"])
+
+    @override_settings(JOB_REFRESH_MINUTES=60)
+    def test_overdue_cycle_keeps_the_original_estimate_and_marks_it_overdue(self):
+        from zoneinfo import ZoneInfo
+
+        bogota = ZoneInfo("America/Bogota")
+        last_started = timezone.make_aware(datetime(2026, 11, 12, 16, 34), bogota)
+        now = timezone.make_aware(datetime(2026, 11, 12, 18, 0), bogota)
+        record_periodic_refresh_start(started_at=last_started)
+
+        schedule = next_periodic_refresh_schedule(now=now)
+
+        self.assertEqual(schedule["status"], "overdue")
+        self.assertEqual(schedule["next_at"], last_started + timedelta(minutes=60))
+        self.assertEqual(schedule["last_started_at"], last_started)
+        self.assertTrue(schedule["is_overdue"])
+
+        cycle_started = now + timedelta(minutes=2)
+        self.assertEqual(claim_periodic_refresh_start(started_at=cycle_started), cycle_started)
+        recovered = next_periodic_refresh_schedule(now=cycle_started + timedelta(minutes=1))
+        self.assertEqual(recovered["status"], "scheduled")
+        self.assertEqual(recovered["last_started_at"], cycle_started)
+        self.assertEqual(recovered["next_at"], cycle_started + timedelta(minutes=60))
+
+    def test_work_state_requires_a_live_lease_and_recent_heartbeat(self):
+        now = timezone.now()
+        batch = RefreshBatch.objects.create(status=RefreshBatch.Status.RUNNING, heartbeat_at=now)
+        source_run = OperationalRun.objects.create(
+            kind=OperationalRun.Kind.INGESTION,
+            operation="source_query",
+            started_at=now,
+        )
+        item = RefreshWorkItem.objects.create(
+            batch=batch,
+            source_run=source_run,
+            source="elempleo_co",
+            identity="safe-test-identity",
+            status=RefreshWorkItem.Status.RUNNING,
+            heartbeat_at=now,
+            lease_expires_at=now + timedelta(minutes=5),
+        )
+
+        self.assertEqual(next_periodic_refresh_schedule(now=now)["work_state"], "active")
+
+        item.lease_expires_at = now - timedelta(seconds=1)
+        item.heartbeat_at = now - timedelta(minutes=20)
+        item.save(update_fields=("lease_expires_at", "heartbeat_at"))
+        batch.heartbeat_at = now - timedelta(minutes=20)
+        batch.save(update_fields=("heartbeat_at",))
+        self.assertEqual(next_periodic_refresh_schedule(now=now)["work_state"], "uncertain")
+
+        item.status = RefreshWorkItem.Status.QUEUED
+        item.save(update_fields=("status",))
+        batch.status = RefreshBatch.Status.QUEUED
+        batch.save(update_fields=("status",))
+        self.assertEqual(next_periodic_refresh_schedule(now=now)["work_state"], "queued")
+
+        item.status = RefreshWorkItem.Status.RUNNING
+        item.heartbeat_at = now
+        item.lease_expires_at = now + timedelta(minutes=5)
+        item.save(update_fields=("status", "heartbeat_at", "lease_expires_at"))
+        batch.status = RefreshBatch.Status.RUNNING
+        batch.heartbeat_at = now
+        batch.save(update_fields=("status", "heartbeat_at"))
+        OperationalParameter.objects.create(key=PROCESSING_PAUSED_KEY, value=1)
+        paused = next_periodic_refresh_schedule(now=now)
+        self.assertEqual(paused["status"], "paused")
+        self.assertEqual(paused["work_state"], "active")
 
     def test_periodic_start_timestamp_is_persisted_and_updated(self):
         first = timezone.now() - timedelta(hours=2)
@@ -188,3 +264,25 @@ class ScheduleViewIntegrationTests(TestCase):
         self.assertEqual(schedule["next_at"], last_started_at + timedelta(minutes=90))
         self.assertContains(changed_dashboard, schedule["next_at"].strftime("%H:%M"))
         self.assertContains(changed_admin, schedule["next_at"].strftime("%H:%M"))
+
+    def test_schedule_status_endpoint_is_authenticated_and_hides_last_start_from_applicants(self):
+        from datetime import datetime
+
+        applicant = get_user_model().objects.create_user("schedule-status-applicant", password="strong-pass")
+        admin = get_user_model().objects.create_superuser("schedule-status-admin", password="strong-pass")
+        last_started = timezone.make_aware(datetime(2026, 11, 12, 14, 0))
+        record_periodic_refresh_start(started_at=last_started)
+        applicant_client = type(self.client)()
+        admin_client = type(self.client)()
+
+        self.assertEqual(applicant_client.get(reverse("operations:schedule_status")).status_code, 302)
+        applicant_client.force_login(applicant)
+        applicant_response = applicant_client.get(reverse("operations:schedule_status"))
+        self.assertEqual(applicant_response.status_code, 200)
+        self.assertNotIn("last_started_at", applicant_response.json())
+        self.assertEqual(applicant_client.get(reverse("operations:admin_schedule_status")).status_code, 403)
+
+        admin_client.force_login(admin)
+        admin_response = admin_client.get(reverse("operations:admin_schedule_status"))
+        self.assertEqual(admin_response.status_code, 200)
+        self.assertEqual(admin_response.json()["last_started_at"], last_started.isoformat())

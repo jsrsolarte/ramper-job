@@ -65,6 +65,7 @@ class DashboardPrivacyTests(TestCase):
 
         cases = (
             ({"status": "scheduled", "next_at": next_at, "is_overdue": False}, "Próxima búsqueda automática estimada:", "Una actualización manual"),
+            ({"status": "overdue", "next_at": next_at, "is_overdue": True}, "La búsqueda automática está retrasada.", "Una actualización manual"),
             ({"status": "paused", "next_at": None}, "Las búsquedas automáticas están pausadas.", "Una actualización manual"),
             ({"status": "unavailable", "next_at": None}, "todavía no está disponible", "Una actualización manual"),
         )
@@ -76,6 +77,14 @@ class DashboardPrivacyTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertContains(response, expected)
                 self.assertContains(response, warning)
+
+    def test_dashboard_schedule_status_refresh_is_read_only(self):
+        self.client.force_login(self.first)
+        with patch("jobs.tasks.refresh_periodic_sources.delay") as enqueue:
+            response = self.client.get(reverse("dashboard:home"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-status-url="/admin/operaciones/horario/estado/"')
+        enqueue.assert_not_called()
 
     def test_dashboard_only_shows_owner_results_sorted_by_score(self):
         self.best.vacancy.raw_data = {

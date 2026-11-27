@@ -13,16 +13,27 @@
   </div>
 </section>
 
-<section class="notice" aria-label="Horario de búsqueda automática">
-  {% if automatic_refresh_schedule.status == "paused" %}
-    <strong>Las búsquedas automáticas están pausadas.</strong>
-  {% elif automatic_refresh_schedule.quiet_window %}
-    La pausa horaria está activa. Las búsquedas automáticas pendientes se reanudarán al terminar la ventana.{% if automatic_refresh_schedule.next_at %} Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).{% endif %}
-  {% elif automatic_refresh_schedule.next_at %}
-    Próxima búsqueda automática estimada: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).
-  {% else %}
-    El horario de la próxima búsqueda automática todavía no está disponible.
-  {% endif %}
+<section class="notice" aria-label="Horario de búsqueda automática" data-refresh-schedule data-status-url="{% url 'operations:schedule_status' %}">
+  <p data-refresh-schedule-summary>
+    {% if automatic_refresh_schedule.status == "paused" %}
+      <strong>Las búsquedas automáticas están pausadas.</strong>
+    {% elif automatic_refresh_schedule.status == "overdue" and automatic_refresh_schedule.next_at %}
+      <strong>La búsqueda automática está retrasada.</strong> Hora estimada vencida: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).
+    {% elif automatic_refresh_schedule.quiet_window %}
+      La pausa horaria está activa. Las búsquedas automáticas se reanudarán al terminar la ventana.{% if automatic_refresh_schedule.next_at %} Próximo ciclo estimado: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).{% endif %}
+    {% elif automatic_refresh_schedule.next_at %}
+      Próxima búsqueda automática estimada: <time datetime="{{ automatic_refresh_schedule.next_at|date:'c' }}">{{ automatic_refresh_schedule.next_at|date:"l, d F Y H:i" }}</time> (hora local).
+    {% else %}
+      El horario de la próxima búsqueda automática todavía no está disponible.
+    {% endif %}
+  </p>
+  <p data-refresh-work-summary aria-live="polite">
+    {% if automatic_refresh_schedule.work_state == "active" %}Hay trabajo de búsqueda en curso, confirmado por su actividad reciente.
+    {% elif automatic_refresh_schedule.work_state == "queued" %}Hay trabajo de búsqueda pendiente o en cola.
+    {% elif automatic_refresh_schedule.work_state == "uncertain" %}Hay trabajo registrado, pero no se puede confirmar que siga en curso.
+    {% elif automatic_refresh_schedule.work_state == "idle" %}No hay una búsqueda en curso confirmada.
+    {% else %}El estado del trabajo todavía no está disponible.{% endif %}
+  </p>
   <span>Una actualización manual o un cambio en un perfil puede iniciar una búsqueda antes.</span>
 </section>
 

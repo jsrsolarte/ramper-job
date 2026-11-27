@@ -144,6 +144,8 @@ CELERY_TASK_ROUTES = {
     "jobs.tasks.refresh_periodic_sources": {"queue": "matching_v2"},
     "operations.tasks.cleanup_operational_history": {"queue": "matching_v2"},
     "operations.tasks.deactivate_inactive_applicants": {"queue": "matching_v2"},
+    "operations.tasks.evaluate_operational_alerts": {"queue": "matching_v2"},
+    "operations.tasks.execute_vacancy_cleanup": {"queue": "matching_v2"},
     "matching.tasks.analyze_vacancy_for_profile": {"queue": "matching_v2"},
     "matching.tasks.schedule_legacy_analyses": {"queue": "matching_v2"},
     "matching.tasks.schedule_profile_analyses": {"queue": "matching_v2"},
@@ -155,6 +157,10 @@ CELERY_TASK_ROUTES = {
     "matching.tasks.reconcile_organizations": {"queue": "matching_v2"},
 }
 CELERY_BEAT_SCHEDULE = {
+    "evaluate-operational-alerts": {
+        "task": "operations.tasks.evaluate_operational_alerts",
+        "schedule": 5 * 60,
+    },
     "discard-stale-recommendations": {
         "task": "dashboard.tasks.discard_stale_recommendations",
         "schedule": crontab(hour=3, minute=0),

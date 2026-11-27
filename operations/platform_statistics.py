@@ -10,7 +10,7 @@ from dashboard.models import VacancyFollowUp
 from dashboard.score_display import score_star_states
 from matching.models import AICallAttempt, VacancyAnalysis
 
-from .models import OperationalRun
+from .models import OperationalRun, VacancyDataCoverage
 
 
 SCORE_PERIODS = {
@@ -213,6 +213,9 @@ def build_platform_statistics(*, period="30d", now=None):
     coverage_start = AICallAttempt.objects.filter(
         stage=AICallAttempt.Stage.SCORING,
     ).aggregate(first=Min("created_at"))["first"]
+    cleanup_coverage = VacancyDataCoverage.objects.filter(pk=1).first()
+    if cleanup_coverage and (coverage_start is None or cleanup_coverage.covered_from > coverage_start):
+        coverage_start = cleanup_coverage.covered_from
     coverage_start = timezone.localtime(coverage_start) if coverage_start else None
     coverage_complete = bool(coverage_start and requested_start >= coverage_start)
     effective_start = max(requested_start, coverage_start) if coverage_start else None
@@ -259,6 +262,7 @@ def build_platform_statistics(*, period="30d", now=None):
         "requested_start": timezone.localtime(requested_start),
         "coverage_start": coverage_start,
         "coverage_complete": coverage_complete,
+        "history_reset": cleanup_coverage is not None,
         "score_distributions": distributions,
         "has_score_data": any(item["sample_size"] for item in distributions),
         "format_failures": format_failures,

@@ -8,7 +8,7 @@
     <title>{% block title %}Jobs{% endblock %}</title>
     <link rel="icon" type="image/svg+xml" href="{% static 'brand/jobs/favicon.svg' %}">
     <link rel="manifest" href="{% static 'manifest.json' %}?v=jobs-1">
-    <link rel="stylesheet" href="/static/app.css?v=30">
+    <link rel="stylesheet" href="/static/app.css?v=31">
     <script src="/static/score-range.js?v=3" defer></script>
     <script src="{% static 'table-scroll.js' %}" defer></script>
     <script src="{% static 'push-notifications.js' %}?v=1" defer></script>
@@ -70,5 +70,7 @@
         <span class="site-footer-signature"><span>By</span><img src="{% static 'brand/ramper/ramper-lockup-v0.6-light.svg' %}" alt="RamPer"></span>
       </div>
     </footer>
+    <script src="{% static 'automatic-refresh-status.js' %}" defer></script>
+    <script src="{% static 'operational-alert-push.js' %}?v=1" defer></script>
   </body>
 </html>

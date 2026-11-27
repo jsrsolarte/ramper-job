@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Limpieza de vacantes · Administración{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <p class="eyebrow">Mantenimiento administrativo</p>
+  <h1>Limpiar datos de vacantes</h1>
+  <p>La operación elimina datos de vacantes y su historial asociado. Los perfiles, archivos CV, cuentas y configuración se conservan.</p>
+</section>
+<section class="admin-tool" aria-label="Vista previa de limpieza">
+  <h2>Vista previa</h2>
+  <p class="notice notice-warning" role="alert"><strong>Acción irreversible.</strong> No hay respaldos configurados. Los datos eliminados no se podrán recuperar.</p>
+  <ul>
+    <li>{{ counts.vacancies }} vacantes</li>
+    <li>{{ counts.analyses }} análisis y resultados</li>
+    <li>{{ counts.organizations }} organizaciones analizadas</li>
+    <li>{{ counts.discoveries }} descubrimientos de perfil</li>
+    <li>{{ counts.follow_ups }} seguimientos y {{ counts.recommendation_events }} eventos de recomendación</li>
+    <li>{{ counts.manual_submissions }} solicitudes manuales</li>
+    <li>{{ counts.search_runs }} ejecuciones, {{ counts.refresh_batches }} ciclos y {{ counts.work_items }} unidades de búsqueda</li>
+    <li>{{ counts.detail_leases }} reservas de fichas y {{ counts.refresh_commands }} comandos de búsqueda</li>
+  </ul>
+  <h3>Se conservarán</h3>
+  <p>Cuentas y usuarios, perfiles y revisiones, archivos CV, preferencias push, configuraciones de análisis, parámetros, horarios y auditoría administrativa.</p>
+  {% if active_operation %}
+  <div class="notice notice-warning" role="status">
+    <strong>Operación {{ active_operation.pk }}: {{ active_operation.get_status_display }}.</strong>
+    {% if active_operation.error_category %}La operación requiere recuperación manual segura (código {{ active_operation.error_category }}).{% else %}El procesamiento permanece pausado mientras termina el trabajo activo.{% endif %}
+    <form method="post" action="{% url 'operations:retry_vacancy_cleanup' active_operation.pk %}">{% csrf_token %}<button class="button" type="submit">Solicitar recuperación segura</button></form>
+  </div>
+  {% elif has_cleanup_data %}
+  <form method="post" class="admin-form">
+    {% csrf_token %}
+    <input type="hidden" name="confirmation_token" value="{{ confirmation_token }}">
+    <label for="cleanup-confirmation">Escribe <strong>ELIMINAR VACANTES</strong> para confirmar esta vista previa</label>
+    <input id="cleanup-confirmation" name="confirmation_phrase" autocomplete="off" required>
+    <button class="button button-danger" type="submit">Iniciar limpieza</button>
+  </form>
+  {% else %}<p>No hay datos de vacantes que limpiar.</p>{% endif %}
+</section>
+<section class="admin-tool">
+  <h2>Operaciones recientes</h2>
+  {% for operation in operations %}
+  <article>
+    <p><strong>#{{ operation.pk }} · {{ operation.get_status_display }}</strong> · {{ operation.requested_at|date:"d/m/Y H:i" }} · {{ operation.requested_by.username }}</p>
+    {% if operation.counts %}<p>{{ operation.counts.vacancies }} vacantes, {{ operation.counts.analyses }} análisis y {{ operation.counts.follow_ups }} seguimientos eliminados.</p>{% endif %}
+    {% if operation.error_category %}<p>Incidencia: {{ operation.error_category }}</p>{% endif %}
+  </article>
+  {% empty %}<p>Aún no hay operaciones.</p>{% endfor %}
+</section>
+{% endblock %}

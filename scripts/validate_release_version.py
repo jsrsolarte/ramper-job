@@ -6,6 +6,9 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from operations.release_version import ReleaseVersionError, validate_release_tag
 

@@ -1,11 +1,16 @@
-import os
+from pathlib import Path
 
 from profiles.models import Profile
 
+VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
+
 
 def app_version(_request):
-    """Expose the deployment-provided identifier without inventing a fallback."""
-    value = os.getenv("APP_VERSION", "").strip()
+    """Expose the semantic product version; deployment identity stays in the image tag."""
+    try:
+        value = VERSION_FILE.read_text(encoding="utf-8").strip()
+    except OSError:
+        value = ""
     return {"app_version": value or None}
 
 
